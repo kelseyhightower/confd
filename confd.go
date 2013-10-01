@@ -110,20 +110,18 @@ func main() {
 				if err != nil {
 					log.Fatal(err.Error())
 				}
-
-				fmt.Printf("Uid %d\n", tmplConfig.Uid)
+				myMode, _ := strconv.ParseUint(tmplConfig.Mode, 0, 32)
+				os.Chmod(temp.Name(), os.FileMode(myMode))
+				os.Chown(temp.Name(), tmplConfig.Uid, tmplConfig.Gid)
 
 				if isSync(temp.Name(), tmplConfig.Dest) {
 					log.Print("Files are in sync")
 				} else {
 					log.Print("File not in sync")
+					os.Rename(temp.Name(), tmplConfig.Dest)
+					cmd := cfg.Services[tmplConfig.Service].ReloadCmd
+					log.Printf("Running %s", cmd)
 				}
-
-				os.Rename(temp.Name(), tmplConfig.Dest)
-
-				myMode, _ := strconv.ParseUint(tmplConfig.Mode, 0, 32)
-				os.Chmod(tmplConfig.Dest, os.FileMode(myMode))
-				os.Chown(tmplConfig.Dest, tmplConfig.Uid, tmplConfig.Gid)
 			} else {
 				log.Fatal("Missing template: " + tmpl)
 			}
@@ -152,8 +150,27 @@ func Stat(name string) (fi FileInfo, err error) {
 }
 
 func isSync(src, dest string) bool {
-	// Compare current and old files
+	old, err := Stat(dest)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
+	n, err := Stat(src)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	if old.Uid != n.Uid {
+		return false
+	}
+	if old.Gid != n.Gid {
+		return false
+	}
+	if old.Mode != n.Mode {
+		return false
+	}
+	if old.Md5 != n.Md5 {
+		return false
+	}
 	return true
 }
 
