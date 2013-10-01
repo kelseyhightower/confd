@@ -1,16 +1,29 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/go-ini"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
 	"text/template"
 )
+
+type FileInfo struct {
+	Uid  uint32
+	Gid  uint32
+	Mode uint16
+	Md5  string
+}
 
 type Settings struct {
 	ConfigDir  string
@@ -30,10 +43,10 @@ type Service struct {
 
 type Template struct {
 	Dest    string
-	Group   string
+	Gid     int
 	Keys    []string
 	Mode    string
-	Owner   string
+	Uid     int
 	Service string
 	Src     string
 }
@@ -98,17 +111,50 @@ func main() {
 					log.Fatal(err.Error())
 				}
 
-				// Compare group and owner
-				// Compare file mode
-				// Compare file contents
-				// If anything out of sync copy the temp file to the dest
-				// and reload the service.
+				fmt.Printf("Uid %d\n", tmplConfig.Uid)
+
+				if isSync(temp.Name(), tmplConfig.Dest) {
+					log.Print("Files are in sync")
+				} else {
+					log.Print("File not in sync")
+				}
+
 				os.Rename(temp.Name(), tmplConfig.Dest)
+
+				myMode, _ := strconv.ParseUint(tmplConfig.Mode, 0, 32)
+				os.Chmod(tmplConfig.Dest, os.FileMode(myMode))
+				os.Chown(tmplConfig.Dest, tmplConfig.Uid, tmplConfig.Gid)
 			} else {
 				log.Fatal("Missing template: " + tmpl)
 			}
 		}
 	}
+}
+
+func Stat(name string) (fi FileInfo, err error) {
+	if isFileExist(name) {
+		f, err := os.Open(name)
+		defer f.Close()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		stats, _ := f.Stat()
+		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
+		fi.Gid = stats.Sys().(*syscall.Stat_t).Gid
+		fi.Mode = stats.Sys().(*syscall.Stat_t).Mode
+		h := md5.New()
+		io.Copy(h, f)
+		fi.Md5 = fmt.Sprintf("%x", h.Sum(nil))
+		return fi, nil
+	} else {
+		return fi, errors.New("File not found")
+	}
+}
+
+func isSync(src, dest string) bool {
+	// Compare current and old files
+
+	return true
 }
 
 func setConfig() error {
@@ -123,7 +169,6 @@ func setConfig() error {
 		if err != nil {
 			return err
 		}
-
 		if configDir, ok := s.Get("main", "config_dir"); ok {
 			settings.ConfigDir = configDir
 		}
