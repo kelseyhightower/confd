@@ -197,12 +197,10 @@ func isSync(src, dest string) bool {
 }
 
 func setConfig() error {
-	// Set defaults
 	settings.ConfigDir = "/etc/confd/conf.d"
 	settings.EtcdURL = "http://0.0.0.0:4001"
 	settings.EtcdPrefix = "/"
 
-	// Override defaults from config file.
 	if isFileExist(defaultConfig) {
 		s, err := ini.LoadFile(defaultConfig)
 		if err != nil {
