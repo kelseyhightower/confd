@@ -61,13 +61,10 @@ func main() {
 	if err := setConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-
-	// Get config
 	configs, err := filepath.Glob(filepath.Join(settings.ConfigDir, "*json"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	for _, config := range configs {
 		if err := ProcessConfig(config); err != nil {
 			log.Println(err.Error())
@@ -166,7 +163,7 @@ func Stat(name string) (fi FileInfo, err error) {
 }
 
 func isSync(src, dest string) bool {
-	if ! isFileExist(dest) {
+	if !isFileExist(dest) {
 		return false
 	}
 	old, err := Stat(dest)
