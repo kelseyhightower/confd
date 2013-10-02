@@ -52,6 +52,7 @@ type Template struct {
 	Uid     int
 	Service string
 	Src     string
+	Vars    map[string]interface{}
 }
 
 var settings Settings
@@ -72,24 +73,6 @@ func main() {
 	}
 }
 
-func GetValuesFromEctd(keys []string) (map[string]interface{}, error) {
-	c := etcd.NewClient()
-	r := strings.NewReplacer("/", "_")
-	m := make(map[string]interface{})
-	for _, key := range keys {
-		values, err := c.Get(filepath.Join(settings.EtcdPrefix, key))
-		if err != nil {
-			return m, err
-		}
-		for _, v := range values {
-			key := strings.TrimPrefix(v.Key, settings.EtcdPrefix)
-			new_key := r.Replace(key)
-			m[new_key] = v.Value
-		}
-	}
-	return m, nil
-}
-
 func NewConfigFromFile(name string) (*Config, error) {
 	var c *Config
 	f, err := ioutil.ReadFile(name)
@@ -108,8 +91,7 @@ func ProcessConfig(config string) error {
 		return err
 	}
 	for _, t := range c.Templates {
-		m, err := GetValuesFromEctd(t.Keys)
-		if err != nil {
+		if err := t.GetValuesFromEctd(); err != nil {
 			return err
 		}
 		src := filepath.Join(settings.ConfigDir, "templates", t.Src)
@@ -121,13 +103,12 @@ func ProcessConfig(config string) error {
 			}
 
 			tmpl := template.Must(template.New(t.Src).ParseFiles(src))
-			if err = tmpl.Execute(temp, m); err != nil {
+			if err = tmpl.Execute(temp, t.Vars); err != nil {
 				return err
 			}
-			mode, _ := strconv.ParseUint(t.Mode, 0, 32)
-			os.Chmod(temp.Name(), os.FileMode(mode))
-			os.Chown(temp.Name(), t.Uid, t.Gid)
-
+			if err = t.SetFileAttrs(temp.Name()); err != nil {
+				return err
+			}
 			if isSync(temp.Name(), t.Dest) {
 				log.Print("Files are in sync")
 			} else {
@@ -140,6 +121,31 @@ func ProcessConfig(config string) error {
 			return errors.New("Missing template: " + src)
 		}
 	}
+	return nil
+}
+
+func (t *Template) GetValuesFromEctd() error {
+	c := etcd.NewClient()
+	r := strings.NewReplacer("/", "_")
+	t.Vars = make(map[string]interface{})
+	for _, key := range t.Keys {
+		values, err := c.Get(filepath.Join(settings.EtcdPrefix, key))
+		if err != nil {
+			return err
+		}
+		for _, v := range values {
+			key := strings.TrimPrefix(v.Key, settings.EtcdPrefix)
+			new_key := r.Replace(key)
+			t.Vars[new_key] = v.Value
+		}
+	}
+	return nil
+}
+
+func (t *Template) SetFileAttrs(name string) error {
+	mode, _ := strconv.ParseUint(t.Mode, 0, 32)
+	os.Chmod(name, os.FileMode(mode))
+	os.Chown(name, t.Uid, t.Gid)
 	return nil
 }
 
