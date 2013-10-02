@@ -112,19 +112,15 @@ func ProcessConfig(config string) error {
 		if err != nil {
 			return err
 		}
-		confTmpl := filepath.Join(settings.ConfigDir, "templates", t.Src)
-		if isFileExist(confTmpl) {
+		src := filepath.Join(settings.ConfigDir, "templates", t.Src)
+		if isFileExist(src) {
 			temp, err := ioutil.TempFile("", "")
 			defer os.Remove(temp.Name())
 			if err != nil {
 				return err
 			}
 
-			data, err := ioutil.ReadFile(confTmpl)
-			if err != nil {
-				return err
-			}
-			tmpl := template.Must(template.New("test").Parse(string(data)))
+			tmpl := template.Must(template.New(t.Src).ParseFiles(src))
 			err = tmpl.Execute(temp, m)
 			if err != nil {
 				return err
@@ -142,7 +138,7 @@ func ProcessConfig(config string) error {
 				log.Printf("Running %s", cmd)
 			}
 		} else {
-			return errors.New("Missing template: " + confTmpl)
+			return errors.New("Missing template: " + src)
 		}
 	}
 	return nil
