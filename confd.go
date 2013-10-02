@@ -121,8 +121,7 @@ func ProcessConfig(config string) error {
 			}
 
 			tmpl := template.Must(template.New(t.Src).ParseFiles(src))
-			err = tmpl.Execute(temp, m)
-			if err != nil {
+			if err = tmpl.Execute(temp, m); err != nil {
 				return err
 			}
 			mode, _ := strconv.ParseUint(t.Mode, 0, 32)
