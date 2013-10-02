@@ -61,7 +61,6 @@ func main() {
 	if err := setConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	c := etcd.NewClient()
 
 	// Get config
 	configs, err := filepath.Glob(filepath.Join(settings.ConfigDir, "*json"))
@@ -70,66 +69,80 @@ func main() {
 	}
 
 	for _, config := range configs {
-		f, err := ioutil.ReadFile(config)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-
-		var cfg *Config
-		err = json.Unmarshal(f, &cfg)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-
-		// Get the values we care about.
-		r := strings.NewReplacer("/", "_")
-		for _, tmplConfig := range cfg.Templates {
-			m := make(map[string]interface{})
-			for _, key := range tmplConfig.Keys {
-				values, err := c.Get(filepath.Join(settings.EtcdPrefix, key))
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-				for _, v := range values {
-					key := strings.TrimPrefix(v.Key, settings.EtcdPrefix)
-					new_key := r.Replace(key)
-					m[new_key] = v.Value
-				}
-			}
-			tmpl := filepath.Join(settings.ConfigDir, "templates", tmplConfig.Src)
-			if isFileExist(tmpl) {
-				temp, err := ioutil.TempFile("", "")
-				defer os.Remove(temp.Name())
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-
-				data, err := ioutil.ReadFile(tmpl)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-				t := template.Must(template.New("test").Parse(string(data)))
-				err = t.Execute(temp, m)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-				myMode, _ := strconv.ParseUint(tmplConfig.Mode, 0, 32)
-				os.Chmod(temp.Name(), os.FileMode(myMode))
-				os.Chown(temp.Name(), tmplConfig.Uid, tmplConfig.Gid)
-
-				if isSync(temp.Name(), tmplConfig.Dest) {
-					log.Print("Files are in sync")
-				} else {
-					log.Print("File not in sync")
-					os.Rename(temp.Name(), tmplConfig.Dest)
-					cmd := cfg.Services[tmplConfig.Service].ReloadCmd
-					log.Printf("Running %s", cmd)
-				}
-			} else {
-				log.Fatal("Missing template: " + tmpl)
-			}
+		if err := ProcessConfig(config); err != nil {
+			log.Println(err.Error())
 		}
 	}
+}
+
+func GetValuesFromEctd(keys []string) (map[string]interface{}, error) {
+	c := etcd.NewClient()
+	r := strings.NewReplacer("/", "_")
+	m := make(map[string]interface{})
+	for _, key := range keys {
+		values, err := c.Get(filepath.Join(settings.EtcdPrefix, key))
+		if err != nil {
+			return m, err
+		}
+		for _, v := range values {
+			key := strings.TrimPrefix(v.Key, settings.EtcdPrefix)
+			new_key := r.Replace(key)
+			m[new_key] = v.Value
+		}
+	}
+	return m, nil
+}
+
+func ProcessConfig(config string) error {
+	f, err := ioutil.ReadFile(config)
+	if err != nil {
+		return err
+	}
+
+	var cfg *Config
+	if err = json.Unmarshal(f, &cfg); err != nil {
+		return err
+	}
+
+	for _, tmplConfig := range cfg.Templates {
+		m, err := GetValuesFromEctd(tmplConfig.Keys)
+		if err != nil {
+			return err
+		}
+		tmpl := filepath.Join(settings.ConfigDir, "templates", tmplConfig.Src)
+		if isFileExist(tmpl) {
+			temp, err := ioutil.TempFile("", "")
+			defer os.Remove(temp.Name())
+			if err != nil {
+				return err
+			}
+
+			data, err := ioutil.ReadFile(tmpl)
+			if err != nil {
+				return err
+			}
+			t := template.Must(template.New("test").Parse(string(data)))
+			err = t.Execute(temp, m)
+			if err != nil {
+				return err
+			}
+			myMode, _ := strconv.ParseUint(tmplConfig.Mode, 0, 32)
+			os.Chmod(temp.Name(), os.FileMode(myMode))
+			os.Chown(temp.Name(), tmplConfig.Uid, tmplConfig.Gid)
+
+			if isSync(temp.Name(), tmplConfig.Dest) {
+				log.Print("Files are in sync")
+			} else {
+				log.Print("File not in sync")
+				os.Rename(temp.Name(), tmplConfig.Dest)
+				cmd := cfg.Services[tmplConfig.Service].ReloadCmd
+				log.Printf("Running %s", cmd)
+			}
+		} else {
+			return errors.New("Missing template: " + tmpl)
+		}
+	}
+	return nil
 }
 
 func Stat(name string) (fi FileInfo, err error) {
@@ -137,7 +150,7 @@ func Stat(name string) (fi FileInfo, err error) {
 		f, err := os.Open(name)
 		defer f.Close()
 		if err != nil {
-			log.Fatal(err.Error())
+			return fi, err
 		}
 		stats, _ := f.Stat()
 		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
@@ -153,6 +166,9 @@ func Stat(name string) (fi FileInfo, err error) {
 }
 
 func isSync(src, dest string) bool {
+	if ! isFileExist(dest) {
+		return false
+	}
 	old, err := Stat(dest)
 	if err != nil {
 		log.Fatal(err.Error())
