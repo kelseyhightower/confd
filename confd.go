@@ -90,53 +90,59 @@ func GetValuesFromEctd(keys []string) (map[string]interface{}, error) {
 	return m, nil
 }
 
+func NewConfigFromFile(name string) (*Config, error) {
+	var c *Config
+	f, err := ioutil.ReadFile(name)
+	if err != nil {
+		return c, err
+	}
+	if err = json.Unmarshal(f, &c); err != nil {
+		return c, err
+	}
+	return c, nil
+}
+
 func ProcessConfig(config string) error {
-	f, err := ioutil.ReadFile(config)
+	c, err := NewConfigFromFile(config)
 	if err != nil {
 		return err
 	}
-
-	var cfg *Config
-	if err = json.Unmarshal(f, &cfg); err != nil {
-		return err
-	}
-
-	for _, tmplConfig := range cfg.Templates {
-		m, err := GetValuesFromEctd(tmplConfig.Keys)
+	for _, t := range c.Templates {
+		m, err := GetValuesFromEctd(t.Keys)
 		if err != nil {
 			return err
 		}
-		tmpl := filepath.Join(settings.ConfigDir, "templates", tmplConfig.Src)
-		if isFileExist(tmpl) {
+		confTmpl := filepath.Join(settings.ConfigDir, "templates", t.Src)
+		if isFileExist(confTmpl) {
 			temp, err := ioutil.TempFile("", "")
 			defer os.Remove(temp.Name())
 			if err != nil {
 				return err
 			}
 
-			data, err := ioutil.ReadFile(tmpl)
+			data, err := ioutil.ReadFile(confTmpl)
 			if err != nil {
 				return err
 			}
-			t := template.Must(template.New("test").Parse(string(data)))
-			err = t.Execute(temp, m)
+			tmpl := template.Must(template.New("test").Parse(string(data)))
+			err = tmpl.Execute(temp, m)
 			if err != nil {
 				return err
 			}
-			myMode, _ := strconv.ParseUint(tmplConfig.Mode, 0, 32)
-			os.Chmod(temp.Name(), os.FileMode(myMode))
-			os.Chown(temp.Name(), tmplConfig.Uid, tmplConfig.Gid)
+			mode, _ := strconv.ParseUint(t.Mode, 0, 32)
+			os.Chmod(temp.Name(), os.FileMode(mode))
+			os.Chown(temp.Name(), t.Uid, t.Gid)
 
-			if isSync(temp.Name(), tmplConfig.Dest) {
+			if isSync(temp.Name(), t.Dest) {
 				log.Print("Files are in sync")
 			} else {
 				log.Print("File not in sync")
-				os.Rename(temp.Name(), tmplConfig.Dest)
-				cmd := cfg.Services[tmplConfig.Service].ReloadCmd
+				os.Rename(temp.Name(), t.Dest)
+				cmd := c.Services[t.Service].ReloadCmd
 				log.Printf("Running %s", cmd)
 			}
 		} else {
-			return errors.New("Missing template: " + tmpl)
+			return errors.New("Missing template: " + confTmpl)
 		}
 	}
 	return nil
