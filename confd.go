@@ -29,9 +29,10 @@ type FileInfo struct {
 }
 
 type Settings struct {
-	ConfigDir  string
-	EtcdURL    string
-	EtcdPrefix string
+	ConfigDir   string
+	EtcdURL     string
+	EtcdPrefix  string
+	TemplateDir string
 }
 
 type Config struct {
@@ -94,7 +95,7 @@ func ProcessConfig(config string) error {
 		if err := t.GetValuesFromEctd(); err != nil {
 			return err
 		}
-		src := filepath.Join(settings.ConfigDir, "templates", t.Src)
+		src := filepath.Join(settings.TemplateDir, t.Src)
 		if isFileExist(src) {
 			temp, err := ioutil.TempFile("", "")
 			defer os.Remove(temp.Name())
@@ -217,6 +218,7 @@ func setConfig() error {
 			settings.EtcdPrefix = etcdPrefix
 		}
 	}
+	settings.TemplateDir = filepath.Join(settings.ConfigDir, "templates")
 	return nil
 }
 
