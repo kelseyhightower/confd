@@ -9,10 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/coreos/go-etcd/etcd"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/go-ini"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -72,7 +72,7 @@ func main() {
 	for {
 		for _, config := range configs {
 			if err := ProcessConfig(config); err != nil {
-				log.Println(err.Error())
+				log.Error(err.Error())
 			}
 		}
 		interval, err := strconv.ParseInt(settings.Interval, 0, 64)
@@ -119,13 +119,11 @@ func ProcessConfig(config string) error {
 			if err = t.SetFileAttrs(temp.Name()); err != nil {
 				return err
 			}
-			if isSync(temp.Name(), t.Dest) {
-				log.Print("Files are in sync")
-			} else {
-				log.Print("File not in sync")
+			if !isSync(temp.Name(), t.Dest) {
+				log.Info(t.Dest + " not in sync")
 				os.Rename(temp.Name(), t.Dest)
 				cmd := c.Services[t.Service].ReloadCmd
-				log.Printf("Running %s", cmd)
+				log.Info("Running " + cmd)
 			}
 		} else {
 			return errors.New("Missing template: " + src)
