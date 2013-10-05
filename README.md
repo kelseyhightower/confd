@@ -18,11 +18,11 @@ confd loads external configuration from `/etc/confd/confd.toml`
 ```TOML
 [confd]
 configdir = "/etc/confd/conf.d"
-templatedir = "/etc/confd/conf.d/templates"
-interval = 30
+templatedir = "/etc/confd/templates"
+interval = 600
 
 [etcd]
-prefix = "/environment/app/uuid"
+prefix = "/production/app"
 machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
 ```
 
@@ -56,11 +56,12 @@ Config templates are written in the JSON format and stored under the
       "service": "example"
     }
   ],
-  "services": {
-    "example": {
-      "reload_cmd": "/usr/bin/touch /tmp/example-reloaded"
+  "services": [
+    {
+      "name": "example",
+      "cmd": "/usr/bin/touch /tmp/example-reloaded"
     }
-  }
+  ]
 }
 ```
 
@@ -82,6 +83,26 @@ Optional:
  * `mode` - mode the file should be in.
  * `owner` - name of the user that should own the file.
  * `service` - name of the service resource that should be notified on changes.
+
+Example:
+
+ * `/etc/confd/conf.d/nginx.json`
+ * `/etc/confd/templates/nginx.conf.tmpl`
+
+```JSON
+{
+  "keys": [
+    "/nginx/port",
+    "/nginx/servername"
+  ],
+  "src": "nginx.conf.tmpl",
+  "dest": "/etc/nginx/nginx.conf",
+  "owner": "root",
+  "group": "root",
+  "mode": "0644",
+  "service": "nginx"
+}
+```
 
 ### Service Resource
 
