@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/go-ini"
 	"io"
 	"io/ioutil"
 	"os"
@@ -22,15 +22,28 @@ import (
 	"time"
 )
 
-type Settings struct {
-	ConfigDir   string
-	EtcdURL     string
-	EtcdPrefix  string
-	Interval    string
-	TemplateDir string
-}
+var (
+	config     Config
+	configFile = "/etc/confd/confd.toml"
+)
 
 type Config struct {
+	Confd confdConfig
+	Etcd  etcdConfig
+}
+
+type confdConfig struct {
+	ConfigDir   string
+	TemplateDir string
+	Interval    int
+}
+
+type etcdConfig struct {
+	Prefix   string
+	Machines []string
+}
+
+type ConfigTemplate struct {
 	Templates []Template
 	Services  map[string]Service
 }
@@ -54,28 +67,25 @@ type Template struct {
 type FileInfo struct {
 	Uid  uint32
 	Gid  uint32
-	Mode uint16
+	Mode uint32
 	Md5  string
 }
-
-var settings Settings
-var defaultConfig = "/etc/confd/confd.ini"
 
 func main() {
 	if err := setConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	configs, err := filepath.Glob(filepath.Join(settings.ConfigDir, "*json"))
+	configTemplates, err := filepath.Glob(filepath.Join(config.Confd.ConfigDir, "*json"))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	for {
-		for _, config := range configs {
-			if err := ProcessConfig(config); err != nil {
+		for _, ct := range configTemplates {
+			if err := ProcessConfigTemplate(ct); err != nil {
 				log.Error(err.Error())
 			}
 		}
-		interval, err := strconv.ParseInt(settings.Interval, 0, 64)
+		interval := config.Confd.Interval
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -83,28 +93,29 @@ func main() {
 	}
 }
 
-func NewConfigFromFile(name string) (*Config, error) {
-	var c *Config
+func NewConfigTemplateFromFile(name string) (*ConfigTemplate, error) {
+	var ct *ConfigTemplate
 	f, err := ioutil.ReadFile(name)
 	if err != nil {
-		return c, err
+		return ct, err
 	}
-	if err = json.Unmarshal(f, &c); err != nil {
-		return c, err
+	if err = json.Unmarshal(f, &ct); err != nil {
+		return ct, err
 	}
-	return c, nil
+	return ct, nil
 }
 
-func ProcessConfig(config string) error {
-	c, err := NewConfigFromFile(config)
+func ProcessConfigTemplate(configTemplate string) error {
+	tmplDir := config.Confd.TemplateDir
+	ct, err := NewConfigTemplateFromFile(configTemplate)
 	if err != nil {
 		return err
 	}
-	for _, t := range c.Templates {
+	for _, t := range ct.Templates {
 		if err := t.GetValuesFromEctd(); err != nil {
 			return err
 		}
-		src := filepath.Join(settings.TemplateDir, t.Src)
+		src := filepath.Join(tmplDir, t.Src)
 		if isFileExist(src) {
 			temp, err := ioutil.TempFile("", "")
 			defer os.Remove(temp.Name())
@@ -122,7 +133,7 @@ func ProcessConfig(config string) error {
 			if !isSync(temp.Name(), t.Dest) {
 				log.Info(t.Dest + " not in sync")
 				os.Rename(temp.Name(), t.Dest)
-				cmd := c.Services[t.Service].ReloadCmd
+				cmd := ct.Services[t.Service].ReloadCmd
 				log.Info("Running " + cmd)
 			}
 		} else {
@@ -133,16 +144,25 @@ func ProcessConfig(config string) error {
 }
 
 func (t *Template) GetValuesFromEctd() error {
+	var (
+		prefix   = config.Etcd.Prefix
+		machines = config.Etcd.Machines
+	)
+
 	c := etcd.NewClient()
+	success := c.SetCluster(machines)
+	if !success {
+		log.Fatal("could not sync machines")
+	}
 	r := strings.NewReplacer("/", "_")
 	t.Vars = make(map[string]interface{})
 	for _, key := range t.Keys {
-		values, err := c.Get(filepath.Join(settings.EtcdPrefix, key))
+		values, err := c.Get(filepath.Join(prefix, key))
 		if err != nil {
 			return err
 		}
 		for _, v := range values {
-			key := strings.TrimPrefix(v.Key, settings.EtcdPrefix)
+			key := strings.TrimPrefix(v.Key, prefix)
 			new_key := r.Replace(key)
 			t.Vars[new_key] = v.Value
 		}
@@ -206,31 +226,24 @@ func isSync(src, dest string) bool {
 }
 
 func setConfig() error {
-	settings.ConfigDir = "/etc/confd/conf.d"
-	settings.EtcdURL = "http://0.0.0.0:4001"
-	settings.EtcdPrefix = "/"
-	settings.Interval = "600"
+	etcdDefaults := etcdConfig{
+		Prefix:   "/",
+		Machines: []string{"http://127.0.0.1:4001"},
+	}
+	confdDefaults := confdConfig{
+		Interval:    600,
+		ConfigDir:   "/etc/confd/conf.d",
+		TemplateDir: "/etc/confd/templates",
+	}
+	config.Etcd = etcdDefaults
+	config.Confd = confdDefaults
 
-	if isFileExist(defaultConfig) {
-		s, err := ini.LoadFile(defaultConfig)
+	if isFileExist(configFile) {
+		_, err := toml.DecodeFile(configFile, &config)
 		if err != nil {
 			return err
 		}
-		if configDir, ok := s.Get("main", "config_dir"); ok {
-			settings.ConfigDir = configDir
-		}
-		if etcdURL, ok := s.Get("etcd", "url"); ok {
-			settings.EtcdURL = etcdURL
-		}
-		if etcdPrefix, ok := s.Get("etcd", "prefix"); ok {
-			settings.EtcdPrefix = etcdPrefix
-		}
-		if interval, ok := s.Get("main", "interval"); ok {
-			settings.Interval = interval
-		}
-
 	}
-	settings.TemplateDir = filepath.Join(settings.ConfigDir, "templates")
 	return nil
 }
 
