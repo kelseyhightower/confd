@@ -45,7 +45,9 @@ Config templates are written in the JSON format and stored under the
 }
 ```
 
-## Configuration
+## confd Configuration
+
+confd loads external configuration from `/etc/confd/confd.ini`
 
 ```INI
 [main]
