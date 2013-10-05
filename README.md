@@ -7,6 +7,25 @@ take care of reloading applications to pick up new config file changes.
 
 ## Install
 
+```
+go get github.com/kelseyhightower/confd
+```
+
+## Configuration
+
+confd loads external configuration from `/etc/confd/confd.toml`
+
+```TOML
+[confd]
+configdir = "/etc/confd/conf.d"
+templatedir = "/etc/confd/conf.d/templates"
+interval = 30
+
+[etcd]
+prefix = "/environment/app/uuid"
+machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
+```
+
 ## Config Templates
 
 Config templates are used to define a group of configuration file resources and
@@ -43,19 +62,4 @@ Config templates are written in the JSON format and stored under the
     }
   }
 }
-```
-
-## confd Configuration
-
-confd loads external configuration from `/etc/confd/confd.toml`
-
-```TOML
-[confd]
-configdir = "/etc/confd/conf.d"
-templatedir = "/etc/confd/conf.d/templates"
-interval = 30
-
-[etcd]
-prefix = "/environment/app/uuid"
-machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
 ```
