@@ -70,20 +70,20 @@ Config templates are written in the JSON format and stored under the
 
 Required:
 
- * dest - output file where the template should be rendered.
- * keys - list of etcd keys. Keys will be looked up with the configured prefix.
- * src - relative path of a Go template.
+ * `dest` - output file where the template should be rendered.
+ * `keys` - list of etcd keys. Keys will be looked up with the configured prefix.
+ * `src` - relative path of a Go template.
 
 Optional:
 
- * group - name of the group that should own the file.
- * mode - mode the file should be in.
- * owner - name of the user that should own the file.
- * service - name of the service resource that should be notified on changes.
+ * `group` - name of the group that should own the file.
+ * `mode` - mode the file should be in.
+ * `owner` - name of the user that should own the file.
+ * `service` - name of the service resource that should be notified on changes.
 
 ### Service Resource
 
 Required:
 
- * name - name of the service.
- * cmd - command that should be executed on changes.
+ * `name` - name of the service.
+ * `cmd` - command that should be executed on changes.
