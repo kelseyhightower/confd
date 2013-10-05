@@ -47,14 +47,15 @@ Config templates are written in the JSON format and stored under the
 
 ## confd Configuration
 
-confd loads external configuration from `/etc/confd/confd.ini`
+confd loads external configuration from `/etc/confd/confd.toml`
 
-```INI
-[main]
-config_dir = /etc/confd/conf.d/
+```TOML
+[confd]
+configdir = "/etc/confd/conf.d"
+templatedir = "/etc/confd/conf.d/templates"
 interval = 30
 
 [etcd]
-prefix = /environment/app/uuid
-url = http://127.0.0.1:4001
+prefix = "/environment/app/uuid"
+machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
 ```
