@@ -19,19 +19,14 @@ import (
 	"strings"
 	"syscall"
 	"text/template"
+	"time"
 )
-
-type FileInfo struct {
-	Uid  uint32
-	Gid  uint32
-	Mode uint16
-	Md5  string
-}
 
 type Settings struct {
 	ConfigDir   string
 	EtcdURL     string
 	EtcdPrefix  string
+	Interval    string
 	TemplateDir string
 }
 
@@ -56,6 +51,13 @@ type Template struct {
 	Vars    map[string]interface{}
 }
 
+type FileInfo struct {
+	Uid  uint32
+	Gid  uint32
+	Mode uint16
+	Md5  string
+}
+
 var settings Settings
 var defaultConfig = "/etc/confd/confd.ini"
 
@@ -67,10 +69,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	for _, config := range configs {
-		if err := ProcessConfig(config); err != nil {
-			log.Println(err.Error())
+	for {
+		for _, config := range configs {
+			if err := ProcessConfig(config); err != nil {
+				log.Println(err.Error())
+			}
 		}
+		interval, err := strconv.ParseInt(settings.Interval, 0, 64)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
@@ -202,6 +211,7 @@ func setConfig() error {
 	settings.ConfigDir = "/etc/confd/conf.d"
 	settings.EtcdURL = "http://0.0.0.0:4001"
 	settings.EtcdPrefix = "/"
+	settings.Interval = "600"
 
 	if isFileExist(defaultConfig) {
 		s, err := ini.LoadFile(defaultConfig)
@@ -217,6 +227,10 @@ func setConfig() error {
 		if etcdPrefix, ok := s.Get("etcd", "prefix"); ok {
 			settings.EtcdPrefix = etcdPrefix
 		}
+		if interval, ok := s.Get("main", "interval"); ok {
+			settings.Interval = interval
+		}
+
 	}
 	settings.TemplateDir = filepath.Join(settings.ConfigDir, "templates")
 	return nil

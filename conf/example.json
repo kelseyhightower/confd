@@ -1,5 +1,5 @@
 {
-  "templates": [
+  "configs": [
     {
       "keys": [
         "/example/port",
