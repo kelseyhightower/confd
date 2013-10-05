@@ -86,9 +86,6 @@ Optional:
 
 Example:
 
- * `/etc/confd/conf.d/nginx.json`
- * `/etc/confd/templates/nginx.conf.tmpl`
-
 ```JSON
 {
   "keys": [
@@ -110,3 +107,12 @@ Required:
 
  * `name` - name of the service.
  * `cmd` - command that should be executed on changes.
+
+Example:
+
+```JSON
+{
+  "name": "nginx",
+  "cmd": "/sbin/service nginx reload"
+}
+```
