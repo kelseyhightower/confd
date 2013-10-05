@@ -7,6 +7,7 @@ Manage local configuration files using templates and data from etcd.
 ```INI
 [main]
 config_dir = /etc/confd/conf.d/
+interval = 30
 
 [etcd]
 prefix = /environment/app/uuid
