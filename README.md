@@ -68,6 +68,8 @@ Config templates are written in the JSON format and stored under the
 
 ### Template Resource
 
+Templates are processed by the Go `text/template` package.
+
 Required:
 
  * `dest` - output file where the template should be rendered.
