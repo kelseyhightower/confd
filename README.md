@@ -59,7 +59,7 @@ Example:
   reload_cmd = "/usr/sbin/service nginx restart"
 ```
 
-## Template Resource
+### Template Resource
 
 Required:
 
