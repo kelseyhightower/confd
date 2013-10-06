@@ -41,7 +41,7 @@ Example:
 ## confd Configs
 
 `confd` configs are written in TOML and define a single template resource.
-`confd` configs are stored under the `confdir` directory.
+`confd` configs are stored under the `confdir/conf.d` directory.
 
 Example:
 
@@ -66,7 +66,8 @@ Required:
  * `dest` (string) - output file where the template should be rendered.
  * `keys` (array of strings) - An array of etcd keys. Keys will be looked up
    with the configured prefix.
- * `src` (string) - relative path of a Go template.
+ * `src` (string) - relative path of a Go template. Templates are stored under
+   the `confdif/templates` directory.
 
 Optional:
 
