@@ -17,7 +17,7 @@ func main() {
 	if err := config.SetConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	paths, err := confd.FindConfigs(config.ConfDir())
+	paths, err := confd.FindConfigs(config.ConfigDir())
 	if err != nil {
 		log.Fatal(err.Error())
 	}

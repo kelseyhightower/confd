@@ -39,22 +39,26 @@ func (n *Nodes) Set(node string) error {
 }
 
 type Config struct {
+	Confd confd
+}
+
+type confd struct {
 	ConfDir   string
 	Interval  int
 	Prefix    string
 	EtcdNodes []string `toml:"etcd_nodes"`
 }
 
-func ConfDir() string {
-	return config.ConfDir
+func ConfigDir() string {
+	return filepath.Join(config.Confd.ConfDir, "conf.d")
 }
 
 func EtcdNodes() []string {
-	return config.EtcdNodes
+	return config.Confd.EtcdNodes
 }
 
 func Interval() int {
-	return config.Interval
+	return config.Confd.Interval
 }
 
 func Onetime() bool {
@@ -62,11 +66,11 @@ func Onetime() bool {
 }
 
 func Prefix() string {
-	return config.Prefix
+	return config.Confd.Prefix
 }
 
 func TemplateDir() string {
-	return filepath.Join(config.ConfDir, "templates")
+	return filepath.Join(config.Confd.ConfDir, "templates")
 }
 
 func SetConfFile(path string) {
@@ -75,10 +79,12 @@ func SetConfFile(path string) {
 
 func setDefaults() {
 	config = Config{
-		ConfDir:   "/etc/confd/conf.d",
-		Interval:  600,
-		Prefix:    "/",
-		EtcdNodes: []string{"http://127.0.0.1:4001"},
+		Confd: confd{
+			ConfDir:   "/etc/confd/conf.d",
+			Interval:  600,
+			Prefix:    "/",
+			EtcdNodes: []string{"http://127.0.0.1:4001"},
+		},
 	}
 }
 
@@ -95,13 +101,13 @@ func loadConfFile() error {
 func override(f *flag.Flag) {
 	switch f.Name {
 	case "c":
-		config.ConfDir = confdir
+		config.Confd.ConfDir = confdir
 	case "i":
-		config.Interval = interval
+		config.Confd.Interval = interval
 	case "n":
-		config.EtcdNodes = nodes
+		config.Confd.EtcdNodes = nodes
 	case "p":
-		config.Prefix = prefix
+		config.Confd.Prefix = prefix
 	}
 }
 
