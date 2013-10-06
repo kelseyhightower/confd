@@ -16,13 +16,13 @@ go get github.com/kelseyhightower/confd
 confd loads external configuration from `/etc/confd/confd.toml`
 
 ```TOML
-[confd]
 configdir = "/etc/confd/conf.d"
 interval = 600
-
-[etcd]
 prefix = "/production/app"
-machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
+etcd_nodes = [
+  "http://127.0.0.1:4001",
+  "http://127.0.0.1:4002"
+]
 ```
 
 ## confd Configs
@@ -30,29 +30,8 @@ machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
 `confd` configs are used to define a collection of template resources that
 can be used to generate application configuration files.
 
-`confd` configs are written in the JSON format and stored under the
+`confd` configs are written in the TOML format and stored under the
 `/etc/confd/conf.d/` directory.
-
-Example:
-
-```JSON
-{
-  "templates": [
-    {
-      "keys": [
-        "/nginx/port",
-        "/nginx/servername"
-      ],
-      "src": "nginx.conf.tmpl",
-      "dest": "/etc/nginx/nginx.conf",
-      "owner": "root",
-      "group": "root",
-      "mode": "0644",
-      "reloadcmd": "/sbin/service nginx reload"
-    }
-  ]
-}
-```
 
 ## Template Resource
 
@@ -69,21 +48,20 @@ Optional:
  * `group` - name of the group that should own the file.
  * `mode` - mode the file should be in.
  * `owner` - name of the user that should own the file.
- * `reloadcmd` - command to reload config.
+ * `reload_cmd` - command to reload config.
 
 Example:
 
-```JSON
-{
-  "keys": [
-    "/nginx/port",
-    "/nginx/servername"
-  ],
-  "src": "nginx.conf.tmpl",
-  "dest": "/etc/nginx/nginx.conf",
-  "owner": "root",
-  "group": "root",
-  "mode": "0644",
-  "reloadcmd": "/sbin/service nginx reload"
+```TOML
+keys = [
+  "/nginx/port",
+  "/nginx/servername"
+]
+src = "nginx.conf.tmpl"
+dest = "/etc/nginx/nginx.conf"
+owner = "root"
+group = "root"
+mode = "0644"
+reload_cmd = "/sbin/service nginx reload"
 }
 ```
