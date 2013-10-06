@@ -33,6 +33,7 @@ etcd_nodes = [
 Example:
 
 ```TOML
+[template]
 keys = [
   "/nginx/port",
   "/nginx/servername"

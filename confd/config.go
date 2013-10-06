@@ -18,7 +18,7 @@ func NewConfig(path string) (*Config, error) {
 	c := &Config{
 		Path: path,
 	}
-	if _, err := toml.DecodeFile(path, &c.Template); err != nil {
+	if _, err := toml.DecodeFile(path, &c); err != nil {
 		return c, err
 	}
 	return c, nil
