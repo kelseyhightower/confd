@@ -11,6 +11,12 @@ take care of reloading applications to pick up new config file changes.
 go get github.com/kelseyhightower/confd
 ```
 
+## Usage
+
+```
+confd -c /etc/confd -i 300 -p '/production' -n 'http://127.0.0.1:4001' -n 'http://127.0.0.1:4002'
+```
+
 ## Configuration
 
 The confd configuration file is written in the TOML format and is loaded from
