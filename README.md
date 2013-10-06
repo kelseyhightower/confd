@@ -47,6 +47,7 @@ Example:
 
 ```TOML
 [template]
+  src = "nginx.conf.tmpl"
   dest = "/etc/nginx/nginx.conf"
   group = "root"
   keys = [
@@ -54,8 +55,8 @@ Example:
   ]
   owner = "root"
   mode = "0644"
+  check_cmd = "/usr/sbin/nginx -t -c {{ .src }}"
   reload_cmd = "/usr/sbin/service nginx restart"
-  src = "nginx.conf.tmpl"
 ```
 
 ## Template Resource
@@ -63,7 +64,8 @@ Example:
 Required:
 
  * `dest` (string) - output file where the template should be rendered.
- * `keys` (array of strings) - An array of etcd keys. Keys will be looked up with the configured prefix.
+ * `keys` (array of strings) - An array of etcd keys. Keys will be looked up
+   with the configured prefix.
  * `src` (string) - relative path of a Go template.
 
 Optional:
@@ -72,4 +74,6 @@ Optional:
  * `mode` (string) - mode the file should be in.
  * `owner` (string) - name of the user that should own the file.
  * `reload_cmd` (string) - command to reload config.
+ * `check_cmd` (string) - command to check config. Use `{{ .src }}` to reference
+   the rendered source template.
 
