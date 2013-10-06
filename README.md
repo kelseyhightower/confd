@@ -13,7 +13,8 @@ go get github.com/kelseyhightower/confd
 
 ## Configuration
 
-confd loads external configuration from `/etc/confd/confd.toml`
+The confd configuration file is written in the TOML format and is loaded from
+`/etc/confd/confd.toml` by default.
 
 Optional:
 
@@ -32,10 +33,9 @@ Example:
   confdir = "/etc/confd"
   etcd_nodes = [
     "http://127.0.0.1:4001",
-    "http://127.0.0.1:4002"
   ]
   interval = 600
-  prefix = "/production/app"
+  prefix = "/"
 ```
 
 ## confd Configs
