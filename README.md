@@ -35,8 +35,6 @@ can be used to generate application configuration files.
 
 ## Template Resource
 
-Templates are processed by the Go `text/template` package.
-
 Required:
 
  * `dest` - output file where the template should be rendered.
