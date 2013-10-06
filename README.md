@@ -30,6 +30,21 @@ etcd_nodes = [
 `confd` configs are written in TOML and define a single template resource.
 `confd` configs are stored under the `confdir` directory.
 
+Example:
+
+```TOML
+keys = [
+  "/nginx/port",
+  "/nginx/servername"
+]
+src = "nginx.conf.tmpl"
+dest = "/etc/nginx/nginx.conf"
+owner = "root"
+group = "root"
+mode = "0644"
+reload_cmd = "/sbin/service nginx reload"
+```
+
 ## Template Resource
 
 Required:
@@ -45,17 +60,3 @@ Optional:
  * `owner` - name of the user that should own the file.
  * `reload_cmd` - command to reload config.
 
-Example:
-
-```TOML
-keys = [
-  "/nginx/port",
-  "/nginx/servername"
-]
-src = "nginx.conf.tmpl"
-dest = "/etc/nginx/nginx.conf"
-owner = "root"
-group = "root"
-mode = "0644"
-reload_cmd = "/sbin/service nginx reload"
-```
