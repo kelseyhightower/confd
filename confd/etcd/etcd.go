@@ -28,6 +28,7 @@ func GetValues(keys []string) (map[string]interface{}, error) {
 		}
 		for _, v := range values {
 			key := strings.TrimPrefix(v.Key, config.Prefix())
+			key = strings.TrimPrefix(key, "/")
 			new_key := r.Replace(key)
 			vars[new_key] = v.Value
 		}
