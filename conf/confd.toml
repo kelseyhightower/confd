@@ -1,8 +1,0 @@
-[confd]
-configdir = "/etc/confd/conf.d"
-templatedir = "/etc/confd/conf.d/templates"
-interval = 30
-
-[etcd]
-prefix = "/environment/app/uuid"
-machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]

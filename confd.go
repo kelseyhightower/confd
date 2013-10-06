@@ -4,7 +4,8 @@
 package main
 
 import (
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/confd"
+	"github.com/kelseyhightower/confd/confd/log"
 	"path/filepath"
 	"time"
 )
@@ -13,24 +14,20 @@ func main() {
 	if err := setConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	paths, err := filepath.Glob(filepath.Join(config.Confd.ConfigDir, "*json"))
+	paths, err := confd.FindConfigs(config.Confd.ConfigDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	for {
 		for _, p := range paths {
-			ct, err := NewConfigTemplateFromFile(p)
+			c, err := confd.NewConfig(p)
 			if err != nil {
 				log.Error(err.Error())
 			}
-			if err := ct.Process(); err != nil {
+			if err := c.Process(); err != nil {
 				log.Error(err.Error())
 			}
 		}
-		interval := config.Confd.Interval
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		time.Sleep(time.Duration(interval) * time.Second)
+		time.Sleep(time.Duration(config.Interval) * time.Second)
 	}
 }

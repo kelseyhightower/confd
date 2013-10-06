@@ -18,7 +18,6 @@ confd loads external configuration from `/etc/confd/confd.toml`
 ```TOML
 [confd]
 configdir = "/etc/confd/conf.d"
-templatedir = "/etc/confd/templates"
 interval = 600
 
 [etcd]
@@ -26,48 +25,36 @@ prefix = "/production/app"
 machines = ["http://127.0.0.1:4001", "http://127.0.0.1:4002"]
 ```
 
-## Config Templates
+## confd Configs
 
-Config templates are used to define a group of configuration file resources and
-a set of etcd keys that can be used to generate application configuration files.
-Config templates also define reload commands that should be run to notify or
-force an application to pick up changes.
+`confd` configs are used to define a collection of template resources that
+can be used to generate application configuration files.
 
-Config templates are written in the JSON format and stored under the
+`confd` configs are written in the JSON format and stored under the
 `/etc/confd/conf.d/` directory.
 
-## Example 
-
-`/etc/confd/conf.d/example.json`
+Example:
 
 ```JSON
 {
   "templates": [
     {
       "keys": [
-        "/example/port",
-        "/example/password"
+        "/nginx/port",
+        "/nginx/servername"
       ],
-      "src": "example.conf.tmpl",
-      "dest": "/etc/example.conf",
+      "src": "nginx.conf.tmpl",
+      "dest": "/etc/nginx/nginx.conf",
       "owner": "root",
       "group": "root",
       "mode": "0644",
-      "service": "example"
-    }
-  ],
-  "services": [
-    {
-      "name": "example",
-      "cmd": "/usr/bin/touch /tmp/example-reloaded"
+      "reloadcmd": "/sbin/service nginx reload"
     }
   ]
 }
 ```
 
-## Resources
-
-### Template Resource
+## Template Resource
 
 Templates are processed by the Go `text/template` package.
 
@@ -82,7 +69,7 @@ Optional:
  * `group` - name of the group that should own the file.
  * `mode` - mode the file should be in.
  * `owner` - name of the user that should own the file.
- * `service` - name of the service resource that should be notified on changes.
+ * `reloadcmd` - command to reload config.
 
 Example:
 
@@ -97,22 +84,6 @@ Example:
   "owner": "root",
   "group": "root",
   "mode": "0644",
-  "service": "nginx"
-}
-```
-
-### Service Resource
-
-Required:
-
- * `name` - name of the service.
- * `cmd` - command that should be executed on changes.
-
-Example:
-
-```JSON
-{
-  "name": "nginx",
-  "cmd": "/sbin/service nginx reload"
+  "reloadcmd": "/sbin/service nginx reload"
 }
 ```
