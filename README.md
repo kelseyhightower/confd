@@ -15,14 +15,27 @@ go get github.com/kelseyhightower/confd
 
 confd loads external configuration from `/etc/confd/confd.toml`
 
+Optional:
+
+ * `confdir` (string) - The path to confd configs. The default is "/etc/confd".
+ * `etcd_nodes` (array of strings) - An array of etcd cluster nodes. The default
+   is ["http://127.0.0.1:4001"].
+ * `interval` (int) - The number of seconds wait between calls to etcd. The
+   default is 600.
+ * `prefix` (string) - The prefix string to prefix to keys when making calls to
+   etcd. The default is "/".
+
+Example:
+
 ```TOML
-configdir = "/etc/confd/conf.d"
-interval = 600
-prefix = "/production/app"
-etcd_nodes = [
-  "http://127.0.0.1:4001",
-  "http://127.0.0.1:4002"
-]
+[confd]
+  confdir = "/etc/confd"
+  etcd_nodes = [
+    "http://127.0.0.1:4001",
+    "http://127.0.0.1:4002"
+  ]
+  interval = 600
+  prefix = "/production/app"
 ```
 
 ## confd Configs
@@ -49,14 +62,14 @@ Example:
 
 Required:
 
- * `dest` - output file where the template should be rendered.
- * `keys` - list of etcd keys. Keys will be looked up with the configured prefix.
- * `src` - relative path of a Go template.
+ * `dest` (string) - output file where the template should be rendered.
+ * `keys` (array of strings) - An array of etcd keys. Keys will be looked up with the configured prefix.
+ * `src` (string) - relative path of a Go template.
 
 Optional:
 
- * `group` - name of the group that should own the file.
- * `mode` - mode the file should be in.
- * `owner` - name of the user that should own the file.
- * `reload_cmd` - command to reload config.
+ * `group` (string) - name of the group that should own the file.
+ * `mode` (string) - mode the file should be in.
+ * `owner` (string) - name of the user that should own the file.
+ * `reload_cmd` (string) - command to reload config.
 
