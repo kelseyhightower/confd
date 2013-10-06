@@ -70,6 +70,7 @@ func (t *Template) setStageFile() error {
 
 func (t *Template) sync() error {
 	staged := t.StageFile.Name()
+	defer os.Remove(staged)
 	err, ok := SameFile(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
@@ -85,6 +86,8 @@ func (t *Template) sync() error {
 		if err := t.reload(); err != nil {
 			return err
 		}
+	} else {
+		log.Info(t.Dest + " in sync")
 	}
 	return nil
 }
