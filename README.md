@@ -13,8 +13,16 @@ go get github.com/kelseyhightower/confd
 
 ## Usage
 
+Poll the etcd cluster nodes every 5 mins.
+
 ```
 confd -c /etc/confd -i 300 -p '/production' -n 'http://127.0.0.1:4001' -n 'http://127.0.0.1:4002'
+```
+
+Process configs under `/etc/confd/conf.d` and exit.
+
+```
+confd -onetime
 ```
 
 ## Configuration

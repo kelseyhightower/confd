@@ -4,6 +4,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/confd/config"
 	"github.com/kelseyhightower/confd/confd/log"
@@ -11,6 +12,8 @@ import (
 )
 
 func main() {
+	log.Info("Starting confd")
+	flag.Parse()
 	if err := config.SetConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
@@ -27,6 +30,9 @@ func main() {
 			if err := c.Process(); err != nil {
 				log.Error(err.Error())
 			}
+		}
+		if config.Onetime() {
+			break
 		}
 		time.Sleep(time.Duration(config.Interval()) * time.Second)
 	}

@@ -1,6 +1,7 @@
 package etcd
 
 import (
+	"errors"
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/confd/config"
 	"path/filepath"
@@ -17,7 +18,7 @@ func GetValues(keys []string) (map[string]interface{}, error) {
 	c := etcd.NewClient()
 	success := c.SetCluster(config.EtcdNodes())
 	if !success {
-		return vars, nil
+		return vars, errors.New("cannot connect to etcd cluster")
 	}
 	r := strings.NewReplacer("/", "_")
 	for _, key := range keys {
