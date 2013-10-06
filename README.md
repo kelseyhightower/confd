@@ -27,11 +27,8 @@ etcd_nodes = [
 
 ## confd Configs
 
-`confd` configs are used to define a collection of template resources that
-can be used to generate application configuration files.
-
-`confd` configs are written in the TOML format and stored under the
-`/etc/confd/conf.d/` directory.
+`confd` configs are written in TOML and define a single template resource.
+`confd` configs are stored under the `confdir` directory.
 
 ## Template Resource
 
