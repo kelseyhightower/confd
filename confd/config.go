@@ -1,39 +1,32 @@
 package confd
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"github.com/BurntSushi/toml"
 	"path/filepath"
 )
 
 type Config struct {
-	Path      string
-	Templates []Template
-	TmplDir   string
+	Path     string
+	Template Template
 }
 
-func FindConfigs(configDir string) ([]string, error) {
-	return filepath.Glob(filepath.Join(configDir, "*json"))
+func FindConfigs(confDir string) ([]string, error) {
+	return filepath.Glob(filepath.Join(confDir, "*toml"))
 }
 
 func NewConfig(path string) (*Config, error) {
-	var c *Config
-	c.Path = path
-	f, err := ioutil.ReadFile(path)
-	if err != nil {
-		return c, err
+	c := &Config{
+		Path: path,
 	}
-	if err = json.Unmarshal(f, &c); err != nil {
+	if _, err := toml.DecodeFile(path, &c.Template); err != nil {
 		return c, err
 	}
 	return c, nil
 }
 
 func (c *Config) Process() error {
-	for _, t := range c.Templates {
-		if err := t.Process(); err != nil {
-			return err
-		}
+	if err := c.Template.Process(); err != nil {
+		return err
 	}
 	return nil
 }

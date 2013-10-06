@@ -4,11 +4,14 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"github.com/kelseyhightower/confd/confd/config"
 	"github.com/kelseyhightower/confd/confd/etcd"
 	"github.com/kelseyhightower/confd/confd/log"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"text/template"
@@ -27,7 +30,7 @@ type Template struct {
 	Keys      []string
 	Mode      string
 	Uid       int
-	ReloadCmd string
+	ReloadCmd string `toml:"reload_cmd"`
 	StageFile *os.File
 	Src       string
 	Vars      map[string]interface{}
@@ -43,6 +46,7 @@ func (t *Template) setVars() error {
 }
 
 func (t *Template) setStageFile() error {
+	t.Src = filepath.Join(config.TemplateDir(), t.Src)
 	if !IsFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
@@ -51,7 +55,7 @@ func (t *Template) setStageFile() error {
 		os.Remove(temp.Name())
 		return err
 	}
-	tmpl := template.Must(template.New(t.Src).ParseFiles(t.Src))
+	tmpl := template.Must(template.ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
 	}
@@ -79,7 +83,7 @@ func (t *Template) sync() error {
 }
 
 func (t *Template) reload() error {
-	c := exec.Command(r.ReloadCmd)
+	c := exec.Command(t.ReloadCmd)
 	if err := c.Run(); err != nil {
 		return err
 	}

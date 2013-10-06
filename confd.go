@@ -5,16 +5,16 @@ package main
 
 import (
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/kelseyhightower/confd/confd/config"
 	"github.com/kelseyhightower/confd/confd/log"
-	"path/filepath"
 	"time"
 )
 
 func main() {
-	if err := setConfig(); err != nil {
+	if err := config.SetConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	paths, err := confd.FindConfigs(config.Confd.ConfigDir)
+	paths, err := confd.FindConfigs(config.ConfDir())
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -28,6 +28,6 @@ func main() {
 				log.Error(err.Error())
 			}
 		}
-		time.Sleep(time.Duration(config.Interval) * time.Second)
+		time.Sleep(time.Duration(config.Interval()) * time.Second)
 	}
 }
