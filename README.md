@@ -63,5 +63,4 @@ owner = "root"
 group = "root"
 mode = "0644"
 reload_cmd = "/sbin/service nginx reload"
-}
 ```
