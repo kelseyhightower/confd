@@ -1,6 +1,7 @@
 package confd
 
 import (
+	"bytes"
 	"crypto/md5"
 	"errors"
 	"fmt"
@@ -31,6 +32,7 @@ type Template struct {
 	Mode      string
 	Uid       int
 	ReloadCmd string `toml:"reload_cmd"`
+	CheckCmd  string `toml:"check_cmd"`
 	StageFile *os.File
 	Src       string
 	Vars      map[string]interface{}
@@ -74,6 +76,11 @@ func (t *Template) sync() error {
 	}
 	if !ok {
 		log.Info(t.Dest + " not in sync")
+		if t.CheckCmd != "" {
+			if err := t.check(); err != nil {
+				return errors.New("Config check failed: " + err.Error())
+			}
+		}
 		os.Rename(staged, t.Dest)
 		if err := t.reload(); err != nil {
 			return err
@@ -82,8 +89,28 @@ func (t *Template) sync() error {
 	return nil
 }
 
+func (t *Template) check() error {
+	var cmdBuffer bytes.Buffer
+	data := make(map[string]string)
+	data["src"] = t.StageFile.Name()
+	tmpl, err := template.New("checkcmd").Parse(t.CheckCmd)
+	if err != nil {
+		return err
+	}
+	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
+		return err
+	}
+	log.Debug("Running " + cmdBuffer.String())
+	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
+	if err := c.Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (t *Template) reload() error {
-	c := exec.Command(t.ReloadCmd)
+	log.Debug("Running " + t.ReloadCmd)
+	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
 	if err := c.Run(); err != nil {
 		return err
 	}
