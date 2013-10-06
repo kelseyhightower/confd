@@ -34,16 +34,15 @@ Example:
 
 ```TOML
 [template]
-keys = [
-  "/nginx/port",
-  "/nginx/servername"
-]
-src = "nginx.conf.tmpl"
-dest = "/etc/nginx/nginx.conf"
-owner = "root"
-group = "root"
-mode = "0644"
-reload_cmd = "/sbin/service nginx reload"
+  dest = "/etc/nginx/nginx.conf"
+  group = "root"
+  keys = [
+    "/nginx/worker_processes",
+  ]
+  owner = "root"
+  mode = "0644"
+  reload_cmd = "/usr/sbin/service nginx restart"
+  src = "nginx.conf.tmpl"
 ```
 
 ## Template Resource
