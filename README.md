@@ -7,19 +7,19 @@ take care of reloading applications to pick up new config file changes.
 
 ## Install
 
-```
-go get github.com/kelseyhightower/confd
-```
+Download the latest binary [release](https://github.com/kelseyhightower/confd/releases)
 
 ## Usage
 
-Poll the etcd cluster nodes every 5 mins.
+Poll the etcd cluster node (127.0.0.1). All `confd` configs under
+/etc/confd/conf.d will be processed one at a time every 30 secs. The
+"/production" string will be prefixed to keys when querying etcd.
 
 ```
-confd -c /etc/confd -i 300 -p '/production' -n 'http://127.0.0.1:4001' -n 'http://127.0.0.1:4002'
+confd -c /etc/confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
 ```
 
-Process configs under `/etc/confd/conf.d` and exit.
+Using default settings process all `confd` configs one time and exit.
 
 ```
 confd -onetime
