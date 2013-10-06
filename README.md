@@ -67,7 +67,7 @@ Required:
  * `keys` (array of strings) - An array of etcd keys. Keys will be looked up
    with the configured prefix.
  * `src` (string) - relative path of a Go template. Templates are stored under
-   the `confdif/templates` directory.
+   the `confdir/templates` directory.
 
 Optional:
 
