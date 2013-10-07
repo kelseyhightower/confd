@@ -19,17 +19,20 @@ import (
 	"text/template"
 )
 
+// templateConfig holds the parsed template resource.
 type templateConfig struct {
 	Template Template
 }
 
-type FileInfo struct {
+// A fileInfo describes a configuration file and is returned by fileStat.
+type fileInfo struct {
 	Uid  uint32
 	Gid  uint32
 	Mode uint32
 	Md5  string
 }
 
+// Template is the representation of a parsed confd template resource.
 type Template struct {
 	Dest      string
 	Gid       int
@@ -41,6 +44,121 @@ type Template struct {
 	StageFile *os.File
 	Src       string
 	Vars      map[string]interface{}
+}
+
+// setVars sets the Vars for template config.
+func (t *Template) setVars() error {
+	var err error
+	t.Vars, err = etcd.GetValues(t.Keys)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// createStageFile stages the src configuration file by processing the src
+// template and setting the desired owner, group, and mode. It also sets the
+// StageFile for the template config.
+// It returns an error if any.
+func (t *Template) createStageFile() error {
+	t.Src = filepath.Join(config.TemplateDir(), t.Src)
+	if !isFileExist(t.Src) {
+		return errors.New("Missing template: " + t.Src)
+	}
+	temp, err := ioutil.TempFile("", "")
+	if err != nil {
+		os.Remove(temp.Name())
+		return err
+	}
+	tmpl := template.Must(template.ParseFiles(t.Src))
+	if err = tmpl.Execute(temp, t.Vars); err != nil {
+		return err
+	}
+	mode, _ := strconv.ParseUint(t.Mode, 0, 32)
+	os.Chmod(temp.Name(), os.FileMode(mode))
+	os.Chown(temp.Name(), t.Uid, t.Gid)
+	t.StageFile = temp
+	return nil
+}
+
+// sync compares the staged and dest config files and attempts to sync them
+// if they differ. sync will run a config check command if set before
+// overwriting the target config file. Finally, sync will run a reload command
+// if set to have the application or service pick up the changes.
+// It returns an error if any.
+func (t *Template) sync() error {
+	staged := t.StageFile.Name()
+	defer os.Remove(staged)
+	err, ok := sameConfig(staged, t.Dest)
+	if err != nil {
+		log.Error(err.Error())
+	}
+	if !ok {
+		log.Info(t.Dest + " not in sync")
+		if t.CheckCmd != "" {
+			if err := t.check(); err != nil {
+				return errors.New("Config check failed: " + err.Error())
+			}
+		}
+		os.Rename(staged, t.Dest)
+		if t.ReloadCmd != "" {
+			if err := t.reload(); err != nil {
+				return err
+			}
+		}
+	} else {
+		log.Info(t.Dest + " in sync")
+	}
+	return nil
+}
+
+// check executes the check command to validate the staged config file. The
+// command is modified so that any references to src template are substituted
+// with a string representing the full path of the staged file. This allows the
+// check to be run on the staged file before overwriting the destination config
+// file.
+// It returns nil if the check command returns 0 and there are no other errors.
+func (t *Template) check() error {
+	var cmdBuffer bytes.Buffer
+	data := make(map[string]string)
+	data["src"] = t.StageFile.Name()
+	tmpl, err := template.New("checkcmd").Parse(t.CheckCmd)
+	if err != nil {
+		return err
+	}
+	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
+		return err
+	}
+	log.Debug("Running " + cmdBuffer.String())
+	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
+	if err := c.Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// reload executes the reload command.
+// It returns nil if the reload command returns 0.
+func (t *Template) reload() error {
+	log.Debug("Running " + t.ReloadCmd)
+	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
+	if err := c.Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *Template) Process() error {
+	if err := t.setVars(); err != nil {
+		return err
+	}
+	if err := t.createStageFile(); err != nil {
+		return err
+	}
+	if err := t.sync(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func ProcessTemplateConfigs() error {
@@ -61,103 +179,9 @@ func ProcessTemplateConfigs() error {
 	return nil
 }
 
-func (t *Template) setVars() error {
-	var err error
-	t.Vars, err = etcd.GetValues(t.Keys)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (t *Template) setStageFile() error {
-	t.Src = filepath.Join(config.TemplateDir(), t.Src)
-	if !IsFileExist(t.Src) {
-		return errors.New("Missing template: " + t.Src)
-	}
-	temp, err := ioutil.TempFile("", "")
-	if err != nil {
-		os.Remove(temp.Name())
-		return err
-	}
-	tmpl := template.Must(template.ParseFiles(t.Src))
-	if err = tmpl.Execute(temp, t.Vars); err != nil {
-		return err
-	}
-	mode, _ := strconv.ParseUint(t.Mode, 0, 32)
-	os.Chmod(temp.Name(), os.FileMode(mode))
-	os.Chown(temp.Name(), t.Uid, t.Gid)
-	t.StageFile = temp
-	return nil
-}
-
-func (t *Template) sync() error {
-	staged := t.StageFile.Name()
-	defer os.Remove(staged)
-	err, ok := SameFile(staged, t.Dest)
-	if err != nil {
-		log.Error(err.Error())
-	}
-	if !ok {
-		log.Info(t.Dest + " not in sync")
-		if t.CheckCmd != "" {
-			if err := t.check(); err != nil {
-				return errors.New("Config check failed: " + err.Error())
-			}
-		}
-		os.Rename(staged, t.Dest)
-		if err := t.reload(); err != nil {
-			return err
-		}
-	} else {
-		log.Info(t.Dest + " in sync")
-	}
-	return nil
-}
-
-func (t *Template) check() error {
-	var cmdBuffer bytes.Buffer
-	data := make(map[string]string)
-	data["src"] = t.StageFile.Name()
-	tmpl, err := template.New("checkcmd").Parse(t.CheckCmd)
-	if err != nil {
-		return err
-	}
-	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
-		return err
-	}
-	log.Debug("Running " + cmdBuffer.String())
-	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
-	if err := c.Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (t *Template) reload() error {
-	log.Debug("Running " + t.ReloadCmd)
-	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
-	if err := c.Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (t *Template) Process() error {
-	if err := t.setVars(); err != nil {
-		return err
-	}
-	if err := t.setStageFile(); err != nil {
-		return err
-	}
-	if err := t.sync(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func FileStat(name string) (fi FileInfo, err error) {
-	if IsFileExist(name) {
+// fileStat return a fileInfo describing the named file.
+func fileStat(name string) (fi fileInfo, err error) {
+	if isFileExist(name) {
 		f, err := os.Open(name)
 		defer f.Close()
 		if err != nil {
@@ -176,22 +200,27 @@ func FileStat(name string) (fi FileInfo, err error) {
 	}
 }
 
-func IsFileExist(fpath string) bool {
-	if _, err := os.Stat(fpath); os.IsNotExist(err) {
+// isFileExist reports whether path exits.
+func isFileExist(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
 	return true
 }
 
-func SameFile(src, dest string) (error, bool) {
-	if !IsFileExist(dest) {
+// sameConfig reports whether src and dest config files are equal.
+// Two config files are equal when they have the same file contents and
+// Unix permissions. The owner, group, and mode must match.
+// It return false in other cases.
+func sameConfig(src, dest string) (error, bool) {
+	if !isFileExist(dest) {
 		return nil, false
 	}
-	d, err := FileStat(dest)
+	d, err := fileStat(dest)
 	if err != nil {
 		return err, false
 	}
-	s, err := FileStat(src)
+	s, err := fileStat(src)
 	if err != nil {
 		return err, false
 	}
