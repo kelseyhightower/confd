@@ -12,14 +12,19 @@ import (
 
 func main() {
 	log.Info("Starting confd")
+	// All flags are defined in the confd/config package which allow us to
+	// override configuration settings from the cli. Parse the flags now to
+	// make them active.
 	flag.Parse()
-	if err := config.SetConfig(); err != nil {
+	if err := config.InitConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
 	for {
 		if err := ProcessTemplateConfigs(); err != nil {
 			log.Error(err.Error())
 		}
+		// If the -onetime flag is passed on the command line we immediately exit
+		// after processing the template config files.
 		if config.Onetime() {
 			break
 		}

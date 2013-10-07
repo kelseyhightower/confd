@@ -115,7 +115,7 @@ func overrideConfig() {
 	flag.Visit(override)
 }
 
-func SetConfig() error {
+func InitConfig() error {
 	setDefaults()
 	if err := loadConfFile(); err != nil {
 		return err
