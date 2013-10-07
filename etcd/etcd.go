@@ -8,11 +8,6 @@ import (
 	"strings"
 )
 
-var machines = []string{
-	"http://127.0.0.1:4001",
-}
-var prefix string = "/"
-
 func GetValues(keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	c := etcd.NewClient()
