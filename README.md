@@ -39,6 +39,8 @@ Optional:
   default is 600.
 * `prefix` (string) - The prefix string to prefix to keys when making calls to
   etcd. The default is "/".
+* `client_cert` (string) The cert file of the client.
+* `client_key` (string) The key file of the client.
 
 Example:
 
@@ -50,6 +52,8 @@ Example:
   ]
   interval = 600
   prefix = "/"
+  client_cert = "/etc/confd/ssl/client.crt"
+  client_key = "/etc/confd/ssl/client.key"
 ```
 
 ## Template Config
