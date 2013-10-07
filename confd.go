@@ -6,8 +6,8 @@ package main
 import (
 	"flag"
 	"github.com/kelseyhightower/confd/confd"
-	"github.com/kelseyhightower/confd/confd/config"
-	"github.com/kelseyhightower/confd/confd/log"
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/log"
 	"time"
 )
 

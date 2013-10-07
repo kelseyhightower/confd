@@ -3,7 +3,7 @@ package etcd
 import (
 	"errors"
 	"github.com/coreos/go-etcd/etcd"
-	"github.com/kelseyhightower/confd/confd/config"
+	"github.com/kelseyhightower/confd/config"
 	"path/filepath"
 	"strings"
 )
