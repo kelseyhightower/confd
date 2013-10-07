@@ -5,7 +5,6 @@ package main
 
 import (
 	"flag"
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"time"
@@ -17,19 +16,9 @@ func main() {
 	if err := config.SetConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	paths, err := confd.FindConfigs(config.ConfigDir())
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	for {
-		for _, p := range paths {
-			c, err := confd.NewConfig(p)
-			if err != nil {
-				log.Error(err.Error())
-			}
-			if err := c.Process(); err != nil {
-				log.Error(err.Error())
-			}
+		if err := ProcessTemplateConfigs(); err != nil {
+			log.Error(err.Error())
 		}
 		if config.Onetime() {
 			break

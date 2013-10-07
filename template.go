@@ -1,10 +1,11 @@
-package confd
+package main
 
 import (
 	"bytes"
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/etcd"
 	"github.com/kelseyhightower/confd/log"
@@ -17,6 +18,10 @@ import (
 	"syscall"
 	"text/template"
 )
+
+type templateConfig struct {
+	Template Template
+}
 
 type FileInfo struct {
 	Uid  uint32
@@ -36,6 +41,24 @@ type Template struct {
 	StageFile *os.File
 	Src       string
 	Vars      map[string]interface{}
+}
+
+func ProcessTemplateConfigs() error {
+	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
+	if err != nil {
+		return err
+	}
+	for _, p := range paths {
+		var tc *templateConfig
+		_, err := toml.DecodeFile(p, &tc)
+		if err != nil {
+			return err
+		}
+		if err := tc.Template.Process(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (t *Template) setVars() error {
