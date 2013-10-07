@@ -1,3 +1,10 @@
+// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+/*
+Package config provides global configuration settings for confd.
+*/
 package config
 
 import (
@@ -19,7 +26,7 @@ func init() {
 
 var (
 	config   Config
-	confFile = "/etc/confd/confd.toml"
+	confFile = "/etc/confd/confd.toml" // default confd configuration file
 	nodes    Nodes
 	confdir  string
 	interval int
@@ -27,21 +34,27 @@ var (
 	onetime  bool
 )
 
+// Nodes is a custom flag Var representing a list of etcd nodes. We use a custom
+// Var to allow us to define more than one etcd node from the command line, and
+// collect the results in a single value.
 type Nodes []string
 
 func (n *Nodes) String() string {
 	return fmt.Sprintf("%d", *n)
 }
 
+// Set appends the node to the etcd node list.
 func (n *Nodes) Set(node string) error {
 	*n = append(*n, node)
 	return nil
 }
 
+// Config represents the confd configuration settings.
 type Config struct {
 	Confd confd
 }
 
+// confd represents the parsed configuration settings.
 type confd struct {
 	ConfDir   string
 	Interval  int
@@ -49,32 +62,35 @@ type confd struct {
 	EtcdNodes []string `toml:"etcd_nodes"`
 }
 
+// ConfigDir returns the path to the confd config dir.
 func ConfigDir() string {
 	return filepath.Join(config.Confd.ConfDir, "conf.d")
 }
 
+// EtcdNodes returns a list of etcd node url strings.
+// For example: ["http://203.0.113.30:4001"]
 func EtcdNodes() []string {
 	return config.Confd.EtcdNodes
 }
 
+// Interval returns the number of seconds to wait between configuration runs.
 func Interval() int {
 	return config.Confd.Interval
 }
 
+// Onetime returns true if the -onetime flag was set on the command line.
 func Onetime() bool {
 	return onetime
 }
 
+// Prefix returns the etcd key prefix to use when querying etcd.
 func Prefix() string {
 	return config.Confd.Prefix
 }
 
+// TemplateDir returns the path to the directory of config file templates.
 func TemplateDir() string {
 	return filepath.Join(config.Confd.ConfDir, "templates")
-}
-
-func SetConfFile(path string) {
-	confFile = path
 }
 
 func setDefaults() {
