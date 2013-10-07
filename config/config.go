@@ -93,6 +93,19 @@ func TemplateDir() string {
 	return filepath.Join(config.Confd.ConfDir, "templates")
 }
 
+// InitConfig initializes the confd configuration by first setting defaults,
+// then overriding setting from the confd config file, and finally overriding
+// settings from flags set on the command line.
+// It returns an error if any.
+func InitConfig() error {
+	setDefaults()
+	if err := loadConfFile(); err != nil {
+		return err
+	}
+	overrideConfig()
+	return nil
+}
+
 func setDefaults() {
 	config = Config{
 		Confd: confd{
@@ -104,8 +117,9 @@ func setDefaults() {
 	}
 }
 
+// loadConfFile sets the etcd configuration settings from a file.
 func loadConfFile() error {
-	if IsFileExist(confFile) {
+	if isFileExist(confFile) {
 		_, err := toml.DecodeFile(confFile, &config)
 		if err != nil {
 			return err
@@ -114,6 +128,8 @@ func loadConfFile() error {
 	return nil
 }
 
+// override sets configuration settings based on values passed in through
+// command line flags; overwriting current values.
 func override(f *flag.Flag) {
 	switch f.Name {
 	case "c":
@@ -127,20 +143,14 @@ func override(f *flag.Flag) {
 	}
 }
 
+// overrideConfig iterates through each flag set on the command line and
+// overrides corresponding configuration settings.
 func overrideConfig() {
 	flag.Visit(override)
 }
 
-func InitConfig() error {
-	setDefaults()
-	if err := loadConfFile(); err != nil {
-		return err
-	}
-	overrideConfig()
-	return nil
-}
-
-func IsFileExist(fpath string) bool {
+// isFileExist reports whether path exits.
+func isFileExist(fpath string) bool {
 	if _, err := os.Stat(fpath); os.IsNotExist(err) {
 		return false
 	}
