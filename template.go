@@ -49,7 +49,7 @@ type Template struct {
 // setVars sets the Vars for template config.
 func (t *Template) setVars() error {
 	var err error
-	t.Vars, err = etcd.GetValues(t.Keys)
+	t.Vars, err = etcd.GetValues(config.Prefix(), t.Keys, config.EtcdNodes())
 	if err != nil {
 		return err
 	}
