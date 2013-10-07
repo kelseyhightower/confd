@@ -8,7 +8,7 @@ import (
 )
 
 // newEtcdClient returns an *etcd.Client with a connection to named machines.
-// It returns an error if a connect to the cluster cannot be made.
+// It returns an error if a connection to the cluster cannot be made.
 func newEtcdClient(machines []string) (*etcd.Client, error) {
 	c := etcd.NewClient()
 	success := c.SetCluster(machines)
