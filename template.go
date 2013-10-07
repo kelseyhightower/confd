@@ -74,6 +74,8 @@ func (t *Template) createStageFile() error {
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
 	}
+	// Set the owner, group, and mode on the stage file now to make it easier to
+	// compare against the destination configuration file later.
 	mode, _ := strconv.ParseUint(t.Mode, 0, 32)
 	os.Chmod(temp.Name(), os.FileMode(mode))
 	os.Chown(temp.Name(), t.Uid, t.Gid)
@@ -148,7 +150,12 @@ func (t *Template) reload() error {
 	return nil
 }
 
-func (t *Template) Process() error {
+// process is a convenience function that wraps calls to the three main tasks
+// required to keep local configuration files in sync. First we gather vars
+// from etcd, then we stage a candidate configuration file, and finally sync
+// things up.
+// It returns an error if any.
+func (t *Template) process() error {
 	if err := t.setVars(); err != nil {
 		return err
 	}
@@ -161,6 +168,9 @@ func (t *Template) Process() error {
 	return nil
 }
 
+// ProcessTemplateConfigs is a convenience function that loads all the template
+// config files and processes them serially. Called from the main function.
+// It return an error if any.
 func ProcessTemplateConfigs() error {
 	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
 	if err != nil {
@@ -172,7 +182,7 @@ func ProcessTemplateConfigs() error {
 		if err != nil {
 			return err
 		}
-		if err := tc.Template.Process(); err != nil {
+		if err := tc.Template.process(); err != nil {
 			return err
 		}
 	}
