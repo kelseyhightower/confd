@@ -25,7 +25,7 @@ Using default settings process all template configs and exit.
 confd -onetime
 ```
 
-## Configuration
+## Configuration File
 
 The confd configuration file is written in the TOML format and is loaded from
 `/etc/confd/confd.toml` by default.
