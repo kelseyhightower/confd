@@ -11,7 +11,7 @@ Download the latest binary [release](https://github.com/kelseyhightower/confd/re
 
 ## Usage
 
-Poll the etcd cluster node (127.0.0.1). All `confd` configs under
+Poll the etcd cluster node (127.0.0.1). All template configs under
 /etc/confd/conf.d will be processed one at a time every 30 secs. The
 "/production" string will be prefixed to keys when querying etcd.
 
@@ -19,7 +19,7 @@ Poll the etcd cluster node (127.0.0.1). All `confd` configs under
 confd -c /etc/confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
 ```
 
-Using default settings process all `confd` configs one time and exit.
+Using default settings process all template configs and exit.
 
 ```
 confd -onetime
@@ -52,28 +52,10 @@ Example:
   prefix = "/"
 ```
 
-## confd Configs
+## Template Config
 
-`confd` configs are written in TOML and define a single template resource.
-`confd` configs are stored under the `confdir/conf.d` directory.
-
-Example:
-
-```TOML
-[template]
-  src = "nginx.conf.tmpl"
-  dest = "/etc/nginx/nginx.conf"
-  group = "root"
-  keys = [
-    "/nginx/worker_processes",
-  ]
-  owner = "root"
-  mode = "0644"
-  check_cmd = "/usr/sbin/nginx -t -c {{ .src }}"
-  reload_cmd = "/usr/sbin/service nginx restart"
-```
-
-### Template Resource
+Template configs are written in TOML and define a single template resource.
+Template configs are stored under the `confdir/conf.d` directory.
 
 Required:
 
@@ -91,4 +73,21 @@ Optional:
 * `reload_cmd` (string) - command to reload config.
 * `check_cmd` (string) - command to check config. Use `{{ .src }}` to reference
   the rendered source template.
+
+Example:
+
+```TOML
+[template]
+  src = "nginx.conf.tmpl"
+  dest = "/etc/nginx/nginx.conf"
+  group = "root"
+  keys = [
+    "/nginx/worker_processes",
+  ]
+  owner = "root"
+  mode = "0644"
+  check_cmd = "/usr/sbin/nginx -t -c {{ .src }}"
+  reload_cmd = "/usr/sbin/service nginx restart"
+```
+
 
