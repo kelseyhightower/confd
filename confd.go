@@ -5,7 +5,6 @@ package main
 
 import (
 	"flag"
-	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"time"
 )
@@ -16,7 +15,7 @@ func main() {
 	// override configuration settings from the cli. Parse the flags now to
 	// make them active.
 	flag.Parse()
-	if err := config.InitConfig(); err != nil {
+	if err := InitConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
 	for {
@@ -25,9 +24,9 @@ func main() {
 		}
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
-		if config.Onetime() {
+		if Onetime() {
 			break
 		}
-		time.Sleep(time.Duration(config.Interval()) * time.Second)
+		time.Sleep(time.Duration(Interval()) * time.Second)
 	}
 }

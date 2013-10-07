@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"io"
 	"io/ioutil"
@@ -47,11 +46,11 @@ type Template struct {
 
 // setVars sets the Vars for template config.
 func (t *Template) setVars() error {
-	c, err := newEtcdClient(config.EtcdNodes())
+	c, err := newEtcdClient(EtcdNodes())
 	if err != nil {
 		return err
 	}
-	t.Vars, err = getValues(c, config.Prefix(), t.Keys)
+	t.Vars, err = getValues(c, Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}
@@ -63,7 +62,7 @@ func (t *Template) setVars() error {
 // StageFile for the template config.
 // It returns an error if any.
 func (t *Template) createStageFile() error {
-	t.Src = filepath.Join(config.TemplateDir(), t.Src)
+	t.Src = filepath.Join(TemplateDir(), t.Src)
 	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
@@ -174,7 +173,7 @@ func (t *Template) process() error {
 // config files and processes them serially. Called from the main function.
 // It return an error if any.
 func ProcessTemplateConfigs() error {
-	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
+	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
 	if err != nil {
 		return err
 	}
@@ -210,14 +209,6 @@ func fileStat(name string) (fi fileInfo, err error) {
 	} else {
 		return fi, errors.New("File not found")
 	}
-}
-
-// isFileExist reports whether path exits.
-func isFileExist(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 // sameConfig reports whether src and dest config files are equal.

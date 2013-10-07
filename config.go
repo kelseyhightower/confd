@@ -1,17 +1,12 @@
 // Copyright (c) 2013 Kelsey Hightower. All rights reserved.
 // Use of this source code is governed by the Apache License, Version 2.0
 // that can be found in the LICENSE file.
-
-/*
-Package config provides global configuration settings for confd.
-*/
-package config
+package main
 
 import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"os"
 	"path/filepath"
 )
 
@@ -147,12 +142,4 @@ func override(f *flag.Flag) {
 // overrides corresponding configuration settings.
 func overrideConfig() {
 	flag.Visit(override)
-}
-
-// isFileExist reports whether path exits.
-func isFileExist(fpath string) bool {
-	if _, err := os.Stat(fpath); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
