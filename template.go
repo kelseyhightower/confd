@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/config"
-	"github.com/kelseyhightower/confd/etcd"
 	"github.com/kelseyhightower/confd/log"
 	"io"
 	"io/ioutil"
@@ -48,8 +47,11 @@ type Template struct {
 
 // setVars sets the Vars for template config.
 func (t *Template) setVars() error {
-	var err error
-	t.Vars, err = etcd.GetValues(config.Prefix(), t.Keys, config.EtcdNodes())
+	c, err := newEtcdClient(config.EtcdNodes())
+	if err != nil {
+		return err
+	}
+	t.Vars, err = getValues(c, config.Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}

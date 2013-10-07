@@ -1,11 +1,4 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
-
-/*
-Package etcd provides an interface to etcd clusters.
-*/
-package etcd
+package main
 
 import (
 	"errors"
@@ -14,19 +7,25 @@ import (
 	"strings"
 )
 
-// GetValues queries the named set of nodes for keys prefixed by prefix.
+// newEtcdClient returns an *etcd.Client with a connection to named machines.
+// It returns an error if a connect to the cluster cannot be made.
+func newEtcdClient(machines []string) (*etcd.Client, error) {
+	c := etcd.NewClient()
+	success := c.SetCluster(machines)
+	if !success {
+		return c, errors.New("cannot connect to etcd cluster")
+	}
+	return c, nil
+}
+
+// getValues queries a etcd for keys prefixed by prefix.
 // Etcd paths (keys) are translated into names more suitable for use in
 // templates. For example if prefix where set to '/production' and one of the
 // keys where '/nginx/port'; the prefixed '/production/nginx/port' key would
 // be quired for. If the value for the prefixed key where 80, the returned map
 // would contain the entry vars["nginx_port"] = "80".
-func GetValues(prefix string, keys, nodes []string) (map[string]interface{}, error) {
+func getValues(c *etcd.Client, prefix string, keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
-	c := etcd.NewClient()
-	success := c.SetCluster(nodes)
-	if !success {
-		return vars, errors.New("cannot connect to etcd cluster")
-	}
 	r := strings.NewReplacer("/", "_")
 	for _, key := range keys {
 		values, err := c.Get(filepath.Join(prefix, key))
