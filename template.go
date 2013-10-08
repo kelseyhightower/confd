@@ -46,7 +46,7 @@ type Template struct {
 
 // setVars sets the Vars for template config.
 func (t *Template) setVars() error {
-	c, err := newEtcdClient(EtcdNodes())
+	c, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
 	if err != nil {
 		return err
 	}

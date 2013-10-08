@@ -9,8 +9,14 @@ import (
 
 // newEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func newEtcdClient(machines []string) (*etcd.Client, error) {
+func newEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
 	c := etcd.NewClient()
+	if cert != "" {
+		_, err := c.SetCertAndKey(cert, key)
+		if err != nil {
+			return c, err
+		}
+	}
 	success := c.SetCluster(machines)
 	if !success {
 		return c, errors.New("cannot connect to etcd cluster")

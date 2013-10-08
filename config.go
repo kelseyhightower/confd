@@ -17,16 +17,20 @@ func init() {
 	flag.IntVar(&interval, "i", 600, "etcd polling interval")
 	flag.StringVar(&prefix, "p", "/", "etcd key path prefix")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
+	flag.StringVar(&clientCert, "cert", "", "the client cert")
+	flag.StringVar(&clientKey, "key", "", "the client key")
 }
 
 var (
-	config   Config
-	confFile = "/etc/confd/confd.toml" // default confd configuration file
-	nodes    Nodes
-	confdir  string
-	interval int
-	prefix   string
-	onetime  bool
+	config     Config
+	confFile   = "/etc/confd/confd.toml" // default confd configuration file
+	nodes      Nodes
+	confdir    string
+	interval   int
+	prefix     string
+	onetime    bool
+	clientCert string
+	clientKey  string
 )
 
 // Nodes is a custom flag Var representing a list of etcd nodes. We use a custom
@@ -51,15 +55,27 @@ type Config struct {
 
 // confd represents the parsed configuration settings.
 type confd struct {
-	ConfDir   string
-	Interval  int
-	Prefix    string
-	EtcdNodes []string `toml:"etcd_nodes"`
+	ConfDir    string
+	ClientCert string
+	ClientKey  string
+	Interval   int
+	Prefix     string
+	EtcdNodes  []string `toml:"etcd_nodes"`
 }
 
 // ConfigDir returns the path to the confd config dir.
 func ConfigDir() string {
 	return filepath.Join(config.Confd.ConfDir, "conf.d")
+}
+
+// ClientCert returns the path to the client cert.
+func ClientCert() string {
+	return config.Confd.ClientCert
+}
+
+// ClientKey returns the path to the client key.
+func ClientKey() string {
+	return config.Confd.ClientKey
 }
 
 // EtcdNodes returns a list of etcd node url strings.
@@ -135,6 +151,10 @@ func override(f *flag.Flag) {
 		config.Confd.EtcdNodes = nodes
 	case "p":
 		config.Confd.Prefix = prefix
+	case "cert":
+		config.Confd.ClientCert = clientCert
+	case "key":
+		config.Confd.ClientKey = clientKey
 	}
 }
 
