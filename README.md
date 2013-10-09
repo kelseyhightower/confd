@@ -41,7 +41,7 @@ Optional:
 * `confdir` (string) - The path to confd configs. The default is /etc/confd.
 * `etcd_nodes` (array of strings) - An array of etcd cluster nodes. The default
   is ["http://127.0.0.1:4001"].
-* `interval` (int) - The number of seconds wait between calls to etcd. The
+* `interval` (int) - The number of seconds to wait between calls to etcd. The
   default is 600.
 * `prefix` (string) - The prefix string to prefix to keys when making calls to
   etcd. The default is "/".
