@@ -25,7 +25,7 @@ This will produce the `confd` binary in the current directory.
 
 ## Usage
 
-The following commands will process all the template configs found under `/etc/confd/conf.d`.
+The following commands will process all the [template resources](https://github.com/kelseyhightower/confd#template-config) found under `/etc/confd/conf.d`.
 
 ### Poll the etcd cluster in 30 second intervals
 
@@ -35,9 +35,9 @@ The "/production" string will be prefixed to keys when querying etcd at http://1
 confd -c /etc/confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
 ```
 
-### Process template configs once and exit
+### Single run without polling
 
-Using default settings process all template configs and exit.
+Using default settings run one time and exit.
 
 ```
 confd -onetime
@@ -82,10 +82,10 @@ Example:
   client_key = "/etc/confd/ssl/client.key"
 ```
 
-## Template Config
+## Template Resources
 
-Template configs are written in TOML and define a single template resource.
-Template configs are stored under the `confdir/conf.d` directory.
+Template resources are written in TOML and define a single template resource.
+Template resources are stored under the `confdir/conf.d` directory.
 
 Required:
 
