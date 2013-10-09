@@ -56,8 +56,8 @@ type Config struct {
 // confd represents the parsed configuration settings.
 type confd struct {
 	ConfDir    string
-	ClientCert string
-	ClientKey  string
+	ClientCert string `toml:"client_cert"`
+	ClientKey  string `toml:"client_key"`
 	Interval   int
 	Prefix     string
 	EtcdNodes  []string `toml:"etcd_nodes"`
