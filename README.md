@@ -53,8 +53,8 @@ confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
 
 ## Configuration
 
-The confd configuration file is written in the TOML format and is loaded from
-`/etc/confd/confd.toml` by default.
+The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
+and loaded from `/etc/confd/confd.toml` by default.
 
 Optional:
 
