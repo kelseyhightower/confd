@@ -11,7 +11,7 @@ import (
 // It returns an error if a connection to the cluster cannot be made.
 func newEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
 	c := etcd.NewClient()
-	if cert != "" {
+	if cert != "" && key != "" {
 		_, err := c.SetCertAndKey(cert, key)
 		if err != nil {
 			return c, err
