@@ -25,6 +25,12 @@ Using default settings process all template configs and exit.
 confd -onetime
 ```
 
+Same as above but authenticate with client certificates.
+
+```
+confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
+```
+
 ## Configuration File
 
 The confd configuration file is written in the TOML format and is loaded from
