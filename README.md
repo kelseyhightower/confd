@@ -1,23 +1,41 @@
 # confd
 
-`confd` is a lightweight configuration management tool focused on keeping local
-configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd)
-for specific keys and regenerating templates when values change. `confd` can also
-take care of reloading applications to pick up new config file changes.
+`confd` is a lightweight configuration management tool focused on:
 
-## Install
+* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd)
+* reloading applications to pick up new config file changes
 
-Download the latest binary [release](https://github.com/kelseyhightower/confd/releases)
+## Getting Started
+
+### Installing confd
+
+Download the latest binary from [Github](https://github.com/kelseyhightower/confd/releases).
+
+### Building
+
+You can build confd from source:
+
+```
+git clone https://github.com/kelseyhightower/confd.git
+cd confd
+go build
+```
+
+This will produce the `confd` binary in the current directory.
 
 ## Usage
 
-Poll the etcd cluster node (127.0.0.1). All template configs under
-/etc/confd/conf.d will be processed one at a time every 30 secs. The
-"/production" string will be prefixed to keys when querying etcd.
+The following commands will process all the template configs found under `/etc/confd/conf.d`.
+
+### Poll the etcd cluster in 30 second intervals
+
+The "/production" string will be prefixed to keys when querying etcd at http://127.0.0.1:4001.
 
 ```
 confd -c /etc/confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
 ```
+
+### Process template configs once and exit
 
 Using default settings process all template configs and exit.
 
@@ -25,13 +43,15 @@ Using default settings process all template configs and exit.
 confd -onetime
 ```
 
+### Client authentication
+
 Same as above but authenticate with client certificates.
 
 ```
 confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
 ```
 
-## Configuration File
+## Configuration
 
 The confd configuration file is written in the TOML format and is loaded from
 `/etc/confd/confd.toml` by default.
@@ -99,5 +119,3 @@ Example:
   check_cmd = "/usr/sbin/nginx -t -c {{ .src }}"
   reload_cmd = "/usr/sbin/service nginx restart"
 ```
-
-
