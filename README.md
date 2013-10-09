@@ -72,14 +72,14 @@ Example:
 
 ```TOML
 [confd]
-  confdir = "/etc/confd"
-  etcd_nodes = [
-    "http://127.0.0.1:4001",
-  ]
-  interval = 600
-  prefix = "/"
-  client_cert = "/etc/confd/ssl/client.crt"
-  client_key = "/etc/confd/ssl/client.key"
+confdir  = "/etc/confd"
+interval = 600
+prefix   = "/"
+etcd_nodes = [
+  "http://127.0.0.1:4001",
+]
+client_cert = "/etc/confd/ssl/client.crt"
+client_key  = "/etc/confd/ssl/client.key"
 ```
 
 ## Template Resources
@@ -108,14 +108,14 @@ Example:
 
 ```TOML
 [template]
-  src = "nginx.conf.tmpl"
-  dest = "/etc/nginx/nginx.conf"
-  group = "root"
-  keys = [
-    "/nginx/worker_processes",
-  ]
-  owner = "root"
-  mode = "0644"
-  check_cmd = "/usr/sbin/nginx -t -c {{ .src }}"
-  reload_cmd = "/usr/sbin/service nginx restart"
+src   = "nginx.conf.tmpl"
+dest  = "/etc/nginx/nginx.conf"
+owner = "root"
+group = "root"
+mode  = "0644"
+keys = [
+  "/nginx/worker_processes",
+]
+check_cmd  = "/usr/sbin/nginx -t -c {{ .src }}"
+reload_cmd = "/usr/sbin/service nginx restart"
 ```
