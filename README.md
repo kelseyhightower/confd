@@ -2,7 +2,7 @@
 
 `confd` is a lightweight configuration management tool focused on:
 
-* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd)
+* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](https://github.com/kelseyhightower/confd#template-config).
 * reloading applications to pick up new config file changes
 
 ## Getting Started
