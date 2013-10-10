@@ -17,9 +17,9 @@ import (
 	"text/template"
 )
 
-// templateConfig holds the parsed template resource.
-type templateConfig struct {
-	Template Template
+// TemplateResourceConfig holds the parsed template resource.
+type TemplateResourceConfig struct {
+	TemplateResource TemplateResource `toml:"template"`
 }
 
 // A fileInfo describes a configuration file and is returned by fileStat.
@@ -30,8 +30,8 @@ type fileInfo struct {
 	Md5  string
 }
 
-// Template is the representation of a parsed confd template resource.
-type Template struct {
+// TemplateResource is the representation of a parsed template resource.
+type TemplateResource struct {
 	Dest      string
 	Gid       int
 	Keys      []string
@@ -44,8 +44,8 @@ type Template struct {
 	Vars      map[string]interface{}
 }
 
-// setVars sets the Vars for template config.
-func (t *Template) setVars() error {
+// setVars sets the Vars for template resource.
+func (t *TemplateResource) setVars() error {
 	c, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
 	if err != nil {
 		return err
@@ -59,9 +59,9 @@ func (t *Template) setVars() error {
 
 // createStageFile stages the src configuration file by processing the src
 // template and setting the desired owner, group, and mode. It also sets the
-// StageFile for the template config.
+// StageFile for the template resource.
 // It returns an error if any.
-func (t *Template) createStageFile() error {
+func (t *TemplateResource) createStageFile() error {
 	t.Src = filepath.Join(TemplateDir(), t.Src)
 	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
@@ -89,7 +89,7 @@ func (t *Template) createStageFile() error {
 // overwriting the target config file. Finally, sync will run a reload command
 // if set to have the application or service pick up the changes.
 // It returns an error if any.
-func (t *Template) sync() error {
+func (t *TemplateResource) sync() error {
 	staged := t.StageFile.Name()
 	defer os.Remove(staged)
 	err, ok := sameConfig(staged, t.Dest)
@@ -121,7 +121,7 @@ func (t *Template) sync() error {
 // check to be run on the staged file before overwriting the destination config
 // file.
 // It returns nil if the check command returns 0 and there are no other errors.
-func (t *Template) check() error {
+func (t *TemplateResource) check() error {
 	var cmdBuffer bytes.Buffer
 	data := make(map[string]string)
 	data["src"] = t.StageFile.Name()
@@ -142,7 +142,7 @@ func (t *Template) check() error {
 
 // reload executes the reload command.
 // It returns nil if the reload command returns 0.
-func (t *Template) reload() error {
+func (t *TemplateResource) reload() error {
 	log.Debug("Running " + t.ReloadCmd)
 	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
 	if err := c.Run(); err != nil {
@@ -156,7 +156,7 @@ func (t *Template) reload() error {
 // from etcd, then we stage a candidate configuration file, and finally sync
 // things up.
 // It returns an error if any.
-func (t *Template) process() error {
+func (t *TemplateResource) process() error {
 	if err := t.setVars(); err != nil {
 		return err
 	}
@@ -169,21 +169,21 @@ func (t *Template) process() error {
 	return nil
 }
 
-// ProcessTemplateConfigs is a convenience function that loads all the template
-// config files and processes them serially. Called from the main function.
+// ProcessTemplateResources is a convenience function that loads all the
+// template resources and processes them serially. Called from main.
 // It return an error if any.
-func ProcessTemplateConfigs() error {
+func ProcessTemplateResources() error {
 	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
 	if err != nil {
 		return err
 	}
 	for _, p := range paths {
-		var tc *templateConfig
+		var tc *TemplateResourceConfig
 		_, err := toml.DecodeFile(p, &tc)
 		if err != nil {
 			return err
 		}
-		if err := tc.Template.process(); err != nil {
+		if err := tc.TemplateResource.process(); err != nil {
 			return err
 		}
 	}
