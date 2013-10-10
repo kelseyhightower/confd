@@ -22,14 +22,6 @@ type TemplateResourceConfig struct {
 	TemplateResource TemplateResource `toml:"template"`
 }
 
-// A fileInfo describes a configuration file and is returned by fileStat.
-type fileInfo struct {
-	Uid  uint32
-	Gid  uint32
-	Mode uint32
-	Md5  string
-}
-
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
 	Dest      string
@@ -199,10 +191,6 @@ func fileStat(name string) (fi fileInfo, err error) {
 			return fi, err
 		}
 		stats, _ := f.Stat()
-		// Gathering the uid, gid, and mode this way is not portable.
-		// This will build on Linux but not OS X. The Mode on OS X returns a
-		// uint16 but uint32 on Linux. We could change our FileInfo Mode field
-		// type to os.FileMode and cast Mode here.
 		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
 		fi.Gid = stats.Sys().(*syscall.Stat_t).Gid
 		fi.Mode = stats.Sys().(*syscall.Stat_t).Mode
