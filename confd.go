@@ -27,6 +27,7 @@ func main() {
 		if Onetime() {
 			break
 		}
+		// By default we poll etcd every 30 seconds
 		time.Sleep(time.Duration(Interval()) * time.Second)
 	}
 }
