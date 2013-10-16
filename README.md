@@ -2,7 +2,7 @@
 
 `confd` is a lightweight configuration management tool focused on:
 
-* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](https://github.com/kelseyhightower/confd#template-config).
+* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](https://github.com/kelseyhightower/confd#template-resources).
 * reloading applications to pick up new config file changes
 
 ## Getting Started
@@ -25,7 +25,7 @@ This will produce the `confd` binary in the current directory.
 
 ## Usage
 
-The following commands will process all the [template resources](https://github.com/kelseyhightower/confd#template-config) found under `/etc/confd/conf.d`.
+The following commands will process all the [template resources](https://github.com/kelseyhightower/confd#template-resources) found under `/etc/confd/conf.d`.
 
 ### Poll the etcd cluster in 30 second intervals
 
@@ -92,8 +92,7 @@ Required:
 * `dest` (string) - output file where the template should be rendered.
 * `keys` (array of strings) - An array of etcd keys. Keys will be looked up
   with the configured prefix.
-* `src` (string) - relative path of a Go template. Templates are stored under
-  the `confdir/templates` directory.
+* `src` (string) - relative path of a the [configuration template](https://github.com/kelseyhightower/confd#templates).
 
 Optional:
 
@@ -114,8 +113,65 @@ owner = "root"
 group = "root"
 mode  = "0644"
 keys = [
-  "/nginx/worker_processes",
+  "/nginx",
 ]
 check_cmd  = "/usr/sbin/nginx -t -c {{ .src }}"
 reload_cmd = "/usr/sbin/service nginx restart"
 ```
+
+## Templates
+
+Templates define a single application configration template.
+Templates are stored under the `confdir/templates` directory.
+
+Templates are written in Go's [`text/template`](http://golang.org/pkg/text/template/). 
+
+Etcd keys are treated as paths and automatically transformed into keys for retrieval in templates. Underscores are used in place of forward slashes.  _Values retrived from Etcd are never modified._  
+For example `/foo/bar` becomes `foo_bar`.
+
+`foo_bar` is accessed as `{{ .foo_bar }}`
+
+
+Example:  
+```
+$ etcdctl set /nginx/domain 'example.com'
+$ etcdctl set /nginx/root '/var/www/example_dotcom'
+$ etcdctl set /nginx/worker_processes '2'
+```
+
+
+`$ cat /etc/confd/templates/nginx.conf.tmpl`:
+```
+worker_processes {{ .nginx_worker_processes }};
+
+server {
+    listen 80;
+    server_name www.{{ .nginx_domain }};
+    access_log /var/log/nginx/{{ .nginx_domain }}.access.log;
+    error_log /var/log/nginx/{{ .nginx_domain }}.log;
+
+    location / {
+        root   {{ .nginx_root }};
+        index  index.html index.htm;
+    }
+}
+```
+
+Will produce `/etc/nginx/nginx.conf`:
+```
+worker_processes 2;
+
+server {
+    listen 80;
+    server_name www.example.com;
+    access_log /var/log/nginx/example.com.access.log;
+    error_log /var/log/nginx/example.com.error.log;
+
+    location / {
+        root   /var/www/example_dotcom;
+        index  index.html index.htm;
+    }
+}
+```
+
+Go's [`text/template`](http://golang.org/pkg/text/template/) package is very powerful. For more details on it's capabilities see its [documentation.](http://golang.org/pkg/text/template/)
