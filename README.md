@@ -1,5 +1,7 @@
 # confd
 
+[![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
+
 `confd` is a lightweight configuration management tool focused on:
 
 * keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](https://github.com/kelseyhightower/confd#template-resources).
