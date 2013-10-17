@@ -120,7 +120,7 @@ func InitConfig() error {
 func setDefaults() {
 	config = Config{
 		Confd: confd{
-			ConfDir:   "/etc/confd/conf.d",
+			ConfDir:   "/etc/confd",
 			Interval:  600,
 			Prefix:    "/",
 			EtcdNodes: []string{"http://127.0.0.1:4001"},
