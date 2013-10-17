@@ -25,6 +25,7 @@ type TemplateResourceConfig struct {
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
 	Dest      string
+	FileMode  os.FileMode
 	Gid       int
 	Keys      []string
 	Mode      string
@@ -69,8 +70,7 @@ func (t *TemplateResource) createStageFile() error {
 	}
 	// Set the owner, group, and mode on the stage file now to make it easier to
 	// compare against the destination configuration file later.
-	mode, _ := strconv.ParseUint(t.Mode, 0, 32)
-	os.Chmod(temp.Name(), os.FileMode(mode))
+	os.Chmod(temp.Name(), t.FileMode)
 	os.Chown(temp.Name(), t.Uid, t.Gid)
 	t.StageFile = temp
 	return nil
@@ -149,6 +149,9 @@ func (t *TemplateResource) reload() error {
 // things up.
 // It returns an error if any.
 func (t *TemplateResource) process() error {
+	if err := t.setFileMode(); err != nil {
+		return err
+	}
 	if err := t.setVars(); err != nil {
 		return err
 	}
@@ -157,6 +160,29 @@ func (t *TemplateResource) process() error {
 	}
 	if err := t.sync(); err != nil {
 		return err
+	}
+	return nil
+}
+
+// setFileMode sets the FileMode.
+// It returns an error if any.
+func (t *TemplateResource) setFileMode() error {
+	if t.Mode == "" {
+		if !isFileExist(t.Dest) {
+			t.FileMode = 0644
+		} else {
+			fi, err := os.Stat(t.Dest)
+			if err != nil {
+				return err
+			}
+			t.FileMode = fi.Mode()
+		}
+	} else {
+		mode, err := strconv.ParseUint(t.Mode, 0, 32)
+		if err != nil {
+			return err
+		}
+		t.FileMode = os.FileMode(mode)
 	}
 	return nil
 }
