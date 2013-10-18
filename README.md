@@ -177,3 +177,9 @@ server {
 ```
 
 Go's [`text/template`](http://golang.org/pkg/text/template/) package is very powerful. For more details on it's capabilities see its [documentation.](http://golang.org/pkg/text/template/)
+
+## Extras
+
+### Configuration Management
+
+- [confd-cookbook](https://github.com/rjocoleman/confd-cookbook)
