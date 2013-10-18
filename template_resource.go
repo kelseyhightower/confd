@@ -56,7 +56,7 @@ func (t *TemplateResource) setVars() error {
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
 	t.Src = filepath.Join(TemplateDir(), t.Src)
-	if !isFileExist(t.Src) {
+	if !IsFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
 	temp, err := ioutil.TempFile("", "")
@@ -168,7 +168,7 @@ func (t *TemplateResource) process() error {
 // It returns an error if any.
 func (t *TemplateResource) setFileMode() error {
 	if t.Mode == "" {
-		if !isFileExist(t.Dest) {
+		if !IsFileExist(t.Dest) {
 			t.FileMode = 0644
 		} else {
 			fi, err := os.Stat(t.Dest)
@@ -210,7 +210,7 @@ func ProcessTemplateResources() error {
 
 // fileStat return a fileInfo describing the named file.
 func fileStat(name string) (fi fileInfo, err error) {
-	if isFileExist(name) {
+	if IsFileExist(name) {
 		f, err := os.Open(name)
 		defer f.Close()
 		if err != nil {
@@ -234,7 +234,7 @@ func fileStat(name string) (fi fileInfo, err error) {
 // Unix permissions. The owner, group, and mode must match.
 // It return false in other cases.
 func sameConfig(src, dest string) (error, bool) {
-	if !isFileExist(dest) {
+	if !IsFileExist(dest) {
 		return nil, false
 	}
 	d, err := fileStat(dest)

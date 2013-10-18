@@ -130,7 +130,7 @@ func setDefaults() {
 
 // loadConfFile sets the etcd configuration settings from a file.
 func loadConfFile() error {
-	if isFileExist(confFile) {
+	if IsFileExist(confFile) {
 		_, err := toml.DecodeFile(confFile, &config)
 		if err != nil {
 			return err
