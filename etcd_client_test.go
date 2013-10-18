@@ -11,6 +11,7 @@ var pathToKeyTests = []struct {
 }{
 	{"/nginx/port", "", "nginx_port"},
 	{"/prefix/nginx/port", "/prefix", "nginx_port"},
+	{"/prefix/nginx/port", "/prefix/", "nginx_port"},
 	{"/nginx/worker_processes", "", "nginx_worker_processes"},
 	{"/foo/bar/mat/zoo", "", "foo_bar_mat_zoo"},
 }
