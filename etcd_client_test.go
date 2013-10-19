@@ -4,16 +4,19 @@ import (
 	"testing"
 )
 
-var pathToKeyTests = []struct {
-	key      string
-	prefix   string
-	expected string
-}{
+type PathToKeyTest struct {
+	key, prefix, expected string
+}
+
+var pathToKeyTests = []PathToKeyTest{
+	// Without prefix
 	{"/nginx/port", "", "nginx_port"},
-	{"/prefix/nginx/port", "/prefix", "nginx_port"},
-	{"/prefix/nginx/port", "/prefix/", "nginx_port"},
 	{"/nginx/worker_processes", "", "nginx_worker_processes"},
 	{"/foo/bar/mat/zoo", "", "foo_bar_mat_zoo"},
+	// With prefix
+	{"/prefix/nginx/port", "/prefix", "nginx_port"},
+	// With prefix and trailing slash
+	{"/prefix/nginx/port", "/prefix/", "nginx_port"},
 }
 
 func TestPathToKey(t *testing.T) {
