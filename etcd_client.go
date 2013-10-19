@@ -26,13 +26,17 @@ func newEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
 	return c, nil
 }
 
+type EtcdClient interface {
+	Get(key string) ([]*etcd.Response, error)
+}
+
 // getValues queries etcd for keys prefixed by prefix.
 // Etcd paths (keys) are translated into names more suitable for use in
 // templates. For example if prefix where set to '/production' and one of the
 // keys where '/nginx/port'; the prefixed '/production/nginx/port' key would
 // be quired for. If the value for the prefixed key where 80, the returned map
 // would contain the entry vars["nginx_port"] = "80".
-func getValues(c *etcd.Client, prefix string, keys []string) (map[string]interface{}, error) {
+func getValues(c EtcdClient, prefix string, keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
 		err := etcdWalk(c, filepath.Join(prefix, key), prefix, vars)
@@ -44,7 +48,7 @@ func getValues(c *etcd.Client, prefix string, keys []string) (map[string]interfa
 }
 
 // etcdWalk recursively descends etcd paths, updating vars.
-func etcdWalk(c *etcd.Client, key string, prefix string, vars map[string]interface{}) error {
+func etcdWalk(c EtcdClient, key string, prefix string, vars map[string]interface{}) error {
 	values, err := c.Get(key)
 	if err != nil {
 		return err
