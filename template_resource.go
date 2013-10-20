@@ -38,7 +38,13 @@ type TemplateResource struct {
 	etcdClient EtcdClient
 }
 
+// NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
+// and the supplied EtcdClient as input.
+// It returns a TemplateResource and an error if any.
 func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, error) {
+	if c == nil {
+		return nil, errors.New("A valid EtcdClient is required.")
+	}
 	var tc *TemplateResourceConfig
 	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
