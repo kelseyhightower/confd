@@ -24,26 +24,34 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
-	Dest      string
-	FileMode  os.FileMode
-	Gid       int
-	Keys      []string
-	Mode      string
-	Uid       int
-	ReloadCmd string `toml:"reload_cmd"`
-	CheckCmd  string `toml:"check_cmd"`
-	StageFile *os.File
-	Src       string
-	Vars      map[string]interface{}
+	Dest       string
+	FileMode   os.FileMode
+	Gid        int
+	Keys       []string
+	Mode       string
+	Uid        int
+	ReloadCmd  string `toml:"reload_cmd"`
+	CheckCmd   string `toml:"check_cmd"`
+	StageFile  *os.File
+	Src        string
+	Vars       map[string]interface{}
+	etcdClient EtcdClient
+}
+
+func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, error) {
+	var tc *TemplateResourceConfig
+	_, err := toml.DecodeFile(path, &tc)
+	if err != nil {
+		return nil, err
+	}
+	tc.TemplateResource.etcdClient = c
+	return &tc.TemplateResource, nil
 }
 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
-	c, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
-	if err != nil {
-		return err
-	}
-	t.Vars, err = getValues(c, Prefix(), t.Keys)
+	var err error
+	t.Vars, err = getValues(t.etcdClient, Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}
@@ -190,18 +198,24 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It return an error if any.
-func ProcessTemplateResources() error {
+func ProcessTemplateResources(c EtcdClient) error {
+	var err error
+	if c == nil {
+		c, err = newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
+		if err != nil {
+			return err
+		}
+	}
 	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
 	if err != nil {
 		return err
 	}
 	for _, p := range paths {
-		var tc *TemplateResourceConfig
-		_, err := toml.DecodeFile(p, &tc)
+		t, err := NewTemplateResourceFromPath(p, c)
 		if err != nil {
 			return err
 		}
-		if err := tc.TemplateResource.process(); err != nil {
+		if err := t.process(); err != nil {
 			return err
 		}
 	}

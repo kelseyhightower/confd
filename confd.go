@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	for {
-		if err := ProcessTemplateResources(); err != nil {
+		if err := ProcessTemplateResources(nil); err != nil {
 			log.Error(err.Error())
 		}
 		// If the -onetime flag is passed on the command line we immediately exit
