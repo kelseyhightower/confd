@@ -27,7 +27,6 @@ func main() {
 	// override configuration settings from the cli. Parse the flags now to
 	// make them active.
 	flag.Parse()
-	print(configFile)
 	if configFile == "" {
 		if IsFileExist(defaultConfigFile) {
 			configFile = defaultConfigFile
