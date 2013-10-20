@@ -4,21 +4,20 @@ import (
 	"testing"
 )
 
-func TestInitConfig(t *testing.T) {
+func TestLoadConfig(t *testing.T) {
 	var expected = struct {
 		clientCert  string
 		clientKey   string
 		configDir   string
 		etcdNodes   []string
 		interval    int
-		onetime     bool
 		prefix      string
 		templateDir string
 	}{
 		"", "", "/etc/confd/conf.d", []string{"http://127.0.0.1:4001"},
-		600, false, "/", "/etc/confd/templates",
+		600, "/", "/etc/confd/templates",
 	}
-	InitConfig()
+	loadConfig("")
 	cc := ClientCert()
 	if cc != expected.clientCert {
 		t.Errorf("Expected default clientCert = %s, got %s", expected.clientCert, cc)
@@ -38,10 +37,6 @@ func TestInitConfig(t *testing.T) {
 	i := Interval()
 	if i != expected.interval {
 		t.Errorf("Expected default interval = %d, got %d", expected.interval, i)
-	}
-	ot := Onetime()
-	if ot != expected.onetime {
-		t.Errorf("Expected default onetime = %v, got %v", expected.onetime, ot)
 	}
 	p := Prefix()
 	if p != expected.prefix {

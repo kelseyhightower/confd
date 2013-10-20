@@ -6,32 +6,30 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/log"
+)
+
+var (
+	config     Config
+	nodes      Nodes
+	confdir    string
+	interval   int
+	prefix     string
+	clientCert string
+	clientKey  string
 )
 
 func init() {
 	flag.Var(&nodes, "n", "list of etcd nodes")
 	flag.StringVar(&confdir, "c", "/etc/confd", "confd config directory")
-	flag.StringVar(&confFile, "C", "/etc/confd/confd.toml", "confd config file")
 	flag.IntVar(&interval, "i", 600, "etcd polling interval")
 	flag.StringVar(&prefix, "p", "/", "etcd key path prefix")
-	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.StringVar(&clientCert, "cert", "", "the client cert")
 	flag.StringVar(&clientKey, "key", "", "the client key")
 }
-
-var (
-	config     Config
-	confFile   = "/etc/confd/confd.toml" // default confd configuration file
-	nodes      Nodes
-	confdir    string
-	interval   int
-	prefix     string
-	onetime    bool
-	clientCert string
-	clientKey  string
-)
 
 // Nodes is a custom flag Var representing a list of etcd nodes. We use a custom
 // Var to allow us to define more than one etcd node from the command line, and
@@ -63,6 +61,24 @@ type confd struct {
 	EtcdNodes  []string `toml:"etcd_nodes"`
 }
 
+// loadConfig initializes the confd configuration by first setting defaults,
+// then overriding setting from the confd config file, and finally overriding
+// settings from flags set on the command line.
+// It returns an error if any.
+func loadConfig(path string) error {
+	setDefaults()
+	if path == "" {
+		log.Warning("Skipping confd config file.")
+	} else {
+		log.Debug("Loading " + path)
+		if err := loadConfFile(path); err != nil {
+			return err
+		}
+	}
+	overrideConfig()
+	return nil
+}
+
 // ConfigDir returns the path to the confd config dir.
 func ConfigDir() string {
 	return filepath.Join(config.Confd.ConfDir, "conf.d")
@@ -89,11 +105,6 @@ func Interval() int {
 	return config.Confd.Interval
 }
 
-// Onetime returns true if the -onetime flag was set on the command line.
-func Onetime() bool {
-	return onetime
-}
-
 // Prefix returns the etcd key prefix to use when querying etcd.
 func Prefix() string {
 	return config.Confd.Prefix
@@ -102,19 +113,6 @@ func Prefix() string {
 // TemplateDir returns the path to the directory of config file templates.
 func TemplateDir() string {
 	return filepath.Join(config.Confd.ConfDir, "templates")
-}
-
-// InitConfig initializes the confd configuration by first setting defaults,
-// then overriding setting from the confd config file, and finally overriding
-// settings from flags set on the command line.
-// It returns an error if any.
-func InitConfig() error {
-	setDefaults()
-	if err := loadConfFile(); err != nil {
-		return err
-	}
-	overrideConfig()
-	return nil
 }
 
 func setDefaults() {
@@ -129,12 +127,10 @@ func setDefaults() {
 }
 
 // loadConfFile sets the etcd configuration settings from a file.
-func loadConfFile() error {
-	if IsFileExist(confFile) {
-		_, err := toml.DecodeFile(confFile, &config)
-		if err != nil {
-			return err
-		}
+func loadConfFile(path string) error {
+	_, err := toml.DecodeFile(path, &config)
+	if err != nil {
+		return err
 	}
 	return nil
 }

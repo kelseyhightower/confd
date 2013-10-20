@@ -5,17 +5,35 @@ package main
 
 import (
 	"flag"
-	"github.com/kelseyhightower/confd/log"
 	"time"
+
+	"github.com/kelseyhightower/confd/log"
 )
+
+var (
+	configFile        = ""
+	defaultConfigFile = "/etc/confd/confd.toml"
+	onetime           bool
+)
+
+func init() {
+	flag.StringVar(&configFile, "C", "", "confd config file")
+	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
+}
 
 func main() {
 	log.Info("Starting confd")
-	// All flags are defined in the confd/config package which allow us to
+	// Most flags are defined in the confd/config package which allow us to
 	// override configuration settings from the cli. Parse the flags now to
 	// make them active.
 	flag.Parse()
-	if err := InitConfig(); err != nil {
+	print(configFile)
+	if configFile == "" {
+		if IsFileExist(defaultConfigFile) {
+			configFile = defaultConfigFile
+		}
+	}
+	if err := loadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
 	for {
@@ -24,7 +42,7 @@ func main() {
 		}
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
-		if Onetime() {
+		if onetime {
 			break
 		}
 		// By default we poll etcd every 30 seconds
