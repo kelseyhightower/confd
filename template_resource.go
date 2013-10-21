@@ -219,10 +219,12 @@ func ProcessTemplateResources(c EtcdClient) error {
 	for _, p := range paths {
 		t, err := NewTemplateResourceFromPath(p, c)
 		if err != nil {
-			return err
+			log.Error(err.Error())
+			continue
 		}
 		if err := t.process(); err != nil {
-			return err
+			log.Error(err.Error())
+			continue
 		}
 	}
 	return nil
