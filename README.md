@@ -1,5 +1,7 @@
 # confd
 
+README version 0.1.1
+
 [![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
 
 `confd` is a lightweight configuration management tool focused on:
