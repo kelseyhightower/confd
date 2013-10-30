@@ -207,10 +207,7 @@ func (t *TemplateResource) setFileMode() error {
 func ProcessTemplateResources(c EtcdClient) error {
 	var err error
 	if c == nil {
-		c, err = newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
-		if err != nil {
-			return err
-		}
+		return errors.New("An etcd client is required")
 	}
 	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
 	if err != nil {

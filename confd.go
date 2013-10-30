@@ -5,8 +5,8 @@ package main
 
 import (
 	"flag"
-	"time"
 	"os"
+	"time"
 
 	"github.com/kelseyhightower/confd/log"
 )
@@ -36,9 +36,14 @@ func main() {
 	if err := loadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
+
+	etcdClient, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	for {
 		runErrors := make([]error, 0)
-		if err := ProcessTemplateResources(nil); err != nil {
+		if err := ProcessTemplateResources(etcdClient); err != nil {
 			runErrors = append(runErrors, err)
 			log.Error(err.Error())
 		}
