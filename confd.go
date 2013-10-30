@@ -6,6 +6,7 @@ package main
 import (
 	"flag"
 	"time"
+	"os"
 
 	"github.com/kelseyhightower/confd/log"
 )
@@ -36,13 +37,18 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	for {
+		runErrors := make([]error, 0)
 		if err := ProcessTemplateResources(nil); err != nil {
+			runErrors = append(runErrors, err)
 			log.Error(err.Error())
 		}
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
 		if onetime {
-			break
+			if len(runErrors) > 0 {
+				os.Exit(1)
+			}
+			os.Exit(0)
 		}
 		// By default we poll etcd every 30 seconds
 		time.Sleep(time.Duration(Interval()) * time.Second)
