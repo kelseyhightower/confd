@@ -21,7 +21,7 @@ func newEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
 	}
 	success := c.SetCluster(machines)
 	if !success {
-		return c, errors.New("cannot connect to etcd cluster")
+		return c, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
 	}
 	return c, nil
 }
