@@ -140,3 +140,59 @@ func TestBrokenTemplateResourceFile(t *testing.T) {
 		t.Errorf("Expected err not to be nil")
 	}
 }
+
+func TestSameConfigTrue(t *testing.T) {
+	src, err := ioutil.TempFile("", "src")
+	defer os.Remove(src.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = src.WriteString("foo")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	dest, err := ioutil.TempFile("", "dest")
+	defer os.Remove(dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = dest.WriteString("foo")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	status, err := sameConfig(src.Name(), dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if status != true {
+		t.Errorf("Expected sameConfig(src, dest) to be %v, got %v", true, status)
+	}
+}
+
+func TestSameConfigFalse(t *testing.T) {
+	src, err := ioutil.TempFile("", "src")
+	defer os.Remove(src.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = src.WriteString("src")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	dest, err := ioutil.TempFile("", "dest")
+	defer os.Remove(dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = dest.WriteString("dest")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	status, err := sameConfig(src.Name(), dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if status != false {
+		t.Errorf("Expected sameConfig(src, dest) to be %v, got %v", false, status)
+	}
+}

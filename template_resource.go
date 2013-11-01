@@ -98,7 +98,7 @@ func (t *TemplateResource) createStageFile() error {
 func (t *TemplateResource) sync() error {
 	staged := t.StageFile.Name()
 	defer os.Remove(staged)
-	err, ok := sameConfig(staged, t.Dest)
+	ok, err := sameConfig(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
 	}
@@ -259,20 +259,20 @@ func fileStat(name string) (fi fileInfo, err error) {
 // Two config files are equal when they have the same file contents and
 // Unix permissions. The owner, group, and mode must match.
 // It return false in other cases.
-func sameConfig(src, dest string) (error, bool) {
+func sameConfig(src, dest string) (bool, error) {
 	if !IsFileExist(dest) {
-		return nil, false
+		return false, nil
 	}
 	d, err := fileStat(dest)
 	if err != nil {
-		return err, false
+		return false, err
 	}
 	s, err := fileStat(src)
 	if err != nil {
-		return err, false
+		return false, err
 	}
 	if d.Uid != s.Uid || d.Gid != s.Gid || d.Mode != s.Mode || d.Md5 != s.Md5 {
-		return nil, false
+		return false, nil
 	}
-	return nil, true
+	return true, nil
 }
