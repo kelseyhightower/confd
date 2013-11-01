@@ -15,19 +15,22 @@ var (
 	configFile        = ""
 	defaultConfigFile = "/etc/confd/confd.toml"
 	onetime           bool
+	quiet             bool
 )
 
 func init() {
 	flag.StringVar(&configFile, "C", "", "confd config file")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
+	flag.BoolVar(&quiet, "q", false, "silence non-error messages")
 }
 
 func main() {
-	log.Info("Starting confd")
 	// Most flags are defined in the confd/config package which allow us to
 	// override configuration settings from the cli. Parse the flags now to
 	// make them active.
 	flag.Parse()
+	log.SetQuiet(quiet)
+	log.Info("Starting confd")
 	if configFile == "" {
 		if IsFileExist(defaultConfigFile) {
 			configFile = defaultConfigFile
