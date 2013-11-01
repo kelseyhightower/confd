@@ -36,7 +36,7 @@ The following commands will process all the [template resources](https://github.
 The "/production" string will be prefixed to keys when querying etcd at http://127.0.0.1:4001.
 
 ```
-confd -c /etc/confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
+confd -C /etc/confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
 ```
 
 ### Single run without polling
