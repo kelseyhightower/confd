@@ -30,12 +30,22 @@ func createTempDirs() (string, error) {
 	return confDir, nil
 }
 
-var templateResourceTmpl = `
+var templateResourceConfigTmpl = `
 [template]
 src = "{{ .src }}"
 dest = "{{ .dest }}"
 keys = [
   "/foo",
+]
+`
+
+var brokenTemplateResourceConfig = `
+[template]
+src = "/does/not/exist"
+dest = "/does/not/exist"
+keys = [
+  "/foo"
+  "/bar"
 ]
 `
 
@@ -67,7 +77,7 @@ func TestProcessTemplateResources(t *testing.T) {
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	tmpl, err := template.New("templateResource").Parse(templateResourceTmpl)
+	tmpl, err := template.New("templateResourceConfig").Parse(templateResourceConfigTmpl)
 	if err != nil {
 		t.Errorf("Unable to parse template resource template: %s", err.Error())
 	}
@@ -101,7 +111,6 @@ func TestProcessTemplateResources(t *testing.T) {
 			t.Errorf(e.Error())
 		}
 	}
-
 	// Verify the results.
 	expected := "foo = bar"
 	results, err := ioutil.ReadFile(destFile.Name())
@@ -110,5 +119,24 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 	if string(results) != expected {
 		t.Errorf("Expected contents of dest == '%s', got %s", expected, string(results))
+	}
+}
+
+func TestBrokenTemplateResourceFile(t *testing.T) {
+	tempFile, err := ioutil.TempFile("", "")
+	defer os.Remove(tempFile.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = tempFile.WriteString(brokenTemplateResourceConfig)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	// Create the stub etcd client.
+	c := etcdtest.NewClient()
+	// Process broken template resource config file.
+	_, err = NewTemplateResourceFromPath(tempFile.Name(), c)
+	if err == nil {
+		t.Errorf("Expected err not to be nil")
 	}
 }
