@@ -109,7 +109,9 @@ func (t *TemplateResource) sync() error {
 				return errors.New("Config check failed: " + err.Error())
 			}
 		}
-		os.Rename(staged, t.Dest)
+		if err := os.Rename(staged, t.Dest); err != nil {
+			return err
+		}
 		if t.ReloadCmd != "" {
 			if err := t.reload(); err != nil {
 				return err
