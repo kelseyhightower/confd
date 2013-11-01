@@ -22,7 +22,7 @@ import (
 var tag string
 
 // Silence non-error messages.
-var quiet bool
+var quiet = true
 
 func init() {
 	tag = os.Args[0]
@@ -33,7 +33,7 @@ func SetTag(t string) {
 	tag = t
 }
 
-// SetQuiet enables quite mode.
+// SetQuiet sets quite mode.
 func SetQuiet(q bool) {
 	quiet = q
 }

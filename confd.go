@@ -29,6 +29,9 @@ func main() {
 	// override configuration settings from the cli. Parse the flags now to
 	// make them active.
 	flag.Parse()
+	// non-error messages are not printed by default, enable them now.
+	// If the "-q" flag was passed on the commandline non-error messages will
+	// not be printed.
 	log.SetQuiet(quiet)
 	log.Info("Starting confd")
 	if configFile == "" {
@@ -39,7 +42,8 @@ func main() {
 	if err := loadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
-
+	// Create the etcd client upfront and use it for the life of the process.
+	// The etcdClient is an http.Client and designed to be reused.
 	etcdClient, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
 	if err != nil {
 		log.Fatal(err.Error())
