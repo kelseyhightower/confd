@@ -48,7 +48,7 @@ func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, 
 	var tc *TemplateResourceConfig
 	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
 	tc.TemplateResource.etcdClient = c
 	return &tc.TemplateResource, nil
