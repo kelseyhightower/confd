@@ -95,9 +95,11 @@ func TestProcessTemplateResources(t *testing.T) {
 	c.AddResponse("/foo", fooResp)
 
 	// Process the test template resource.
-	err = ProcessTemplateResources(c)
-	if err != nil {
-		t.Errorf(err.Error())
+	runErrors := ProcessTemplateResources(c)
+	if len(runErrors) > 0 {
+		for _, e := range runErrors {
+			t.Errorf(e.Error())
+		}
 	}
 
 	// Verify the results.

@@ -204,27 +204,32 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It return an error if any.
-func ProcessTemplateResources(c EtcdClient) error {
+func ProcessTemplateResources(c EtcdClient) []error {
+	runErrors := make([]error, 0)
 	var err error
 	if c == nil {
-		return errors.New("An etcd client is required")
+		runErrors = append(runErrors, errors.New("An etcd client is required"))
+		return runErrors
 	}
 	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
 	if err != nil {
-		return err
+		runErrors = append(runErrors, err)
+		return runErrors
 	}
 	for _, p := range paths {
 		t, err := NewTemplateResourceFromPath(p, c)
 		if err != nil {
+			runErrors = append(runErrors, err)
 			log.Error(err.Error())
 			continue
 		}
 		if err := t.process(); err != nil {
+			runErrors = append(runErrors, err)
 			log.Error(err.Error())
 			continue
 		}
 	}
-	return nil
+	return runErrors
 }
 
 // fileStat return a fileInfo describing the named file.

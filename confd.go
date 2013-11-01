@@ -42,11 +42,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	for {
-		runErrors := make([]error, 0)
-		if err := ProcessTemplateResources(etcdClient); err != nil {
-			runErrors = append(runErrors, err)
-			log.Error(err.Error())
-		}
+		runErrors := ProcessTemplateResources(etcdClient)
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
 		if onetime {
