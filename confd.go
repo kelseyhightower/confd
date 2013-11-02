@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/log"
+	"strings"
 )
 
 var (
@@ -44,6 +45,7 @@ func main() {
 	}
 	// Create the etcd client upfront and use it for the life of the process.
 	// The etcdClient is an http.Client and designed to be reused.
+	log.Debug("Connecting to " + strings.Join(EtcdNodes(), ", "))
 	etcdClient, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
 	if err != nil {
 		log.Fatal(err.Error())

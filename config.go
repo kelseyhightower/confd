@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"path/filepath"
@@ -20,6 +21,7 @@ var (
 	prefix     string
 	clientCert string
 	clientKey  string
+	srvDomain  string
 	noop       bool
 )
 
@@ -30,6 +32,7 @@ func init() {
 	flag.StringVar(&prefix, "p", "/", "etcd key path prefix")
 	flag.StringVar(&clientCert, "cert", "", "the client cert")
 	flag.StringVar(&clientKey, "key", "", "the client key")
+	flag.StringVar(&srvDomain, "srv-domain", "", "the domain to query for the etcd SRV record, i.e. example.com")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
 }
 
@@ -55,13 +58,15 @@ type Config struct {
 
 // confd represents the parsed configuration settings.
 type confd struct {
-	ConfDir    string
-	ClientCert string `toml:"client_cert"`
-	ClientKey  string `toml:"client_key"`
-	Interval   int
-	Prefix     string
-	EtcdNodes  []string `toml:"etcd_nodes"`
-	Noop       bool     `toml:"noop"`
+	ConfDir       string
+	ClientCert    string `toml:"client_cert"`
+	ClientKey     string `toml:"client_key"`
+	ConnectSecure bool   `toml:"connect_secure"`
+	Interval      int
+	Prefix        string
+	EtcdNodes     []string `toml:"etcd_nodes"`
+	Noop          bool     `toml:"noop"`
+	SRVDomain     string   `toml:"srv_domain"`
 }
 
 // loadConfig initializes the confd configuration by first setting defaults,
@@ -79,6 +84,22 @@ func loadConfig(path string) error {
 		}
 	}
 	overrideConfig()
+	if config.Confd.SRVDomain != "" {
+		hostUris := make([]string, 0)
+		scheme := "http"
+		if config.Confd.ConnectSecure {
+			scheme = "https"
+		}
+		etcdHosts, err := GetEtcdHostsFromSRV(config.Confd.SRVDomain)
+		if err != nil {
+			return errors.New("Cannot get etcd hosts from SRV records " + err.Error())
+		}
+		for _, h := range etcdHosts {
+			uri := fmt.Sprintf("%s://%s:%d", scheme, h.Hostname, h.Port)
+			hostUris = append(hostUris, uri)
+		}
+		config.Confd.EtcdNodes = hostUris
+	}
 	return nil
 }
 
@@ -123,6 +144,11 @@ func TemplateDir() string {
 	return filepath.Join(config.Confd.ConfDir, "templates")
 }
 
+// SRVDomain return the domain name used to query etcd SRV records.
+func SRVDomain() string {
+	return config.Confd.SRVDomain
+}
+
 func setDefaults() {
 	config = Config{
 		Confd: confd{
@@ -161,6 +187,8 @@ func override(f *flag.Flag) {
 		config.Confd.ClientKey = clientKey
 	case "noop":
 		config.Confd.Noop = noop
+	case "srv-domain":
+		config.Confd.SRVDomain = srvDomain
 	}
 }
 
