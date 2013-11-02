@@ -1,5 +1,6 @@
 # confd
 
+* IRC: `#confd` on Freenode
 * Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
 
 README version 0.2.0
