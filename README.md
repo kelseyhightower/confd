@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
 
+* IRC: `#confd` on Freenode
 * Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
 
 `confd` is a lightweight configuration management tool focused on:
