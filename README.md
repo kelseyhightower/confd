@@ -1,6 +1,6 @@
 # confd
 
-README version 0.1.2
+README version 0.2.0
 
 [![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
 
