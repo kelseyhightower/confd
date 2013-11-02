@@ -1,5 +1,7 @@
 # confd
 
+* Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
+
 README version 0.2.0
 
 [![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
