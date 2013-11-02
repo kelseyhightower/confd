@@ -102,6 +102,10 @@ func (t *TemplateResource) sync() error {
 	if err != nil {
 		log.Error(err.Error())
 	}
+	if Noop() {
+		log.Warning("In noop mode, not updating " + t.Dest)
+		return nil
+	}
 	if !ok {
 		log.Info("syncing " + t.Dest)
 		if t.CheckCmd != "" {

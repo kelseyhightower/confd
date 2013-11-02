@@ -39,6 +39,12 @@ The "/production" string will be prefixed to keys when querying etcd at http://1
 confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
 ```
 
+### Same as above in noop mode
+
+```
+confd -noop -i 30 -p '/production' -n 'http://127.0.0.1:4001'
+```
+
 ### Single run without polling
 
 Using default settings run one time and exit.
@@ -71,6 +77,7 @@ Optional:
   etcd. The default is "/".
 * `client_cert` (string) The cert file of the client.
 * `client_key` (string) The key file of the client.
+* `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
 
 Example:
 

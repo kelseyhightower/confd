@@ -122,6 +122,81 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 }
 
+func TestProcessTemplateResourcesNoop(t *testing.T) {
+	// Setup temporary conf, config, and template directories.
+	tempConfDir, err := createTempDirs()
+	if err != nil {
+		t.Errorf("Failed to create temp dirs: %s", err.Error())
+	}
+	defer os.RemoveAll(tempConfDir)
+
+	// Create the src template.
+	srcTemplateFile := filepath.Join(tempConfDir, "templates", "foo.tmpl")
+	err = ioutil.WriteFile(srcTemplateFile, []byte("foo = {{ .foo }}"), 0644)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	// Create the dest.
+	destFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Errorf("Failed to create destFile: %s", err.Error())
+	}
+	defer os.Remove(destFile.Name())
+
+	// Create the template resource configuration file.
+	templateResourcePath := filepath.Join(tempConfDir, "conf.d", "foo.toml")
+	templateResourceFile, err := os.Create(templateResourcePath)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	tmpl, err := template.New("templateResourceConfig").Parse(templateResourceConfigTmpl)
+	if err != nil {
+		t.Errorf("Unable to parse template resource template: %s", err.Error())
+	}
+	data := make(map[string]string)
+	data["src"] = "foo.tmpl"
+	data["dest"] = destFile.Name()
+	err = tmpl.Execute(templateResourceFile, data)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	// Load the confd configuration settings.
+	if err := loadConfig(""); err != nil {
+		t.Errorf(err.Error())
+	}
+	config.Confd.Prefix = ""
+	// Use the temporary tempConfDir from above.
+	config.Confd.ConfDir = tempConfDir
+	// Enable noop mode.
+	config.Confd.Noop = true
+
+	// Create the stub etcd client.
+	c := etcdtest.NewClient()
+	fooResp := []*etcd.Response{
+		{Key: "/foo", Dir: false, Value: "bar"},
+	}
+	c.AddResponse("/foo", fooResp)
+
+	// Process the test template resource.
+	runErrors := ProcessTemplateResources(c)
+	if len(runErrors) > 0 {
+		for _, e := range runErrors {
+			t.Errorf(e.Error())
+		}
+	}
+	// Verify the results.
+	expected := ""
+	results, err := ioutil.ReadFile(destFile.Name())
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if string(results) != expected {
+		t.Errorf("Expected contents of dest == '%s', got %s", expected, string(results))
+	}
+}
+
 func TestBrokenTemplateResourceFile(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "")
 	defer os.Remove(tempFile.Name())

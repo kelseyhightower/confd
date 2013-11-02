@@ -20,6 +20,7 @@ var (
 	prefix     string
 	clientCert string
 	clientKey  string
+	noop       bool
 )
 
 func init() {
@@ -29,6 +30,7 @@ func init() {
 	flag.StringVar(&prefix, "p", "/", "etcd key path prefix")
 	flag.StringVar(&clientCert, "cert", "", "the client cert")
 	flag.StringVar(&clientKey, "key", "", "the client key")
+	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
 }
 
 // Nodes is a custom flag Var representing a list of etcd nodes. We use a custom
@@ -59,6 +61,7 @@ type confd struct {
 	Interval   int
 	Prefix     string
 	EtcdNodes  []string `toml:"etcd_nodes"`
+	Noop       bool     `toml:"noop"`
 }
 
 // loadConfig initializes the confd configuration by first setting defaults,
@@ -103,6 +106,11 @@ func EtcdNodes() []string {
 // Interval returns the number of seconds to wait between configuration runs.
 func Interval() int {
 	return config.Confd.Interval
+}
+
+// Noop
+func Noop() bool {
+	return config.Confd.Noop
 }
 
 // Prefix returns the etcd key prefix to use when querying etcd.
@@ -151,6 +159,8 @@ func override(f *flag.Flag) {
 		config.Confd.ClientCert = clientCert
 	case "key":
 		config.Confd.ClientKey = clientKey
+	case "noop":
+		config.Confd.Noop = noop
 	}
 }
 
