@@ -1,8 +1,8 @@
 # confd
 
-README version 0.1.2
-
 [![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
+
+* Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
 
 `confd` is a lightweight configuration management tool focused on:
 
