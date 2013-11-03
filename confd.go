@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/etcd/etcdutil"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/resource/template"
 )
 
 var (
@@ -47,12 +49,12 @@ func main() {
 	// Create the etcd client upfront and use it for the life of the process.
 	// The etcdClient is an http.Client and designed to be reused.
 	log.Debug("Connecting to " + strings.Join(config.EtcdNodes(), ", "))
-	etcdClient, err := newEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey())
+	etcdClient, err := etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey())
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	for {
-		runErrors := ProcessTemplateResources(etcdClient)
+		runErrors := template.ProcessTemplateResources(etcdClient)
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
 		if onetime {
@@ -64,4 +66,12 @@ func main() {
 		// By default we poll etcd every 30 seconds
 		time.Sleep(time.Duration(config.Interval()) * time.Second)
 	}
+}
+
+// IsFileExist reports whether path exits.
+func IsFileExist(fpath string) bool {
+	if _, err := os.Stat(fpath); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

@@ -1,4 +1,4 @@
-package main
+package template
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/etcd/etcdutil"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -37,13 +38,13 @@ type TemplateResource struct {
 	StageFile  *os.File
 	Src        string
 	Vars       map[string]interface{}
-	etcdClient EtcdClient
+	etcdClient etcdutil.EtcdClient
 }
 
 // NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
 // and the supplied EtcdClient as input.
 // It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, error) {
+func NewTemplateResourceFromPath(path string, c etcdutil.EtcdClient) (*TemplateResource, error) {
 	if c == nil {
 		return nil, errors.New("A valid EtcdClient is required.")
 	}
@@ -59,7 +60,7 @@ func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
-	t.Vars, err = getValues(t.etcdClient, config.Prefix(), t.Keys)
+	t.Vars, err = etcdutil.GetValues(t.etcdClient, config.Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}
@@ -212,7 +213,7 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It return an error if any.
-func ProcessTemplateResources(c EtcdClient) []error {
+func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 	runErrors := make([]error, 0)
 	var err error
 	if c == nil {

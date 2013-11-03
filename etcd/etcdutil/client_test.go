@@ -1,8 +1,8 @@
-package main
+package etcdutil
 
 import (
 	"github.com/coreos/go-etcd/etcd"
-	"github.com/kelseyhightower/confd/etcdtest"
+	"github.com/kelseyhightower/confd/etcd/etcdtest"
 	"testing"
 )
 
@@ -50,7 +50,7 @@ func TestGetValues(t *testing.T) {
 	c.AddResponse("/foo/three", fooThreeResp)
 	c.AddResponse("/nginx", nginxResp)
 	keys := []string{"/nginx", "/foo"}
-	values, err := getValues(c, "", keys)
+	values, err := GetValues(c, "", keys)
 	if err != nil {
 		t.Error(err.Error())
 	}

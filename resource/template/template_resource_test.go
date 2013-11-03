@@ -1,4 +1,4 @@
-package main
+package template
 
 import (
 	"io/ioutil"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/config"
-	"github.com/kelseyhightower/confd/etcdtest"
+	"github.com/kelseyhightower/confd/etcd/etcdtest"
 )
 
 // createTempDirs is a helper function which creates temporary directories

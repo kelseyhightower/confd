@@ -1,4 +1,4 @@
-package main
+package template
 
 // A fileInfo describes a configuration file and is returned by fileStat.
 type fileInfo struct {
