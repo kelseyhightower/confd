@@ -37,9 +37,8 @@ func main() {
 	// override configuration settings from the command line. Parse the flags now
 	// to make them active.
 	flag.Parse()
-	// Non-error messages are not printed by default, enable them now.
-	// If the "-q" flag was passed on the command line non-error messages will
-	// not be printed.
+	// Configure logging. While you can enable debug and verbose logging, however
+	// if quiet is set to true then debug and verbose messages will not be printed.
 	log.SetQuiet(quiet)
 	log.SetVerbose(verbose)
 	log.SetDebug(debug)
