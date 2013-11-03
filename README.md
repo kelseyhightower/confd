@@ -42,13 +42,13 @@ The following commands will process all the [template resources](https://github.
 The "/production" string will be prefixed to keys when querying etcd at http://127.0.0.1:4001.
 
 ```
-confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
+confd -interval 30 -prefix '/production' -node 'http://127.0.0.1:4001'
 ```
 
 ### Same as above in noop mode
 
 ```
-confd -noop -i 30 -p '/production' -n 'http://127.0.0.1:4001'
+confd -interval 30 -prefix '/production' -node 'http://127.0.0.1:4001' -noop
 ```
 
 ### Single run without polling
@@ -64,7 +64,7 @@ confd -onetime
 Same as above but authenticate with client certificates.
 
 ```
-confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
+confd -onetime -client-key /etc/confd/ssl/client.key -client-cert /etc/confd/ssl/client.crt
 ```
 
 ### Lookup etcd nodes using SRV records

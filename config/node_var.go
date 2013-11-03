@@ -7,12 +7,10 @@ import (
 	"fmt"
 )
 
-// Nodes is a custom flag Var representing a list of etcd nodes. We use a custom
-// Var to allow us to define more than one etcd node from the command line, and
-// collect the results in a single value.
+// Nodes is a custom flag Var representing a list of etcd nodes.
 type Nodes []string
 
-// String.
+// String returns the string representation of a node var.
 func (n *Nodes) String() string {
 	return fmt.Sprintf("%d", *n)
 }
