@@ -14,7 +14,7 @@
 
 ### Installing confd
 
-Download the latest binary from [Github](https://github.com/kelseyhightower/confd/releases).
+Download the latest binary from [Github](https://github.com/kelseyhightower/confd/releases/tag/v0.1.2).
 
 ### Building
 
