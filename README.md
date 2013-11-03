@@ -81,6 +81,8 @@ Optional:
 * `client_cert` (string) The cert file of the client.
 * `client_key` (string) The key file of the client.
 * `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
+* `srv_domain` (string) - The domain to query for etcd SRV records.
+* `etcd_scheme` (string) - The etcd scheme to use. Must be 'http' or 'https'
 
 Example:
 
