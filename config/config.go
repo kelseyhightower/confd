@@ -17,12 +17,6 @@ import (
 	"github.com/kelseyhightower/confd/log"
 )
 
-// etcdHost
-type etcdHost struct {
-	Hostname string
-	Port     uint16
-}
-
 var (
 	config     Config
 	nodes      Nodes
@@ -36,6 +30,12 @@ var (
 	etcdScheme string
 )
 
+// etcdHost
+type etcdHost struct {
+	Hostname string
+	Port     uint16
+}
+
 func init() {
 	flag.Var(&nodes, "n", "list of etcd nodes")
 	flag.StringVar(&confdir, "c", "/etc/confd", "confd config directory")
@@ -48,20 +48,6 @@ func init() {
 	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
 }
 
-// Nodes is a custom flag Var representing a list of etcd nodes. We use a custom
-// Var to allow us to define more than one etcd node from the command line, and
-// collect the results in a single value.
-type Nodes []string
-
-func (n *Nodes) String() string {
-	return fmt.Sprintf("%d", *n)
-}
-
-// Set appends the node to the etcd node list.
-func (n *Nodes) Set(node string) error {
-	*n = append(*n, node)
-	return nil
-}
 
 // Config represents the confd configuration settings.
 type Config struct {

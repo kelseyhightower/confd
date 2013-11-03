@@ -29,12 +29,12 @@ func init() {
 }
 
 func main() {
-	// Most flags are defined in the confd/config package which allow us to
-	// override configuration settings from the cli. Parse the flags now to
-	// make them active.
+	// Most flags are defined in the confd/config package which allows us to
+	// override configuration settings from the command line. Parse the flags now
+	// to make them active.
 	flag.Parse()
-	// non-error messages are not printed by default, enable them now.
-	// If the "-q" flag was passed on the commandline non-error messages will
+	// Non-error messages are not printed by default, enable them now.
+	// If the "-q" flag was passed on the command line non-error messages will
 	// not be printed.
 	log.SetQuiet(quiet)
 	log.Info("Starting confd")
@@ -43,6 +43,7 @@ func main() {
 			configFile = defaultConfigFile
 		}
 	}
+	// Initialize the global configuration.
 	if err := config.LoadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
@@ -63,7 +64,6 @@ func main() {
 			}
 			os.Exit(0)
 		}
-		// By default we poll etcd every 30 seconds
 		time.Sleep(time.Duration(config.Interval()) * time.Second)
 	}
 }
