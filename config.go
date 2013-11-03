@@ -7,10 +7,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net"
+	"net/url"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/log"
+	"strconv"
 )
 
 var (
@@ -23,6 +26,7 @@ var (
 	clientKey  string
 	srvDomain  string
 	noop       bool
+	etcdScheme string
 )
 
 func init() {
@@ -32,6 +36,7 @@ func init() {
 	flag.StringVar(&prefix, "p", "/", "etcd key path prefix")
 	flag.StringVar(&clientCert, "cert", "", "the client cert")
 	flag.StringVar(&clientKey, "key", "", "the client key")
+	flag.StringVar(&etcdScheme, "etcd-scheme", "http", "the etcd URI scheme. (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the domain to query for the etcd SRV record, i.e. example.com")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
 }
@@ -65,6 +70,7 @@ type confd struct {
 	Interval      int
 	Prefix        string
 	EtcdNodes     []string `toml:"etcd_nodes"`
+	EtcdScheme    string   `toml:"etcd_scheme"`
 	Noop          bool     `toml:"noop"`
 	SRVDomain     string   `toml:"srv_domain"`
 }
@@ -84,23 +90,73 @@ func loadConfig(path string) error {
 		}
 	}
 	overrideConfig()
+	if !isValidateEtcdScheme(config.Confd.EtcdScheme) {
+		return errors.New("Invalid etcd scheme: " + config.Confd.EtcdScheme)
+	}
+	err := setEtcdHosts()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func setEtcdHosts() error {
+	scheme := config.Confd.EtcdScheme
+	hosts := make([]string, 0)
+	// If a domain name is given then lookup the etcd SRV record, and override
+	// all other etcd node settings.
 	if config.Confd.SRVDomain != "" {
-		hostUris := make([]string, 0)
-		scheme := "http"
-		if config.Confd.ConnectSecure {
-			scheme = "https"
-		}
 		etcdHosts, err := GetEtcdHostsFromSRV(config.Confd.SRVDomain)
 		if err != nil {
 			return errors.New("Cannot get etcd hosts from SRV records " + err.Error())
 		}
 		for _, h := range etcdHosts {
-			uri := fmt.Sprintf("%s://%s:%d", scheme, h.Hostname, h.Port)
-			hostUris = append(hostUris, uri)
+			uri := formatEtcdHostURI(scheme, h.Hostname, strconv.FormatUint(uint64(h.Port), 10))
+			hosts = append(hosts, uri)
 		}
-		config.Confd.EtcdNodes = hostUris
+		config.Confd.EtcdNodes = hosts
+		return nil
 	}
+	// No domain name was given, so just process the etcd node list.
+	// An etcdNode can be a URL, http://etcd.example.com:4001, or a host, etcd.example.com:4001.
+	for _, node := range config.Confd.EtcdNodes {
+		etcdURL, err := url.Parse(node)
+		if err != nil {
+			log.Error(err.Error())
+			return err
+		}
+		if etcdURL.Scheme != "" && etcdURL.Host != "" {
+			if !isValidateEtcdScheme(etcdURL.Scheme) {
+				return errors.New("The etcd node list contains an invalid URL: " + node)
+			}
+			host, port, err := net.SplitHostPort(etcdURL.Host)
+			if err != nil {
+				return err
+			}
+			hosts = append(hosts, formatEtcdHostURI(etcdURL.Scheme, host, port))
+			continue
+		}
+		// At this point node is not an etcd URL, i.e. http://etcd.example.com:4001,
+		// but a host:port string, i.e. etcd.example.com:4001
+		host, port, err := net.SplitHostPort(node)
+		if err != nil {
+			return err
+		}
+		hosts = append(hosts, formatEtcdHostURI(scheme, host, port))
+	}
+	config.Confd.EtcdNodes = hosts
 	return nil
+}
+
+func formatEtcdHostURI(scheme, host, port string) string {
+	return fmt.Sprintf("%s://%s:%s", scheme, host, port)
+}
+
+func isValidateEtcdScheme(scheme string) bool {
+	if scheme == "http" || scheme == "https" {
+		return true
+	}
+	return false
 }
 
 // ConfigDir returns the path to the confd config dir.
@@ -152,10 +208,11 @@ func SRVDomain() string {
 func setDefaults() {
 	config = Config{
 		Confd: confd{
-			ConfDir:   "/etc/confd",
-			Interval:  600,
-			Prefix:    "/",
-			EtcdNodes: []string{"http://127.0.0.1:4001"},
+			ConfDir:    "/etc/confd",
+			Interval:   600,
+			Prefix:     "/",
+			EtcdNodes:  []string{"127.0.0.1:4001"},
+			EtcdScheme: "http",
 		},
 	}
 }
@@ -189,6 +246,8 @@ func override(f *flag.Flag) {
 		config.Confd.Noop = noop
 	case "srv-domain":
 		config.Confd.SRVDomain = srvDomain
+	case "etcd-scheme":
+		config.Confd.EtcdScheme = etcdScheme
 	}
 }
 
