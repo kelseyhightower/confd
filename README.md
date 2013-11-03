@@ -64,7 +64,7 @@ Same as above but authenticate with client certificates.
 confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
 ```
 
-### Lookup etcd node using SRV records and set the scheme to https
+### Lookup etcd nodes using SRV records
 
 ```
 dig SRV _etcd._tcp.confd.io
