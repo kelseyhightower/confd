@@ -6,10 +6,11 @@ package main
 import (
 	"flag"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
-	"strings"
 )
 
 var (
@@ -40,13 +41,13 @@ func main() {
 			configFile = defaultConfigFile
 		}
 	}
-	if err := loadConfig(configFile); err != nil {
+	if err := config.LoadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
 	// Create the etcd client upfront and use it for the life of the process.
 	// The etcdClient is an http.Client and designed to be reused.
-	log.Debug("Connecting to " + strings.Join(EtcdNodes(), ", "))
-	etcdClient, err := newEtcdClient(EtcdNodes(), ClientCert(), ClientKey())
+	log.Debug("Connecting to " + strings.Join(config.EtcdNodes(), ", "))
+	etcdClient, err := newEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey())
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -61,6 +62,6 @@ func main() {
 			os.Exit(0)
 		}
 		// By default we poll etcd every 30 seconds
-		time.Sleep(time.Duration(Interval()) * time.Second)
+		time.Sleep(time.Duration(config.Interval()) * time.Second)
 	}
 }

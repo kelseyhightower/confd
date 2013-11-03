@@ -5,8 +5,6 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
-	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/log"
 	"io"
 	"io/ioutil"
 	"os"
@@ -15,6 +13,10 @@ import (
 	"strconv"
 	"syscall"
 	"text/template"
+
+	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/log"
 )
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -57,7 +59,7 @@ func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
-	t.Vars, err = getValues(t.etcdClient, Prefix(), t.Keys)
+	t.Vars, err = getValues(t.etcdClient, config.Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func (t *TemplateResource) setVars() error {
 // StageFile for the template resource.
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
-	t.Src = filepath.Join(TemplateDir(), t.Src)
+	t.Src = filepath.Join(config.TemplateDir(), t.Src)
 	if !IsFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
@@ -102,7 +104,7 @@ func (t *TemplateResource) sync() error {
 	if err != nil {
 		log.Error(err.Error())
 	}
-	if Noop() {
+	if config.Noop() {
 		log.Warning("In noop mode, not updating " + t.Dest)
 		return nil
 	}
@@ -217,7 +219,7 @@ func ProcessTemplateResources(c EtcdClient) []error {
 		runErrors = append(runErrors, errors.New("An etcd client is required"))
 		return runErrors
 	}
-	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
+	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
 	if err != nil {
 		runErrors = append(runErrors, err)
 		return runErrors

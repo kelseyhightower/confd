@@ -1,7 +1,7 @@
 // Copyright (c) 2013 Kelsey Hightower. All rights reserved.
 // Use of this source code is governed by the Apache License, Version 2.0
 // that can be found in the LICENSE file.
-package main
+package config
 
 import (
 	"errors"
@@ -10,11 +10,18 @@ import (
 	"net"
 	"net/url"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/log"
-	"strconv"
 )
+
+// etcdHost
+type etcdHost struct {
+	Hostname string
+	Port     uint16
+}
 
 var (
 	config     Config
@@ -74,11 +81,11 @@ type confd struct {
 	SRVDomain  string   `toml:"srv_domain"`
 }
 
-// loadConfig initializes the confd configuration by first setting defaults,
+// LoadConfig initializes the confd configuration by first setting defaults,
 // then overriding setting from the confd config file, and finally overriding
 // settings from flags set on the command line.
 // It returns an error if any.
-func loadConfig(path string) error {
+func LoadConfig(path string) error {
 	setDefaults()
 	if path == "" {
 		log.Warning("Skipping confd config file.")
@@ -163,6 +170,11 @@ func ConfigDir() string {
 	return filepath.Join(config.Confd.ConfDir, "conf.d")
 }
 
+// SetConfDir.
+func SetConfDir(path string) {
+	config.Confd.ConfDir = path
+}
+
 // ClientCert returns the path to the client cert.
 func ClientCert() string {
 	return config.Confd.ClientCert
@@ -189,9 +201,19 @@ func Noop() bool {
 	return config.Confd.Noop
 }
 
+// SetNoop.
+func SetNoop(enabled bool) {
+	config.Confd.Noop = enabled
+}
+
 // Prefix returns the etcd key prefix to use when querying etcd.
 func Prefix() string {
 	return config.Confd.Prefix
+}
+
+// SetPrefix
+func SetPrefix(prefix string) {
+	config.Confd.Prefix = prefix
 }
 
 // TemplateDir returns the path to the directory of config file templates.
@@ -254,4 +276,38 @@ func override(f *flag.Flag) {
 // overrides corresponding configuration settings.
 func overrideConfig() {
 	flag.Visit(override)
+}
+
+// GetEtcdHostsFromSRV returns a list of etcHost.
+func GetEtcdHostsFromSRV(domain string) ([]*etcdHost, error) {
+	addrs, err := lookupEtcdSRV(domain)
+	if err != nil {
+		return nil, err
+	}
+	etcdHosts := etcdHostsFromSRV(addrs)
+	return etcdHosts, nil
+}
+
+// lookupEtcdSrv tries to resolve an SRV query for the etcd service for the
+// specified domain.
+//
+// lookupEtcdSRV constructs the DNS name to look up following RFC 2782.
+// That is, it looks up _etcd._tcp.domain.
+func lookupEtcdSRV(domain string) ([]*net.SRV, error) {
+	// Ignore the CNAME as we don't need it.
+	_, addrs, err := net.LookupSRV("etcd", "tcp", domain)
+	if err != nil {
+		return addrs, err
+	}
+	return addrs, nil
+}
+
+// etcdHostsFromSRV converts an etcd SRV record to a list of etcdHost.
+func etcdHostsFromSRV(addrs []*net.SRV) []*etcdHost {
+	hosts := make([]*etcdHost, 0)
+	for _, srv := range addrs {
+		hostname := strings.TrimRight(srv.Target, ".")
+		hosts = append(hosts, &etcdHost{Hostname: hostname, Port: srv.Port})
+	}
+	return hosts
 }

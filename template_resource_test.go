@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/coreos/go-etcd/etcd"
-	"github.com/kelseyhightower/confd/etcdtest"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"text/template"
+
+	"github.com/coreos/go-etcd/etcd"
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/etcdtest"
 )
 
 // createTempDirs is a helper function which creates temporary directories
@@ -90,12 +92,12 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 
 	// Load the confd configuration settings.
-	if err := loadConfig(""); err != nil {
+	if err := config.LoadConfig(""); err != nil {
 		t.Errorf(err.Error())
 	}
-	config.Confd.Prefix = ""
+	config.SetPrefix("")
 	// Use the temporary tempConfDir from above.
-	config.Confd.ConfDir = tempConfDir
+	config.SetConfDir(tempConfDir)
 
 	// Create the stub etcd client.
 	c := etcdtest.NewClient()
@@ -163,14 +165,14 @@ func TestProcessTemplateResourcesNoop(t *testing.T) {
 	}
 
 	// Load the confd configuration settings.
-	if err := loadConfig(""); err != nil {
+	if err := config.LoadConfig(""); err != nil {
 		t.Errorf(err.Error())
 	}
-	config.Confd.Prefix = ""
+	config.SetPrefix("")
 	// Use the temporary tempConfDir from above.
-	config.Confd.ConfDir = tempConfDir
+	config.SetConfDir(tempConfDir)
 	// Enable noop mode.
-	config.Confd.Noop = true
+	config.SetNoop(true)
 
 	// Create the stub etcd client.
 	c := etcdtest.NewClient()
