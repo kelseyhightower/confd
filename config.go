@@ -63,16 +63,15 @@ type Config struct {
 
 // confd represents the parsed configuration settings.
 type confd struct {
-	ConfDir       string
-	ClientCert    string `toml:"client_cert"`
-	ClientKey     string `toml:"client_key"`
-	ConnectSecure bool   `toml:"connect_secure"`
-	Interval      int
-	Prefix        string
-	EtcdNodes     []string `toml:"etcd_nodes"`
-	EtcdScheme    string   `toml:"etcd_scheme"`
-	Noop          bool     `toml:"noop"`
-	SRVDomain     string   `toml:"srv_domain"`
+	ConfDir    string
+	ClientCert string `toml:"client_cert"`
+	ClientKey  string `toml:"client_key"`
+	Interval   int
+	Prefix     string
+	EtcdNodes  []string `toml:"etcd_nodes"`
+	EtcdScheme string   `toml:"etcd_scheme"`
+	Noop       bool     `toml:"noop"`
+	SRVDomain  string   `toml:"srv_domain"`
 }
 
 // loadConfig initializes the confd configuration by first setting defaults,
