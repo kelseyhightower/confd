@@ -64,6 +64,22 @@ Same as above but authenticate with client certificates.
 confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
 ```
 
+### Lookup etcd node using SRV records and set the scheme to https
+
+```
+dig SRV _etcd._tcp.confd.io
+...
+;; ANSWER SECTION:
+_etcd._tcp.confd.io.  300 IN  SRV 1 50 4001 etcd0.confd.io.
+_etcd._tcp.confd.io.  300 IN  SRV 2 50 4001 etcd1.confd.io.
+```
+
+```
+confd -srv-domain example.com -etcd-scheme https
+```
+
+confd would connect to the nodes at `["https://etcd0.confd.io:4001", "https://etcd1.confd.io:4001"]`
+
 ## Configuration
 
 The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
