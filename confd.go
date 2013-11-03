@@ -23,9 +23,9 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configFile, "C", "", "confd config file")
+	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.BoolVar(&quiet, "q", false, "silence non-error messages")
+	flag.BoolVar(&quiet, "quiet", false, "silence non-error messages")
 }
 
 func main() {
