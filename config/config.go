@@ -20,12 +20,15 @@ var (
 	clientKey  string
 	config     Config // holds the global confd config.
 	confdir    string
+	debug      bool
 	etcdNodes  Nodes
 	etcdScheme string
 	interval   int
 	noop       bool
 	prefix     string
+	quiet      bool
 	srvDomain  string
+	verbose    bool
 )
 
 // Config represents the confd configuration settings.
@@ -35,18 +38,22 @@ type Config struct {
 
 // confd represents the parsed configuration settings.
 type confd struct {
-	ClientCert string `toml:"client_cert"`
-	ClientKey  string `toml:"client_key"`
-	ConfDir    string
+	Debug      bool     `toml:"debug"`
+	ClientCert string   `toml:"client_cert"`
+	ClientKey  string   `toml:"client_key"`
+	ConfDir    string   `toml:"confdir"`
 	EtcdNodes  []string `toml:"etcd_nodes"`
 	EtcdScheme string   `toml:"etcd_scheme"`
-	Interval   int
-	Noop       bool `toml:"noop"`
-	Prefix     string
-	SRVDomain  string `toml:"srv_domain"`
+	Interval   int      `toml:"interval"`
+	Noop       bool     `toml:"noop"`
+	Prefix     string   `toml:"prefix"`
+	Quiet      bool     `toml:"quiet"`
+	SRVDomain  string   `toml:"srv_domain"`
+	Verbose    bool     `toml:"verbose"`
 }
 
 func init() {
+	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
@@ -55,7 +62,9 @@ func init() {
 	flag.IntVar(&interval, "interval", 600, "etcd polling interval")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
 	flag.StringVar(&prefix, "prefix", "/", "etcd key path prefix")
+	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging. Only error messages are printed.")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the domain to query for the etcd SRV record, i.e. example.com")
+	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 }
 
 // LoadConfig initializes the confd configuration by first setting defaults,
@@ -84,6 +93,11 @@ func LoadConfig(path string) error {
 	return nil
 }
 
+// Debug reports whether debug mode is enabled.
+func Debug() bool {
+	return config.Confd.Debug
+}
+
 // ClientCert returns the client cert path.
 func ClientCert() string {
 	return config.Confd.ClientCert
@@ -110,7 +124,7 @@ func Interval() int {
 	return config.Confd.Interval
 }
 
-// Noop returns the state of noop mode.
+// Noop reports whether noop mode is enabled.
 func Noop() bool {
 	return config.Confd.Noop
 }
@@ -118,6 +132,16 @@ func Noop() bool {
 // Prefix returns the etcd key prefix to use when querying etcd.
 func Prefix() string {
 	return config.Confd.Prefix
+}
+
+// Quiet reports whether quiet mode is enabled.
+func Quiet() bool {
+	return config.Confd.Quiet
+}
+
+// Verbose reports whether verbose mode is enabled.
+func Verbose() bool {
+	return config.Confd.Verbose
 }
 
 // SetConfDir sets the confd conf dir.
@@ -214,6 +238,8 @@ func processFlags() {
 
 func setConfigFromFlag(f *flag.Flag) {
 	switch f.Name {
+	case "debug":
+		config.Confd.Debug = debug
 	case "client-cert":
 		config.Confd.ClientCert = clientCert
 	case "client-key":
@@ -230,7 +256,11 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Confd.Noop = noop
 	case "prefix":
 		config.Confd.Prefix = prefix
+	case "quiet":
+		config.Confd.Quiet = quiet
 	case "srv-domain":
 		config.Confd.SRVDomain = srvDomain
+	case "verbose":
+		config.Confd.Verbose = verbose
 	}
 }

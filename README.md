@@ -90,6 +90,7 @@ and loaded from `/etc/confd/confd.toml` by default.
 
 Optional:
 
+* `debug` (bool) - Enable debug logging.
 * `client_cert` (string) The cert file of the client.
 * `client_key` (string) The key file of the client.
 * `confdir` (string) - The path to confd configs. The default is /etc/confd.
@@ -101,7 +102,9 @@ Optional:
 * `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
 * `prefix` (string) - The prefix string to prefix to keys when making calls to
   etcd. The default is "/".
+* `quiet` (bool) - Enable quiet logging. Only error messages are printed.
 * `srv_domain` (string) - The domain to query for etcd SRV records.
+* `verbose` (bool) - Enable verbose logging.
 
 Example:
 

@@ -17,19 +17,13 @@ import (
 
 var (
 	configFile        = ""
-	debug             bool
 	defaultConfigFile = "/etc/confd/confd.toml"
 	onetime           bool
-	quiet             bool
-	verbose           bool
 )
 
 func init() {
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.BoolVar(&quiet, "quiet", false, "silence non-error messages")
-	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 }
 
 func main() {
@@ -37,12 +31,6 @@ func main() {
 	// override configuration settings from the command line. Parse the flags now
 	// to make them active.
 	flag.Parse()
-	// Configure logging. While you can enable debug and verbose logging, however
-	// if quiet is set to true then debug and verbose messages will not be printed.
-	log.SetQuiet(quiet)
-	log.SetVerbose(verbose)
-	log.SetDebug(debug)
-	log.Info("Starting confd")
 	if configFile == "" {
 		if IsFileExist(defaultConfigFile) {
 			configFile = defaultConfigFile
@@ -52,6 +40,12 @@ func main() {
 	if err := config.LoadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
+	// Configure logging. While you can enable debug and verbose logging, however
+	// if quiet is set to true then debug and verbose messages will not be printed.
+	log.SetQuiet(config.Quiet())
+	log.SetVerbose(config.Verbose())
+	log.SetDebug(config.Debug())
+	log.Info("Starting confd")
 	// Create the etcd client upfront and use it for the life of the process.
 	// The etcdClient is an http.Client and designed to be reused.
 	log.Debug("Connecting to " + strings.Join(config.EtcdNodes(), ", "))
