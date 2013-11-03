@@ -52,6 +52,7 @@ func NewTemplateResourceFromPath(path string, c etcdutil.EtcdClient) (*TemplateR
 		return nil, errors.New("A valid EtcdClient is required.")
 	}
 	var tc *TemplateResourceConfig
+	log.Debug("Loading template resource from " + path)
 	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
@@ -63,6 +64,8 @@ func NewTemplateResourceFromPath(path string, c etcdutil.EtcdClient) (*TemplateR
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
+	log.Debug("Retrieving keys from etcd")
+	log.Debug("Key prefix set to " + config.Prefix())
 	t.Vars, err = etcdutil.GetValues(t.etcdClient, config.Prefix(), t.Keys)
 	if err != nil {
 		return err
@@ -76,6 +79,7 @@ func (t *TemplateResource) setVars() error {
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
 	t.Src = filepath.Join(config.TemplateDir(), t.Src)
+	log.Debug("Using source template " + t.Src)
 	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
@@ -84,6 +88,7 @@ func (t *TemplateResource) createStageFile() error {
 		os.Remove(temp.Name())
 		return err
 	}
+	log.Debug("Compiling source template " + t.Src)
 	tmpl := template.Must(template.ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
@@ -104,6 +109,7 @@ func (t *TemplateResource) createStageFile() error {
 func (t *TemplateResource) sync() error {
 	staged := t.StageFile.Name()
 	defer os.Remove(staged)
+	log.Debug("Comparing canidate config to " + t.Dest)
 	ok, err := sameConfig(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
@@ -113,12 +119,13 @@ func (t *TemplateResource) sync() error {
 		return nil
 	}
 	if !ok {
-		log.Info("syncing " + t.Dest)
+		log.Info("Syncing target config " + t.Dest)
 		if t.CheckCmd != "" {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
 			}
 		}
+		log.Debug("Overwriting target config " + t.Dest)
 		if err := os.Rename(staged, t.Dest); err != nil {
 			return err
 		}
@@ -128,7 +135,7 @@ func (t *TemplateResource) sync() error {
 			}
 		}
 	} else {
-		log.Info(t.Dest + " in sync")
+		log.Info("Target config " + t.Dest + " in sync")
 	}
 	return nil
 }
@@ -222,12 +229,18 @@ func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 		runErrors = append(runErrors, errors.New("An etcd client is required"))
 		return runErrors
 	}
+	log.Debug("Loading template resources from confdir " + config.ConfDir())
+	if !isFileExist(config.ConfDir()) {
+		log.Warning(fmt.Sprintf("Cannot load template resources confdir '%s' does not exist", config.ConfDir()))
+		return runErrors
+	}
 	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
 	if err != nil {
 		runErrors = append(runErrors, err)
 		return runErrors
 	}
 	for _, p := range paths {
+		log.Debug("Processing template resource " + p)
 		t, err := NewTemplateResourceFromPath(p, c)
 		if err != nil {
 			runErrors = append(runErrors, err)
@@ -239,6 +252,7 @@ func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 			log.Error(err.Error())
 			continue
 		}
+		log.Debug("Processing of template resource " + p + " complete successfully")
 	}
 	return runErrors
 }

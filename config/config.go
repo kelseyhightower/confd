@@ -108,6 +108,11 @@ func ClientKey() string {
 	return config.Confd.ClientKey
 }
 
+// ConfDir returns the path to the confd config dir.
+func ConfDir() string {
+	return config.Confd.ConfDir
+}
+
 // ConfigDir returns the path to the confd config dir.
 func ConfigDir() string {
 	return filepath.Join(config.Confd.ConfDir, "conf.d")
