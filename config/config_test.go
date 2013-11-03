@@ -17,7 +17,7 @@ func TestLoadConfig(t *testing.T) {
 		"", "", "/etc/confd/conf.d", []string{"http://127.0.0.1:4001"},
 		600, "/", "/etc/confd/templates",
 	}
-	loadConfig("")
+	LoadConfig("")
 	cc := ClientCert()
 	if cc != expected.clientCert {
 		t.Errorf("Expected default clientCert = %s, got %s", expected.clientCert, cc)
