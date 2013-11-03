@@ -109,17 +109,17 @@ func (t *TemplateResource) createStageFile() error {
 func (t *TemplateResource) sync() error {
 	staged := t.StageFile.Name()
 	defer os.Remove(staged)
-	log.Debug("Comparing canidate config to " + t.Dest)
+	log.Debug("Comparing candidate config to " + t.Dest)
 	ok, err := sameConfig(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
 	}
 	if config.Noop() {
-		log.Warning("In noop mode, not updating " + t.Dest)
+		log.Warning("Noop mode enabled " + t.Dest + " will not be modified")
 		return nil
 	}
 	if !ok {
-		log.Info("Syncing target config " + t.Dest)
+		log.Info("Target config " + t.Dest + " out of sync")
 		if t.CheckCmd != "" {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
@@ -134,6 +134,7 @@ func (t *TemplateResource) sync() error {
 				return err
 			}
 		}
+		log.Info("Target config " + t.Dest + " has been updated")
 	} else {
 		log.Info("Target config " + t.Dest + " in sync")
 	}
@@ -252,7 +253,7 @@ func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 			log.Error(err.Error())
 			continue
 		}
-		log.Debug("Processing of template resource " + p + " complete successfully")
+		log.Debug("Processing of template resource " + p + " complete")
 	}
 	return runErrors
 }

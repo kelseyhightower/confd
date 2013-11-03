@@ -37,6 +37,7 @@ func main() {
 		}
 	}
 	// Initialize the global configuration.
+	log.Debug("Loading confd configuration")
 	if err := config.LoadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
@@ -45,10 +46,10 @@ func main() {
 	log.SetQuiet(config.Quiet())
 	log.SetVerbose(config.Verbose())
 	log.SetDebug(config.Debug())
-	log.Info("Starting confd")
+	log.Notice("Starting confd")
 	// Create the etcd client upfront and use it for the life of the process.
 	// The etcdClient is an http.Client and designed to be reused.
-	log.Debug("Connecting to " + strings.Join(config.EtcdNodes(), ", "))
+	log.Notice("etcd nodes set to " + strings.Join(config.EtcdNodes(), ", "))
 	etcdClient, err := etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey())
 	if err != nil {
 		log.Fatal(err.Error())
