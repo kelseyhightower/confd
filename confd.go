@@ -17,15 +17,19 @@ import (
 
 var (
 	configFile        = ""
+	debug             bool
 	defaultConfigFile = "/etc/confd/confd.toml"
 	onetime           bool
 	quiet             bool
+	verbose           bool
 )
 
 func init() {
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
+	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.BoolVar(&quiet, "quiet", false, "silence non-error messages")
+	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 }
 
 func main() {
@@ -37,6 +41,8 @@ func main() {
 	// If the "-q" flag was passed on the command line non-error messages will
 	// not be printed.
 	log.SetQuiet(quiet)
+	log.SetVerbose(verbose)
+	log.SetDebug(debug)
 	log.Info("Starting confd")
 	if configFile == "" {
 		if IsFileExist(defaultConfigFile) {

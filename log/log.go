@@ -21,8 +21,11 @@ import (
 // string will appear in all log entires.
 var tag string
 
-// Silence non-error messages.
-var quiet = true
+var (
+	quiet   = false // Silence non-error messages.
+	verbose = false
+	debug   = false
+)
 
 func init() {
 	tag = os.Args[0]
@@ -34,13 +37,25 @@ func SetTag(t string) {
 }
 
 // SetQuiet sets quite mode.
-func SetQuiet(q bool) {
-	quiet = q
+func SetQuiet(enable bool) {
+	quiet = enable
+}
+
+// SetDebug sets debug mode.
+func SetDebug(enable bool) {
+	debug = enable
+}
+
+// SetVerbose sets verbose mode.
+func SetVerbose(enable bool) {
+	verbose = enable
 }
 
 // Debug logs a message with severity DEBUG.
 func Debug(msg string) {
-	write("DEBUG", msg)
+	if debug {
+		write("DEBUG", msg)
+	}
 }
 
 // Error logs a message with severity ERROR.
@@ -61,7 +76,9 @@ func Info(msg string) {
 
 // Notice logs a message with severity NOTICE.
 func Notice(msg string) {
-	write("NOTICE", msg)
+	if verbose || debug {
+		write("NOTICE", msg)
+	}
 }
 
 // Warning logs a message with severity WARNING.
@@ -78,9 +95,10 @@ func write(level, msg string) {
 	hostname, _ := os.Hostname()
 	switch level {
 	case "DEBUG", "INFO", "NOTICE", "WARNING":
-		if !quiet {
-			w = os.Stdout
+		if quiet {
+			return
 		}
+		w = os.Stdout
 	case "ERROR":
 		w = os.Stderr
 	}

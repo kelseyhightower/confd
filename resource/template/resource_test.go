@@ -13,6 +13,7 @@ import (
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/etcd/etcdtest"
+	"github.com/kelseyhightower/confd/log"
 )
 
 // createTempDirs is a helper function which creates temporary directories
@@ -57,6 +58,7 @@ keys = [
 `
 
 func TestProcessTemplateResources(t *testing.T) {
+	log.SetQuiet(true)
 	// Setup temporary conf, config, and template directories.
 	tempConfDir, err := createTempDirs()
 	if err != nil {
@@ -130,6 +132,7 @@ func TestProcessTemplateResources(t *testing.T) {
 }
 
 func TestProcessTemplateResourcesNoop(t *testing.T) {
+	log.SetQuiet(true)
 	// Setup temporary conf, config, and template directories.
 	tempConfDir, err := createTempDirs()
 	if err != nil {
@@ -205,6 +208,7 @@ func TestProcessTemplateResourcesNoop(t *testing.T) {
 }
 
 func TestBrokenTemplateResourceFile(t *testing.T) {
+	log.SetQuiet(true)
 	tempFile, err := ioutil.TempFile("", "")
 	defer os.Remove(tempFile.Name())
 	if err != nil {
@@ -224,6 +228,7 @@ func TestBrokenTemplateResourceFile(t *testing.T) {
 }
 
 func TestSameConfigTrue(t *testing.T) {
+	log.SetQuiet(true)
 	src, err := ioutil.TempFile("", "src")
 	defer os.Remove(src.Name())
 	if err != nil {
@@ -252,6 +257,7 @@ func TestSameConfigTrue(t *testing.T) {
 }
 
 func TestSameConfigFalse(t *testing.T) {
+	log.SetQuiet(true)
 	src, err := ioutil.TempFile("", "src")
 	defer os.Remove(src.Name())
 	if err != nil {
@@ -280,6 +286,7 @@ func TestSameConfigFalse(t *testing.T) {
 }
 
 func TestIsFileExist(t *testing.T) {
+	log.SetQuiet(true)
 	result := isFileExist(fakeFile)
 	if result != false {
 		t.Errorf("Expected IsFileExist(%s) to be false, got %v", fakeFile, result)

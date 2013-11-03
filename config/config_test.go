@@ -5,9 +5,11 @@ package config
 
 import (
 	"testing"
+	"github.com/kelseyhightower/confd/log"
 )
 
 func TestLoadConfig(t *testing.T) {
+	log.SetQuiet(true)
 	var expected = struct {
 		clientCert  string
 		clientKey   string
