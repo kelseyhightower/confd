@@ -35,6 +35,8 @@ func createTempDirs() (string, error) {
 	return confDir, nil
 }
 
+var fakeFile = "/this/shoud/not/exist"
+
 var templateResourceConfigTmpl = `
 [template]
 src = "{{ .src }}"
@@ -274,5 +276,21 @@ func TestSameConfigFalse(t *testing.T) {
 	}
 	if status != false {
 		t.Errorf("Expected sameConfig(src, dest) to be %v, got %v", false, status)
+	}
+}
+
+func TestIsFileExist(t *testing.T) {
+	result := isFileExist(fakeFile)
+	if result != false {
+		t.Errorf("Expected IsFileExist(%s) to be false, got %v", fakeFile, result)
+	}
+	f, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer os.Remove(f.Name())
+	result = isFileExist(f.Name())
+	if result != true {
+		t.Errorf("Expected IsFileExist(%s) to be true, got %v", f.Name(), result)
 	}
 }

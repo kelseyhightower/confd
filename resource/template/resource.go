@@ -76,7 +76,7 @@ func (t *TemplateResource) setVars() error {
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
 	t.Src = filepath.Join(config.TemplateDir(), t.Src)
-	if !IsFileExist(t.Src) {
+	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
 	temp, err := ioutil.TempFile("", "")
@@ -191,10 +191,9 @@ func (t *TemplateResource) process() error {
 }
 
 // setFileMode sets the FileMode.
-// It returns an error if any.
 func (t *TemplateResource) setFileMode() error {
 	if t.Mode == "" {
-		if !IsFileExist(t.Dest) {
+		if !isFileExist(t.Dest) {
 			t.FileMode = 0644
 		} else {
 			fi, err := os.Stat(t.Dest)
@@ -215,7 +214,7 @@ func (t *TemplateResource) setFileMode() error {
 
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
-// It return an error if any.
+// It returns a list of errors if any.
 func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 	runErrors := make([]error, 0)
 	var err error
@@ -246,7 +245,7 @@ func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 
 // fileStat return a fileInfo describing the named file.
 func fileStat(name string) (fi fileInfo, err error) {
-	if IsFileExist(name) {
+	if isFileExist(name) {
 		f, err := os.Open(name)
 		defer f.Close()
 		if err != nil {
@@ -270,7 +269,7 @@ func fileStat(name string) (fi fileInfo, err error) {
 // Unix permissions. The owner, group, and mode must match.
 // It return false in other cases.
 func sameConfig(src, dest string) (bool, error) {
-	if !IsFileExist(dest) {
+	if !isFileExist(dest) {
 		return false, nil
 	}
 	d, err := fileStat(dest)
@@ -297,4 +296,12 @@ func sameConfig(src, dest string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+// isFileExist reports whether path exits.
+func isFileExist(fpath string) bool {
+	if _, err := os.Stat(fpath); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
