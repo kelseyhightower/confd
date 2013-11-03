@@ -71,18 +71,18 @@ and loaded from `/etc/confd/confd.toml` by default.
 
 Optional:
 
+* `client_cert` (string) The cert file of the client.
+* `client_key` (string) The key file of the client.
 * `confdir` (string) - The path to confd configs. The default is /etc/confd.
 * `etcd_nodes` (array of strings) - An array of etcd cluster nodes. The default
   is ["http://127.0.0.1:4001"].
+* `etcd_scheme` (string) - The etcd scheme to use. Must be 'http' or 'https'
 * `interval` (int) - The number of seconds to wait between calls to etcd. The
   default is 600.
+* `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
 * `prefix` (string) - The prefix string to prefix to keys when making calls to
   etcd. The default is "/".
-* `client_cert` (string) The cert file of the client.
-* `client_key` (string) The key file of the client.
-* `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
 * `srv_domain` (string) - The domain to query for etcd SRV records.
-* `etcd_scheme` (string) - The etcd scheme to use. Must be 'http' or 'https'
 
 Example:
 
