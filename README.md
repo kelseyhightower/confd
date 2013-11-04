@@ -104,4 +104,4 @@ database_user = rob
 
 ## Next steps
 
-Checkout the [confd wiki](https://github.com/kelseyhightower/confd/wiki/_pages) for more docs.
+Checkout the [confd wiki](https://github.com/kelseyhightower/confd/wiki/_pages) for more docs and [usage examples](https://github.com/kelseyhightower/confd/wiki/Usage-Examples).
