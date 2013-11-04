@@ -58,34 +58,7 @@ confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
 
 ## Configuration
 
-The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
-and loaded from `/etc/confd/confd.toml` by default.
-
-Optional:
-
-* `confdir` (string) - The path to confd configs. The default is /etc/confd.
-* `etcd_nodes` (array of strings) - An array of etcd cluster nodes. The default
-  is ["http://127.0.0.1:4001"].
-* `interval` (int) - The number of seconds to wait between calls to etcd. The
-  default is 600.
-* `prefix` (string) - The prefix string to prefix to keys when making calls to
-  etcd. The default is "/".
-* `client_cert` (string) The cert file of the client.
-* `client_key` (string) The key file of the client.
-
-Example:
-
-```TOML
-[confd]
-confdir  = "/etc/confd"
-interval = 600
-prefix   = "/"
-etcd_nodes = [
-  "http://127.0.0.1:4001",
-]
-client_cert = "/etc/confd/ssl/client.crt"
-client_key  = "/etc/confd/ssl/client.key"
-```
+See the [Configuration Guide](https://github.com/kelseyhightower/confd/wiki/Configuration-Guide)
 
 ## Template Resources
 
