@@ -15,207 +15,93 @@ README version 0.2.0
 * Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
 * Website: [www.confd.io](http://www.confd.io)
 
-## Getting Started
+## Quick Start
 
-### Installing confd
+Before we begin be sure to [download and install confd](https://github.com/kelseyhightower/confd/wiki/Installation). 
 
-Download the latest binary from [Github](https://github.com/kelseyhightower/confd/releases).
+### Add keys to etcd
 
-### Building
-
-You can build confd from source:
+This guide assumes you have a working [etcd](https://github.com/coreos/etcd#getting-started) server up and running and the ability to add new keys. Using the `etcdctl` command line tool add the following keys and values to etcd:
 
 ```
-git clone https://github.com/kelseyhightower/confd.git
-cd confd
-go build
+etcdctl set /myapp/database/url db.example.com
+etcdctl set /myapp/database/user rob
 ```
 
-This will produce the `confd` binary in the current directory.
+### Create the confdir
 
-## Usage
+The confdir is where template resource configs and source templates are stored. The default confdir is `/etc/confd`. Create the confdir by executing the following command:
 
-The following commands will process all the [template resources](https://github.com/kelseyhightower/confd#template-resources) found under `/etc/confd/conf.d`.
-
-### Poll the etcd cluster in 30 second intervals
-
-The "/production" string will be prefixed to keys when querying etcd at http://127.0.0.1:4001.
-
-```
-confd -interval 30 -prefix '/production' -node 'http://127.0.0.1:4001'
+```Bash
+sudo mkdir -p /etc/confd/{conf.d,templates}
 ```
 
-### Same as above in noop mode
+You don't have to use the default `confdir` location. For example you can create the confdir under your home directory. Then you tell confd to use the new `confdir` via the `-confdir` flag.
 
-```
-confd -interval 30 -prefix '/production' -node 'http://127.0.0.1:4001' -noop
-```
-
-### Single run without polling
-
-Using default settings run one time and exit.
-
-```
-confd -onetime
+```Bash
+mkdir -p ~/confd/{conf.d,templates}
 ```
 
-### Client authentication
+### Create a template resource config
 
-Same as above but authenticate with client certificates.
+Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir` (i.e. ~/confd/conf.d/*.toml).
 
-```
-confd -onetime -client-key /etc/confd/ssl/client.key -client-cert /etc/confd/ssl/client.crt
-```
+Lets create a simple template resource to manage the `/tmp/myconfig.conf` configuration file.
 
-### Lookup etcd nodes using SRV records
-
-```
-dig SRV _etcd._tcp.confd.io
-...
-;; ANSWER SECTION:
-_etcd._tcp.confd.io.  300 IN  SRV 1 50 4001 etcd0.confd.io.
-_etcd._tcp.confd.io.  300 IN  SRV 2 50 4001 etcd1.confd.io.
-```
-
-```
-confd -srv-domain example.com -etcd-scheme https
-```
-
-confd would connect to the nodes at `["https://etcd0.confd.io:4001", "https://etcd1.confd.io:4001"]`
-
-## Configuration
-
-The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
-and loaded from `/etc/confd/confd.toml` by default.
-
-Optional:
-
-* `debug` (bool) - Enable debug logging.
-* `client_cert` (string) The cert file of the client.
-* `client_key` (string) The key file of the client.
-* `confdir` (string) - The path to confd configs. The default is /etc/confd.
-* `etcd_nodes` (array of strings) - An array of etcd cluster nodes. The default
-  is ["http://127.0.0.1:4001"].
-* `etcd_scheme` (string) - The etcd scheme to use. Must be 'http' or 'https'
-* `interval` (int) - The number of seconds to wait between calls to etcd. The
-  default is 600.
-* `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
-* `prefix` (string) - The prefix string to prefix to keys when making calls to
-  etcd. The default is "/".
-* `quiet` (bool) - Enable quiet logging. Only error messages are printed.
-* `srv_domain` (string) - The domain to query for etcd SRV records.
-* `verbose` (bool) - Enable verbose logging.
-
-Example:
-
-```TOML
-[confd]
-confdir  = "/etc/confd"
-interval = 600
-prefix   = "/"
-etcd_nodes = [
-  "http://127.0.0.1:4001",
-]
-client_cert = "/etc/confd/ssl/client.crt"
-client_key  = "/etc/confd/ssl/client.key"
-```
-
-## Template Resources
-
-Template resources are written in TOML and define a single template resource.
-Template resources are stored under the `confdir/conf.d` directory.
-
-Required:
-
-* `dest` (string) - output file where the template should be rendered.
-* `keys` (array of strings) - An array of etcd keys. Keys will be looked up
-  with the configured prefix.
-* `src` (string) - relative path of a the [configuration template](https://github.com/kelseyhightower/confd#templates).
-
-Optional:
-
-* `group` (string) - name of the group that should own the file.
-* `mode` (string) - mode the file should be in.
-* `owner` (string) - name of the user that should own the file.
-* `reload_cmd` (string) - command to reload config.
-* `check_cmd` (string) - command to check config. Use `{{ .src }}` to reference
-  the rendered source template.
-
-Example:
-
-```TOML
+```toml
 [template]
-src   = "nginx.conf.tmpl"
-dest  = "/etc/nginx/nginx.conf"
-owner = "root"
-group = "root"
-mode  = "0644"
+src = "myconfig.conf.tmpl"
+dest = "/tmp/myconfig.conf"
 keys = [
-  "/nginx",
+  "/myapp/database/url",
+  "/myapp/database/user",
 ]
-check_cmd  = "/usr/sbin/nginx -t -c {{ .src }}"
-reload_cmd = "/usr/sbin/service nginx restart"
 ```
 
-## Templates
+Save the file under the `confdir` directory, i.e. `~/confd/conf.d/myconfig.toml`
 
-Templates define a single application configration template.
-Templates are stored under the `confdir/templates` directory.
+### Create the source template
 
-Templates are written in Go's [`text/template`](http://golang.org/pkg/text/template/). 
+Source templates are plain old [Golang text templates](http://golang.org/pkg/text/template/#pkg-overview), and are stored under the `confdir` templates directory. Create the following source template and save it as `~/confd/templates/myconfig.conf.tmpl`
 
-Etcd keys are treated as paths and automatically transformed into keys for retrieval in templates. Underscores are used in place of forward slashes.  _Values retrived from Etcd are never modified._  
-For example `/foo/bar` becomes `foo_bar`.
-
-`foo_bar` is accessed as `{{ .foo_bar }}`
-
-
-Example:  
 ```
-$ etcdctl set /nginx/domain 'example.com'
-$ etcdctl set /nginx/root '/var/www/example_dotcom'
-$ etcdctl set /nginx/worker_processes '2'
+# This a comment
+[myconfig]
+database_url = {{ .myapp_database_url }}
+database_user = {{ .myapp_database_user }}
 ```
 
+### Processing template resources
 
-`$ cat /etc/confd/templates/nginx.conf.tmpl`:
+confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground and processing template resources every 5 mins by default. For this tutorial we are going to use onetime mode.
+
+Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
+
 ```
-worker_processes {{ .nginx_worker_processes }};
-
-server {
-    listen 80;
-    server_name www.{{ .nginx_domain }};
-    access_log /var/log/nginx/{{ .nginx_domain }}.access.log;
-    error_log /var/log/nginx/{{ .nginx_domain }}.log;
-
-    location / {
-        root   {{ .nginx_root }};
-        index  index.html index.htm;
-    }
-}
+confd -verbose -onetime -node 'http://127.0.0.1:4001' -confdir ~/confd 
 ```
-
-Will produce `/etc/nginx/nginx.conf`:
+Output:
 ```
-worker_processes 2;
-
-server {
-    listen 80;
-    server_name www.example.com;
-    access_log /var/log/nginx/example.com.access.log;
-    error_log /var/log/nginx/example.com.error.log;
-
-    location / {
-        root   /var/www/example_dotcom;
-        index  index.html index.htm;
-    }
-}
+2013-11-03T18:00:47-08:00 confd[21294]: NOTICE Starting confd
+2013-11-03T18:00:47-08:00 confd[21294]: NOTICE etcd nodes set to http://127.0.0.1:4001
+2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf out of sync
+2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf has been updated
 ```
 
-Go's [`text/template`](http://golang.org/pkg/text/template/) package is very powerful. For more details on it's capabilities see its [documentation.](http://golang.org/pkg/text/template/)
+The `dest` config should now be in sync with the template resource configuration.
 
-## Extras
+```
+cat /tmp/myconfig.conf
+```
 
-### Configuration Management
+Output:
+``` 
+# This a comment
+[myconfig]
+database_url = db.example.com
+database_user = rob
+```
 
-- [confd-cookbook](https://github.com/rjocoleman/confd-cookbook)
+## Next steps
+
+Checkout the [confd wiki](https://github.com/kelseyhightower/confd/wiki/_pages) for more docs.
