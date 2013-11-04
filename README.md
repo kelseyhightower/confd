@@ -42,7 +42,7 @@ mkdir -p ~/confd/{conf.d,templates}
 
 ### Create a template resource config
 
-Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir` (i.e. ~/confd/conf.d/*.toml).
+Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir` conf.d directory (i.e. ~/confd/conf.d/*.toml).
 
 Create the following template resource config and save it as `~/confd/conf.d/myconfig.toml`.
 
