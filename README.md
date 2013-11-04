@@ -46,7 +46,7 @@ Template resources are defined in [TOML](https://github.com/mojombo/toml) config
 
 Create the following template resource config and save it as `~/confd/conf.d/myconfig.toml`.
 
-```toml
+```Text
 [template]
 src = "myconfig.conf.tmpl"
 dest = "/tmp/myconfig.conf"
