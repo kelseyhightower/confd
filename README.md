@@ -2,74 +2,102 @@
 
 [![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
 
-* IRC: `#confd` on Freenode
-* Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
-
 `confd` is a lightweight configuration management tool focused on:
 
 * keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](https://github.com/kelseyhightower/confd#template-resources).
 * reloading applications to pick up new config file changes
 
-## Getting Started
+## Community
 
-### Installing confd
+* IRC: `#confd` on Freenode
+* Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
+* Website: [www.confd.io](http://www.confd.io)
 
-Download the latest binary from [Github](https://github.com/kelseyhightower/confd/releases/tag/v0.1.2).
+## Quick Start
 
-### Building
+Before we begin be sure to [download and install confd](https://github.com/kelseyhightower/confd/wiki/Installation). 
 
-You can build confd from source:
+### Add keys to etcd
 
-```
-git clone https://github.com/kelseyhightower/confd.git
-cd confd
-go build
-```
-
-This will produce the `confd` binary in the current directory.
-
-## Usage
-
-The following commands will process all the [template resources](https://github.com/kelseyhightower/confd#template-resources) found under `/etc/confd/conf.d`.
-
-### Poll the etcd cluster in 30 second intervals
-
-The "/production" string will be prefixed to keys when querying etcd at http://127.0.0.1:4001.
+This guide assumes you have a working [etcd](https://github.com/coreos/etcd#getting-started) server up and running and the ability to add new keys. Using the `etcdctl` command line tool add the following keys and values to etcd:
 
 ```
-confd -i 30 -p '/production' -n 'http://127.0.0.1:4001'
+etcdctl set /myapp/database/url db.example.com
+etcdctl set /myapp/database/user rob
 ```
 
-### Single run without polling
+### Create the confdir
 
-Using default settings run one time and exit.
+The confdir is where template resource configs and source templates are stored. The default confdir is `/etc/confd`. Create the confdir by executing the following command:
 
-```
-confd -onetime
-```
-
-### Client authentication
-
-Same as above but authenticate with client certificates.
-
-```
-confd -onetime -key /etc/confd/ssl/client.key -cert /etc/confd/ssl/client.crt
+```Bash
+sudo mkdir -p /etc/confd/{conf.d,templates}
 ```
 
-## Configuration
+You don't have to use the default `confdir` location. For example you can create the confdir under your home directory. Then you tell confd to use the new `confdir` via the `-confdir` flag.
 
-See the [Configuration Guide](https://github.com/kelseyhightower/confd/wiki/Configuration-Guide)
+```Bash
+mkdir -p ~/confd/{conf.d,templates}
+```
 
-## Template Resources
+### Create a template resource config
 
-See [Template Resources](https://github.com/kelseyhightower/confd/wiki/Template-Resources)
+Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir` (i.e. ~/confd/conf.d/*.toml).
 
-## Templates
+Create the following template resource config and save it as `~/confd/conf.d/myconfig.toml`.
 
-See [Templates](https://github.com/kelseyhightower/confd/wiki/Templates)
+```toml
+[template]
+src = "myconfig.conf.tmpl"
+dest = "/tmp/myconfig.conf"
+keys = [
+  "/myapp/database/url",
+  "/myapp/database/user",
+]
+```
 
-## Extras
+### Create the source template
 
-### Configuration Management
+Source templates are plain old [Golang text templates](http://golang.org/pkg/text/template/#pkg-overview), and are stored under the `confdir` templates directory. Create the following source template and save it as `~/confd/templates/myconfig.conf.tmpl`
 
-- [confd-cookbook](https://github.com/rjocoleman/confd-cookbook)
+```
+# This a comment
+[myconfig]
+database_url = {{ .myapp_database_url }}
+database_user = {{ .myapp_database_user }}
+```
+
+### Processing template resources
+
+confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground and processing template resources every 5 mins by default. For this tutorial we are going to use onetime mode.
+
+Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
+
+```
+confd -verbose -onetime -node 'http://127.0.0.1:4001' -confdir ~/confd 
+```
+Output:
+```
+2013-11-03T18:00:47-08:00 confd[21294]: NOTICE Starting confd
+2013-11-03T18:00:47-08:00 confd[21294]: NOTICE etcd nodes set to http://127.0.0.1:4001
+2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf out of sync
+2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf has been updated
+```
+
+The `dest` config should now be in sync with the template resource configuration.
+
+```
+cat /tmp/myconfig.conf
+```
+
+Output:
+``` 
+# This a comment
+[myconfig]
+database_url = db.example.com
+database_user = rob
+```
+
+## Next steps
+
+Checkout the [confd wiki](https://github.com/kelseyhightower/confd/wiki/_pages) for more docs and [usage examples](https://github.com/kelseyhightower/confd/wiki/Usage-Examples).

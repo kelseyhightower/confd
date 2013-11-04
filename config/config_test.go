@@ -1,10 +1,15 @@
-package main
+// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+package config
 
 import (
 	"testing"
+	"github.com/kelseyhightower/confd/log"
 )
 
 func TestLoadConfig(t *testing.T) {
+	log.SetQuiet(true)
 	var expected = struct {
 		clientCert  string
 		clientKey   string
@@ -17,7 +22,7 @@ func TestLoadConfig(t *testing.T) {
 		"", "", "/etc/confd/conf.d", []string{"http://127.0.0.1:4001"},
 		600, "/", "/etc/confd/templates",
 	}
-	loadConfig("")
+	LoadConfig("")
 	cc := ClientCert()
 	if cc != expected.clientCert {
 		t.Errorf("Expected default clientCert = %s, got %s", expected.clientCert, cc)

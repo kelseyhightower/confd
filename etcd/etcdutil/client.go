@@ -1,4 +1,7 @@
-package main
+// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+package etcdutil
 
 import (
 	"errors"
@@ -9,9 +12,9 @@ import (
 
 var replacer = strings.NewReplacer("/", "_")
 
-// newEtcdClient returns an *etcd.Client with a connection to named machines.
+// NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func newEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
+func NewEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
 	c := etcd.NewClient(machines)
 	if cert != "" && key != "" {
 		_, err := c.SetCertAndKey(cert, key)
@@ -30,13 +33,13 @@ type EtcdClient interface {
 	Get(key string) ([]*etcd.Response, error)
 }
 
-// getValues queries etcd for keys prefixed by prefix.
+// GetValues queries etcd for keys prefixed by prefix.
 // Etcd paths (keys) are translated into names more suitable for use in
 // templates. For example if prefix where set to '/production' and one of the
 // keys where '/nginx/port'; the prefixed '/production/nginx/port' key would
 // be quired for. If the value for the prefixed key where 80, the returned map
 // would contain the entry vars["nginx_port"] = "80".
-func getValues(c EtcdClient, prefix string, keys []string) (map[string]interface{}, error) {
+func GetValues(c EtcdClient, prefix string, keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
 		err := etcdWalk(c, filepath.Join(prefix, key), prefix, vars)

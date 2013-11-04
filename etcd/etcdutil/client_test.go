@@ -1,8 +1,11 @@
-package main
+// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+package etcdutil
 
 import (
 	"github.com/coreos/go-etcd/etcd"
-	"github.com/kelseyhightower/confd/etcdtest"
+	"github.com/kelseyhightower/confd/etcd/etcdtest"
 	"testing"
 )
 
@@ -50,7 +53,7 @@ func TestGetValues(t *testing.T) {
 	c.AddResponse("/foo/three", fooThreeResp)
 	c.AddResponse("/nginx", nginxResp)
 	keys := []string{"/nginx", "/foo"}
-	values, err := getValues(c, "", keys)
+	values, err := GetValues(c, "", keys)
 	if err != nil {
 		t.Error(err.Error())
 	}

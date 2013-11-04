@@ -1,12 +1,13 @@
-package main
+// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+package template
 
 import (
 	"bytes"
 	"crypto/md5"
 	"errors"
 	"fmt"
-	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/log"
 	"io"
 	"io/ioutil"
 	"os"
@@ -15,6 +16,11 @@ import (
 	"strconv"
 	"syscall"
 	"text/template"
+
+	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/etcd/etcdutil"
+	"github.com/kelseyhightower/confd/log"
 )
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -35,17 +41,18 @@ type TemplateResource struct {
 	StageFile  *os.File
 	Src        string
 	Vars       map[string]interface{}
-	etcdClient EtcdClient
+	etcdClient etcdutil.EtcdClient
 }
 
 // NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
 // and the supplied EtcdClient as input.
 // It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, error) {
+func NewTemplateResourceFromPath(path string, c etcdutil.EtcdClient) (*TemplateResource, error) {
 	if c == nil {
 		return nil, errors.New("A valid EtcdClient is required.")
 	}
 	var tc *TemplateResourceConfig
+	log.Debug("Loading template resource from " + path)
 	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
@@ -57,7 +64,9 @@ func NewTemplateResourceFromPath(path string, c EtcdClient) (*TemplateResource, 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
-	t.Vars, err = getValues(t.etcdClient, Prefix(), t.Keys)
+	log.Debug("Retrieving keys from etcd")
+	log.Debug("Key prefix set to " + config.Prefix())
+	t.Vars, err = etcdutil.GetValues(t.etcdClient, config.Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}
@@ -69,8 +78,9 @@ func (t *TemplateResource) setVars() error {
 // StageFile for the template resource.
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
-	t.Src = filepath.Join(TemplateDir(), t.Src)
-	if !IsFileExist(t.Src) {
+	t.Src = filepath.Join(config.TemplateDir(), t.Src)
+	log.Debug("Using source template " + t.Src)
+	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
 	temp, err := ioutil.TempFile("", "")
@@ -78,6 +88,7 @@ func (t *TemplateResource) createStageFile() error {
 		os.Remove(temp.Name())
 		return err
 	}
+	log.Debug("Compiling source template " + t.Src)
 	tmpl := template.Must(template.ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
@@ -98,17 +109,23 @@ func (t *TemplateResource) createStageFile() error {
 func (t *TemplateResource) sync() error {
 	staged := t.StageFile.Name()
 	defer os.Remove(staged)
+	log.Debug("Comparing candidate config to " + t.Dest)
 	ok, err := sameConfig(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
 	}
+	if config.Noop() {
+		log.Warning("Noop mode enabled " + t.Dest + " will not be modified")
+		return nil
+	}
 	if !ok {
-		log.Info("syncing " + t.Dest)
+		log.Info("Target config " + t.Dest + " out of sync")
 		if t.CheckCmd != "" {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
 			}
 		}
+		log.Debug("Overwriting target config " + t.Dest)
 		if err := os.Rename(staged, t.Dest); err != nil {
 			return err
 		}
@@ -117,8 +134,9 @@ func (t *TemplateResource) sync() error {
 				return err
 			}
 		}
+		log.Info("Target config " + t.Dest + " has been updated")
 	} else {
-		log.Info(t.Dest + " in sync")
+		log.Info("Target config " + t.Dest + " in sync")
 	}
 	return nil
 }
@@ -181,10 +199,9 @@ func (t *TemplateResource) process() error {
 }
 
 // setFileMode sets the FileMode.
-// It returns an error if any.
 func (t *TemplateResource) setFileMode() error {
 	if t.Mode == "" {
-		if !IsFileExist(t.Dest) {
+		if !isFileExist(t.Dest) {
 			t.FileMode = 0644
 		} else {
 			fi, err := os.Stat(t.Dest)
@@ -205,20 +222,26 @@ func (t *TemplateResource) setFileMode() error {
 
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
-// It return an error if any.
-func ProcessTemplateResources(c EtcdClient) []error {
+// It returns a list of errors if any.
+func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 	runErrors := make([]error, 0)
 	var err error
 	if c == nil {
 		runErrors = append(runErrors, errors.New("An etcd client is required"))
 		return runErrors
 	}
-	paths, err := filepath.Glob(filepath.Join(ConfigDir(), "*toml"))
+	log.Debug("Loading template resources from confdir " + config.ConfDir())
+	if !isFileExist(config.ConfDir()) {
+		log.Warning(fmt.Sprintf("Cannot load template resources confdir '%s' does not exist", config.ConfDir()))
+		return runErrors
+	}
+	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
 	if err != nil {
 		runErrors = append(runErrors, err)
 		return runErrors
 	}
 	for _, p := range paths {
+		log.Debug("Processing template resource " + p)
 		t, err := NewTemplateResourceFromPath(p, c)
 		if err != nil {
 			runErrors = append(runErrors, err)
@@ -230,13 +253,14 @@ func ProcessTemplateResources(c EtcdClient) []error {
 			log.Error(err.Error())
 			continue
 		}
+		log.Debug("Processing of template resource " + p + " complete")
 	}
 	return runErrors
 }
 
 // fileStat return a fileInfo describing the named file.
 func fileStat(name string) (fi fileInfo, err error) {
-	if IsFileExist(name) {
+	if isFileExist(name) {
 		f, err := os.Open(name)
 		defer f.Close()
 		if err != nil {
@@ -260,7 +284,7 @@ func fileStat(name string) (fi fileInfo, err error) {
 // Unix permissions. The owner, group, and mode must match.
 // It return false in other cases.
 func sameConfig(src, dest string) (bool, error) {
-	if !IsFileExist(dest) {
+	if !isFileExist(dest) {
 		return false, nil
 	}
 	d, err := fileStat(dest)
@@ -287,4 +311,12 @@ func sameConfig(src, dest string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+// isFileExist reports whether path exits.
+func isFileExist(fpath string) bool {
+	if _, err := os.Stat(fpath); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
