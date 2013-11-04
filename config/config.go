@@ -193,6 +193,7 @@ func setEtcdHosts() error {
 	// If a domain name is given then lookup the etcd SRV record, and override
 	// all other etcd node settings.
 	if config.Confd.SRVDomain != "" {
+		log.Info("SRV domain set to " + config.Confd.SRVDomain)
 		etcdHosts, err := getEtcdHostsFromSRV(config.Confd.SRVDomain)
 		if err != nil {
 			return errors.New("Cannot get etcd hosts from SRV records " + err.Error())
