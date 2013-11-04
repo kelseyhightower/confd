@@ -69,9 +69,9 @@ database_user = {{ .myapp_database_user }}
 
 ### Processing template resources
 
-confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground and processing template resources every 5 mins by default. For this tutorial we are going to use onetime mode.
+confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground processing template resources every 5 mins by default. For this tutorial we are going to use onetime mode.
 
-Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
+Assuming your etcd server is running at http://127.0.0.1:4001 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
 
 ```
 confd -verbose -onetime -node 'http://127.0.0.1:4001' -confdir ~/confd 
