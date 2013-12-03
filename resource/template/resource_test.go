@@ -108,9 +108,7 @@ func TestProcessTemplateResources(t *testing.T) {
 
 	// Create the stub etcd client.
 	c := etcdtest.NewClient()
-	fooResp := []*etcd.Response{
-		{Key: "/foo", Dir: false, Value: "bar"},
-	}
+	fooResp := &etcd.Response{Action: "GET", Node: &etcd.Node{Key: "/foo", Dir: false, Value: "bar"}}
 	c.AddResponse("/foo", fooResp)
 
 	// Process the test template resource.
@@ -184,9 +182,7 @@ func TestProcessTemplateResourcesNoop(t *testing.T) {
 
 	// Create the stub etcd client.
 	c := etcdtest.NewClient()
-	fooResp := []*etcd.Response{
-		{Key: "/foo", Dir: false, Value: "bar"},
-	}
+	fooResp := &etcd.Response{Action: "GET", Node: &etcd.Node{Key: "/foo", Dir: false, Value: "bar"}}
 	c.AddResponse("/foo", fooResp)
 
 	// Process the test template resource.
