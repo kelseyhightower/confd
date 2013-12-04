@@ -42,7 +42,6 @@ type EtcdClient interface {
 func GetValues(c EtcdClient, prefix string, keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
-		log.Println(prefix, key)
 		resp, err := c.Get(key, false, true)
 		if err != nil {
 			return vars, err
