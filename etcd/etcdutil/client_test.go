@@ -52,15 +52,15 @@ func TestGetValues(t *testing.T) {
 					Dir: true,
 					Value: "",
 					Nodes: etcd.Nodes{
-						etcd.Node{Key: "/foo/three/bar", Value: "three_bar", Dir: false}
-					}
-				}
-			}
-		}
+						etcd.Node{Key: "/foo/three/bar", Value: "three_bar", Dir: false},
+					},
+				},
+			},
+		},
 	}
 	quuxResp := &etcd.Response{
 		Action: "GET",
-		Node: &etcd.Node{Key:"/quux", Dir: false, Value: "foo"}
+		Node: &etcd.Node{Key:"/quux", Dir: false, Value: "foo"},
 	}
 	nginxResp := &etcd.Response{
 		Action: "GET",
@@ -70,9 +70,9 @@ func TestGetValues(t *testing.T) {
 			Dir: true,
 			Nodes: etcd.Nodes{
 				etcd.Node{Key: "/nginx/port", Dir: false, Value: "443"},
-				etcd.Node{Key: "/nginx/worker_processes", Dir: false, Value: "4"}
-			}
-		}
+				etcd.Node{Key: "/nginx/worker_processes", Dir: false, Value: "4"},
+			},
+		},
 	}
 
 	c.AddResponse("/foo", fooResp)
