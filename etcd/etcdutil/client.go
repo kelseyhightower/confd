@@ -6,7 +6,6 @@ package etcdutil
 import (
 	"errors"
 	"github.com/coreos/go-etcd/etcd"
-	"log"
 	"strings"
 )
 
