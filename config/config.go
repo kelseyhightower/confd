@@ -16,19 +16,20 @@ import (
 )
 
 var (
-	clientCert string
-	clientKey  string
-	config     Config // holds the global confd config.
-	confdir    string
-	debug      bool
-	etcdNodes  Nodes
-	etcdScheme string
-	interval   int
-	noop       bool
-	prefix     string
-	quiet      bool
-	srvDomain  string
-	verbose    bool
+	clientCert   string
+	clientKey    string
+	clientCaKeys string
+	config       Config // holds the global confd config.
+	confdir      string
+	debug        bool
+	etcdNodes    Nodes
+	etcdScheme   string
+	interval     int
+	noop         bool
+	prefix       string
+	quiet        bool
+	srvDomain    string
+	verbose      bool
 )
 
 // Config represents the confd configuration settings.
@@ -38,24 +39,26 @@ type Config struct {
 
 // confd represents the parsed configuration settings.
 type confd struct {
-	Debug      bool     `toml:"debug"`
-	ClientCert string   `toml:"client_cert"`
-	ClientKey  string   `toml:"client_key"`
-	ConfDir    string   `toml:"confdir"`
-	EtcdNodes  []string `toml:"etcd_nodes"`
-	EtcdScheme string   `toml:"etcd_scheme"`
-	Interval   int      `toml:"interval"`
-	Noop       bool     `toml:"noop"`
-	Prefix     string   `toml:"prefix"`
-	Quiet      bool     `toml:"quiet"`
-	SRVDomain  string   `toml:"srv_domain"`
-	Verbose    bool     `toml:"verbose"`
+	Debug        bool     `toml:"debug"`
+	ClientCert   string   `toml:"client_cert"`
+	ClientKey    string   `toml:"client_key"`
+	ClientCaKeys string   `toml:"client_cakeys"`
+	ConfDir      string   `toml:"confdir"`
+	EtcdNodes    []string `toml:"etcd_nodes"`
+	EtcdScheme   string   `toml:"etcd_scheme"`
+	Interval     int      `toml:"interval"`
+	Noop         bool     `toml:"noop"`
+	Prefix       string   `toml:"prefix"`
+	Quiet        bool     `toml:"quiet"`
+	SRVDomain    string   `toml:"srv_domain"`
+	Verbose      bool     `toml:"verbose"`
 }
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
+	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.Var(&etcdNodes, "node", "list of etcd nodes")
 	flag.StringVar(&etcdScheme, "etcd-scheme", "http", "the etcd URI scheme. (http or https)")
@@ -106,6 +109,11 @@ func ClientCert() string {
 // ClientKey returns the client key path.
 func ClientKey() string {
 	return config.Confd.ClientKey
+}
+
+// ClientCaKeys returns the client CA certificates
+func ClientCaKeys() string {
+        return config.Confd.ClientCaKeys
 }
 
 // ConfDir returns the path to the confd config dir.
@@ -250,6 +258,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Confd.ClientCert = clientCert
 	case "client-key":
 		config.Confd.ClientKey = clientKey
+	case "client-cakeys":
+		config.Confd.ClientCaKeys = clientCaKeys
 	case "confdir":
 		config.Confd.ConfDir = confdir
 	case "node":

@@ -50,7 +50,7 @@ func main() {
 	// Create the etcd client upfront and use it for the life of the process.
 	// The etcdClient is an http.Client and designed to be reused.
 	log.Notice("etcd nodes set to " + strings.Join(config.EtcdNodes(), ", "))
-	etcdClient, err := etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey())
+	etcdClient, err := etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey(), config.ClientCaKeys())
 	if err != nil {
 		log.Fatal(err.Error())
 	}
