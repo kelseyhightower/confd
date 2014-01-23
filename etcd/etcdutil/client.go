@@ -13,13 +13,15 @@ var replacer = strings.NewReplacer("/", "_")
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewEtcdClient(machines []string, cert, key string) (*etcd.Client, error) {
-	c := etcd.NewClient(machines)
+func NewEtcdClient(machines []string, cert, key string, caCert string) (*etcd.Client, error) {
+	var c *etcd.Client
 	if cert != "" && key != "" {
-		err := c.SetCertAndKey(cert, key)
+		c, err := etcd.NewTLSClient(machines, cert, key, caCert)
 		if err != nil {
 			return c, err
 		}
+	} else {
+		c = etcd.NewClient(machines)
 	}
 	success := c.SetCluster(machines)
 	if !success {
