@@ -4,7 +4,7 @@
 
 `confd` is a lightweight configuration management tool focused on:
 
-* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](https://github.com/kelseyhightower/confd/wiki/Template-Resources).
+* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](docs/template-resources.md).
 * reloading applications to pick up new config file changes
 
 ## Community
@@ -15,7 +15,7 @@
 
 ## Quick Start
 
-Before we begin be sure to [download and install confd](https://github.com/kelseyhightower/confd/wiki/Installation). 
+Before we begin be sure to [download and install confd](docs/installation.md). 
 
 ### Add keys to etcd
 
@@ -100,4 +100,4 @@ database_user = rob
 
 ## Next steps
 
-Checkout the [confd wiki](https://github.com/kelseyhightower/confd/wiki/_pages) for more docs and [usage examples](https://github.com/kelseyhightower/confd/wiki/Usage-Examples).
+Checkout the [docs directory](docs) for more docs and [usage examples](docs/usage-examples.md).
