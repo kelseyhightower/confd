@@ -1,0 +1,50 @@
+# Templates - Interation Example
+
+Using confd to manage nginx proxy config
+
+## Add upstream servers to etcd
+
+```Bash
+curl http://127.0.0.1:4001/v2/keys/myapp/upstream -XPUT -d dir=true
+curl http://127.0.0.1:4001/v2/keys/myapp/upstream/app2 -XPUT -d value="10.0.1.101:80"
+curl http://127.0.0.1:4001/v2/keys/myapp/upstream/app1 -XPUT -d value="10.0.1.100:80"
+```
+
+## Create a template resource
+
+`/etc/confd/conf.d/nginx.toml`
+
+```TOML
+[template]
+keys = [
+  "myapp/upstream",
+]
+owner = "kelseyhightower"
+mode = "0644"
+src = "nginx.tmpl"
+dest = "/tmp/nginx.conf"
+```
+
+## Create a source template
+
+`/etc/confd/templates/nginx.tmpl`
+
+```
+upstream myapp {
+{{range $server := .myapp_upstream}}
+    server {{$server.Value}};
+{{end}}
+}
+ 
+server {
+    server_name  www.example.com;
+ 
+    location / {
+        proxy_pass        http://myapp;
+        proxy_redirect    off;
+        proxy_set_header  Host             $host;
+        proxy_set_header  X-Real-IP        $remote_addr;
+        proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
+   }
+}
+```

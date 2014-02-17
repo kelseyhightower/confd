@@ -58,10 +58,11 @@ func GetValues(c EtcdClient, prefix string, keys []string) (map[string]interface
 // nodeWalk recursively descends nodes, updating vars.
 func nodeWalk(node *etcd.Node, prefix string, vars map[string]interface{}) error {
 	if node != nil {
+		key := pathToKey(node.Key, prefix)
 		if !node.Dir {
-			key := pathToKey(node.Key, prefix)
 			vars[key] = node.Value
 		} else {
+			vars[key] = node.Nodes
 			for _, node := range node.Nodes {
 				nodeWalk(&node, prefix, vars)
 			}
