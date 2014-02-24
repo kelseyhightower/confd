@@ -12,7 +12,7 @@ curl http://127.0.0.1:4001/v2/keys/myapp/upstream/app1 -XPUT -d value="10.0.1.10
 
 ## Create a template resource
 
-`/etc/confd/conf.d/nginx.toml`
+`/etc/confd/conf.d/myapp-nginx.toml`
 
 ```TOML
 [template]
@@ -22,7 +22,7 @@ keys = [
 owner = "nginx"
 mode = "0644"
 src = "myapp-nginx.tmpl"
-dest = "/etc/nginx/conf.d/myapp.conf"
+dest = "/tmp/myapp.conf"
 check_cmd  = "/usr/sbin/nginx -t -c {{ .src }}"
 reload_cmd = "/usr/sbin/service nginx reload"
 ```
