@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 	"syscall"
@@ -89,7 +90,9 @@ func (t *TemplateResource) createStageFile() error {
 		return err
 	}
 	log.Debug("Compiling source template " + t.Src)
-	tmpl := template.Must(template.ParseFiles(t.Src))
+	tplFuncMap := make(template.FuncMap)
+	tplFuncMap["Base"] = path.Base
+	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
 	}
