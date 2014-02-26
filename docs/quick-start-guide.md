@@ -39,9 +39,9 @@ keys = [
   "/myapp/database/url",
     "/myapp/database/user",
     ]
-    ```
+```
+Save the file under the `confdir` directory, i.e. `~/confd/conf.d/myconfig.toml`
 
-    Save the file under the `confdir` directory, i.e. `~/confd/conf.d/myconfig.toml`
 
 ### Create the source template
 
