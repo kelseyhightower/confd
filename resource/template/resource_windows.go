@@ -15,7 +15,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"syscall"
 	"text/template"
 
 	"github.com/BurntSushi/toml"
@@ -33,10 +32,8 @@ type TemplateResourceConfig struct {
 type TemplateResource struct {
 	Dest       string
 	FileMode   os.FileMode
-	Gid        int
 	Keys       []string
 	Mode       string
-	Uid        int
 	ReloadCmd  string `toml:"reload_cmd"`
 	CheckCmd   string `toml:"check_cmd"`
 	StageFile  *os.File
@@ -99,7 +96,6 @@ func (t *TemplateResource) createStageFile() error {
 	// Set the owner, group, and mode on the stage file now to make it easier to
 	// compare against the destination configuration file later.
 	os.Chmod(temp.Name(), t.FileMode)
-	os.Chown(temp.Name(), t.Uid, t.Gid)
 	t.StageFile = temp
 	return nil
 }
@@ -270,9 +266,7 @@ func fileStat(name string) (fi fileInfo, err error) {
 			return fi, err
 		}
 		stats, _ := f.Stat()
-		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
-		fi.Gid = stats.Sys().(*syscall.Stat_t).Gid
-		fi.Mode = stats.Sys().(*syscall.Stat_t).Mode
+		fi.Mode = stats.Mode()
 		h := md5.New()
 		io.Copy(h, f)
 		fi.Md5 = fmt.Sprintf("%x", h.Sum(nil))
@@ -298,19 +292,13 @@ func sameConfig(src, dest string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if d.Uid != s.Uid {
-		log.Info(fmt.Sprintf("%s has UID %d should be %d", dest, d.Uid, s.Uid))
-	}
-	if d.Gid != s.Gid {
-		log.Info(fmt.Sprintf("%s has GID %d should be %d", dest, d.Gid, s.Gid))
-	}
 	if d.Mode != s.Mode {
 		log.Info(fmt.Sprintf("%s has mode %s should be %s", dest, os.FileMode(d.Mode), os.FileMode(s.Mode)))
 	}
 	if d.Md5 != s.Md5 {
 		log.Info(fmt.Sprintf("%s has md5sum %s should be %s", dest, d.Md5, s.Md5))
 	}
-	if d.Uid != s.Uid || d.Gid != s.Gid || d.Mode != s.Mode || d.Md5 != s.Md5 {
+	if d.Mode != s.Mode || d.Md5 != s.Md5 {
 		return false, nil
 	}
 	return true, nil
