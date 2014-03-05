@@ -13,7 +13,7 @@ wget https://github.com/kelseyhightower/confd/releases/download/v0.2.0/confd_0.2
 ```
 * LINUX
 ```Bash
-wget https://github.com/kelseyhightower/confd/releases/download/v0.2.0/confd_0.2.0_linux_amd64.tar.gz
+wget -O confd_0.2.0_linux_amd64.tar.gz https://github.com/kelseyhightower/confd/releases/download/v0.2.0/confd_0.2.0_linux_amd64.tar.gz
 ```
 
 Unzip the confd package.
