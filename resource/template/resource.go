@@ -89,6 +89,7 @@ func (t *TemplateResource) createStageFile() error {
 		os.Remove(temp.Name())
 		return err
 	}
+        defer temp.Close()
 	log.Debug("Compiling source template " + t.Src)
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["Base"] = path.Base
