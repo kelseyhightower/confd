@@ -5,7 +5,7 @@
 /*
 Package log provides support for logging to stdout and stderr.
 
-Log entires will be log in the following format:
+Log entries will be log in the following format:
 
     timestamp hostname tag[pid]: SEVERITY Message
 */
