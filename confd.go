@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/armon/confd/config"
-	"github.com/armon/confd/consul"
-	"github.com/armon/confd/etcd/etcdutil"
-	"github.com/armon/confd/log"
-	"github.com/armon/confd/resource/template"
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/consul"
+	"github.com/kelseyhightower/confd/etcd/etcdutil"
+	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/resource/template"
 )
 
 var (
