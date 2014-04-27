@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-var replacer = strings.NewReplacer("/", "_")
-
 // Client is a wrapper around the etcd client
 type Client struct {
 	client *etcd.Client
@@ -59,7 +57,7 @@ func (c *Client) GetValues(prefix string, keys []string) (map[string]interface{}
 // nodeWalk recursively descends nodes, updating vars.
 func nodeWalk(node *etcd.Node, prefix string, vars map[string]interface{}) error {
 	if node != nil {
-		key := pathToKey(node.Key, prefix)
+		key := node.Key
 		if !node.Dir {
 			vars[key] = node.Value
 		} else {
@@ -70,12 +68,4 @@ func nodeWalk(node *etcd.Node, prefix string, vars map[string]interface{}) error
 		}
 	}
 	return nil
-}
-
-// pathToKey translates etcd key paths into something more suitable for use
-// in Golang templates. Turn /prefix/key/subkey into key_subkey.
-func pathToKey(key, prefix string) string {
-	key = strings.TrimPrefix(key, prefix)
-	key = strings.TrimPrefix(key, "/")
-	return replacer.Replace(key)
 }

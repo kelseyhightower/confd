@@ -15,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"text/template"
 
@@ -23,9 +24,11 @@ import (
 	"github.com/kelseyhightower/confd/log"
 )
 
+var replacer = strings.NewReplacer("/", "_")
+
 // StoreClient is used to swap out the
 type StoreClient interface {
-	GetValues(prefix string, keys []string) (map[string]interface{}, error)
+	GetValues(keys []string) (map[string]interface{}, error)
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -71,11 +74,29 @@ func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + config.Prefix())
-	t.Vars, err = t.storeClient.GetValues(config.Prefix(), t.Keys)
+	vars, err := t.storeClient.GetValues(t.Keys)
 	if err != nil {
 		return err
 	}
+	t.Vars = t.cleanKeys(vars)
 	return nil
+}
+
+func (t *TemplateResource) cleanKeys(vars map[string]interface{}) map[string]interface{} {
+	clean := make(map[string]interface{}, len(vars))
+	prefix := config.Prefix()
+	for key, val := range vars {
+		clean[pathToKey(key, prefix)] = val
+	}
+	return clean
+}
+
+// pathToKey translates etcd key paths into something more suitable for use
+// in Golang templates. Turn /prefix/key/subkey into key_subkey.
+func pathToKey(key, prefix string) string {
+	key = strings.TrimPrefix(key, prefix)
+	key = strings.TrimPrefix(key, "/")
+	return replacer.Replace(key)
 }
 
 // createStageFile stages the src configuration file by processing the src
