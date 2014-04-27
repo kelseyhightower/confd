@@ -39,14 +39,14 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 // keys were '/nginx/port'; the prefixed '/production/nginx/port' key would
 // be queried for. If the value for the prefixed key where 80, the returned map
 // would contain the entry vars["nginx_port"] = "80".
-func (c *Client) GetValues(prefix string, keys []string) (map[string]interface{}, error) {
+func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
 		resp, err := c.client.Get(key, false, true)
 		if err != nil {
 			return vars, err
 		}
-		err = nodeWalk(resp.Node, prefix, vars)
+		err = nodeWalk(resp.Node, vars)
 		if err != nil {
 			return vars, err
 		}
@@ -55,7 +55,7 @@ func (c *Client) GetValues(prefix string, keys []string) (map[string]interface{}
 }
 
 // nodeWalk recursively descends nodes, updating vars.
-func nodeWalk(node *etcd.Node, prefix string, vars map[string]interface{}) error {
+func nodeWalk(node *etcd.Node, vars map[string]interface{}) error {
 	if node != nil {
 		key := node.Key
 		if !node.Dir {
@@ -63,7 +63,7 @@ func nodeWalk(node *etcd.Node, prefix string, vars map[string]interface{}) error
 		} else {
 			vars[key] = node.Nodes
 			for _, node := range node.Nodes {
-				nodeWalk(&node, prefix, vars)
+				nodeWalk(&node, vars)
 			}
 		}
 	}
