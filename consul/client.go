@@ -32,7 +32,7 @@ func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 			return vars, err
 		}
 		for _, p := range pairs {
-			vars[p.Key] = p.Value
+			vars[p.Key] = string(p.Value)
 		}
 	}
 	return vars, nil
