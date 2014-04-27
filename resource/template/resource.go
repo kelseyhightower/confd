@@ -20,9 +20,13 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/config"
-	"github.com/kelseyhightower/confd/etcd/etcdutil"
 	"github.com/kelseyhightower/confd/log"
 )
+
+// StoreClient is used to swap out the
+type StoreClient interface {
+	GetValues(prefix string, keys []string) (map[string]interface{}, error)
+}
 
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
@@ -31,26 +35,26 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
-	Dest       string
-	FileMode   os.FileMode
-	Gid        int
-	Keys       []string
-	Mode       string
-	Uid        int
-	ReloadCmd  string `toml:"reload_cmd"`
-	CheckCmd   string `toml:"check_cmd"`
-	StageFile  *os.File
-	Src        string
-	Vars       map[string]interface{}
-	etcdClient etcdutil.EtcdClient
+	Dest        string
+	FileMode    os.FileMode
+	Gid         int
+	Keys        []string
+	Mode        string
+	Uid         int
+	ReloadCmd   string `toml:"reload_cmd"`
+	CheckCmd    string `toml:"check_cmd"`
+	StageFile   *os.File
+	Src         string
+	Vars        map[string]interface{}
+	storeClient StoreClient
 }
 
 // NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
-// and the supplied EtcdClient as input.
+// and the supplied StoreClient as input.
 // It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, c etcdutil.EtcdClient) (*TemplateResource, error) {
-	if c == nil {
-		return nil, errors.New("A valid EtcdClient is required.")
+func NewTemplateResourceFromPath(path string, s StoreClient) (*TemplateResource, error) {
+	if s == nil {
+		return nil, errors.New("A valid StoreClient is required.")
 	}
 	var tc *TemplateResourceConfig
 	log.Debug("Loading template resource from " + path)
@@ -58,16 +62,16 @@ func NewTemplateResourceFromPath(path string, c etcdutil.EtcdClient) (*TemplateR
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
-	tc.TemplateResource.etcdClient = c
+	tc.TemplateResource.storeClient = s
 	return &tc.TemplateResource, nil
 }
 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
-	log.Debug("Retrieving keys from etcd")
+	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + config.Prefix())
-	t.Vars, err = etcdutil.GetValues(t.etcdClient, config.Prefix(), t.Keys)
+	t.Vars, err = t.storeClient.GetValues(config.Prefix(), t.Keys)
 	if err != nil {
 		return err
 	}
@@ -89,7 +93,7 @@ func (t *TemplateResource) createStageFile() error {
 		os.Remove(temp.Name())
 		return err
 	}
-        defer temp.Close()
+	defer temp.Close()
 	log.Debug("Compiling source template " + t.Src)
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["Base"] = path.Base
@@ -183,7 +187,7 @@ func (t *TemplateResource) reload() error {
 
 // process is a convenience function that wraps calls to the three main tasks
 // required to keep local configuration files in sync. First we gather vars
-// from etcd, then we stage a candidate configuration file, and finally sync
+// from the store, then we stage a candidate configuration file, and finally sync
 // things up.
 // It returns an error if any.
 func (t *TemplateResource) process() error {
@@ -227,11 +231,11 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It returns a list of errors if any.
-func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
+func ProcessTemplateResources(s StoreClient) []error {
 	runErrors := make([]error, 0)
 	var err error
-	if c == nil {
-		runErrors = append(runErrors, errors.New("An etcd client is required"))
+	if s == nil {
+		runErrors = append(runErrors, errors.New("A StoreClient client is required"))
 		return runErrors
 	}
 	log.Debug("Loading template resources from confdir " + config.ConfDir())
@@ -246,7 +250,7 @@ func ProcessTemplateResources(c etcdutil.EtcdClient) []error {
 	}
 	for _, p := range paths {
 		log.Debug("Processing template resource " + p)
-		t, err := NewTemplateResourceFromPath(p, c)
+		t, err := NewTemplateResourceFromPath(p, s)
 		if err != nil {
 			runErrors = append(runErrors, err)
 			log.Error(err.Error())
