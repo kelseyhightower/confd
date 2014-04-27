@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kelseyhightower/confd/config"
-	"github.com/kelseyhightower/confd/etcd/etcdutil"
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
+	"github.com/armon/confd/config"
+	"github.com/armon/confd/consul"
+	"github.com/armon/confd/etcd/etcdutil"
+	"github.com/armon/confd/log"
+	"github.com/armon/confd/resource/template"
 )
 
 var (
@@ -47,15 +48,15 @@ func main() {
 	log.SetVerbose(config.Verbose())
 	log.SetDebug(config.Debug())
 	log.Notice("Starting confd")
-	// Create the etcd client upfront and use it for the life of the process.
-	// The etcdClient is an http.Client and designed to be reused.
-	log.Notice("etcd nodes set to " + strings.Join(config.EtcdNodes(), ", "))
-	etcdClient, err := etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey(), config.ClientCaKeys())
+
+	// Create the storage client
+	store, err := createStoreClient()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
 	for {
-		runErrors := template.ProcessTemplateResources(etcdClient)
+		runErrors := template.ProcessTemplateResources(store)
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
 		if onetime {
@@ -65,6 +66,20 @@ func main() {
 			os.Exit(0)
 		}
 		time.Sleep(time.Duration(config.Interval()) * time.Second)
+	}
+}
+
+// createStoreClient is used to create a storage client based
+// on our configuration. Either an etcd or Consul client.
+func createStoreClient() (template.StoreClient, error) {
+	if config.Consul() {
+		log.Notice("Consul address set to " + config.ConsulAddr())
+		return consul.NewConsulClient(config.ConsulAddr())
+	} else {
+		// Create the etcd client upfront and use it for the life of the process.
+		// The etcdClient is an http.Client and designed to be reused.
+		log.Notice("etcd nodes set to " + strings.Join(config.EtcdNodes(), ", "))
+		return etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey(), config.ClientCaKeys())
 	}
 }
 
