@@ -21,6 +21,8 @@ var (
 	clientCaKeys string
 	config       Config // holds the global confd config.
 	confdir      string
+	consul       bool
+	consulAddr   string
 	debug        bool
 	etcdNodes    Nodes
 	etcdScheme   string
@@ -44,6 +46,8 @@ type confd struct {
 	ClientKey    string   `toml:"client_key"`
 	ClientCaKeys string   `toml:"client_cakeys"`
 	ConfDir      string   `toml:"confdir"`
+	Consul       bool     `toml:"consul"`
+	ConsulAddr   string   `toml:"consul_addr"`
 	EtcdNodes    []string `toml:"etcd_nodes"`
 	EtcdScheme   string   `toml:"etcd_scheme"`
 	Interval     int      `toml:"interval"`
@@ -60,6 +64,8 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
+	flag.BoolVar(&consul, "consul", false, "specified to enable use of Consul")
+	flag.StringVar(&consulAddr, "consul-addr", "", "address of Consul HTTP interface")
 	flag.Var(&etcdNodes, "node", "list of etcd nodes")
 	flag.StringVar(&etcdScheme, "etcd-scheme", "http", "the etcd URI scheme. (http or https)")
 	flag.IntVar(&interval, "interval", 600, "etcd polling interval")
@@ -113,7 +119,7 @@ func ClientKey() string {
 
 // ClientCaKeys returns the client CA certificates
 func ClientCaKeys() string {
-        return config.Confd.ClientCaKeys
+	return config.Confd.ClientCaKeys
 }
 
 // ConfDir returns the path to the confd config dir.
@@ -124,6 +130,16 @@ func ConfDir() string {
 // ConfigDir returns the path to the confd config dir.
 func ConfigDir() string {
 	return filepath.Join(config.Confd.ConfDir, "conf.d")
+}
+
+// Consul returns if we should use Consul
+func Consul() bool {
+	return config.Confd.Consul
+}
+
+// ConsulAddr returns the address of the consul node
+func ConsulAddr() string {
+	return config.Confd.ConsulAddr
 }
 
 // EtcdNodes returns a list of etcd node url strings.
@@ -186,6 +202,7 @@ func setDefaults() {
 	config = Config{
 		Confd: confd{
 			ConfDir:    "/etc/confd",
+			ConsulAddr: "127.0.0.1:8500",
 			Interval:   600,
 			Prefix:     "/",
 			EtcdNodes:  []string{"127.0.0.1:4001"},
@@ -262,6 +279,10 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Confd.ClientCaKeys = clientCaKeys
 	case "confdir":
 		config.Confd.ConfDir = confdir
+	case "consul":
+		config.Confd.Consul = consul
+	case "consul-addr":
+		config.Confd.ConsulAddr = consulAddr
 	case "node":
 		config.Confd.EtcdNodes = etcdNodes
 	case "etcd-scheme":
