@@ -15,6 +15,8 @@ Optional:
 * `client_cert` (string) The cert file of the client.
 * `client_key` (string) The key file of the client.
 * `confdir` (string) - The path to confd configs. The default is /etc/confd.
+* `consul` (bool) - Should Consul be used instead of etcd for Key/Value storage.
+* `consul_addr` (string) - Address of consul. The default is "127.0.0.1:8500".
 * `etcd_nodes` (array of strings) - An array of etcd cluster nodes. The default
   is ["http://127.0.0.1:4001"].
 * `etcd_scheme` (string) - The etcd scheme to use. Must be 'http' or 'https'

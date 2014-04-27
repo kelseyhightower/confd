@@ -4,7 +4,8 @@
 
 `confd` is a lightweight configuration management tool focused on:
 
-* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) and processing [template resources](docs/template-resources.md).
+* keeping local configuration files up-to-date by polling [etcd](https://github.com/coreos/etcd) or
+  [Consul](http://consul.io) and processing [template resources](docs/template-resources.md).
 * reloading applications to pick up new config file changes
 
 ## Community
@@ -15,7 +16,7 @@
 
 ## Quick Start
 
-Before we begin be sure to [download and install confd](docs/installation.md). 
+Before we begin be sure to [download and install confd](docs/installation.md).
 
 ### Add keys to etcd
 
@@ -25,6 +26,8 @@ This guide assumes you have a working [etcd](https://github.com/coreos/etcd#gett
 etcdctl set /myapp/database/url db.example.com
 etcdctl set /myapp/database/user rob
 ```
+
+Alternatively, Consul can be used a Key/Value store.
 
 ### Create the confdir
 
@@ -74,7 +77,7 @@ confd supports two modes of operation, daemon and onetime mode. In daemon mode, 
 Assuming your etcd server is running at http://127.0.0.1:4001 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
 
 ```
-confd -verbose -onetime -node 'http://127.0.0.1:4001' -confdir ~/confd 
+confd -verbose -onetime -node 'http://127.0.0.1:4001' -confdir ~/confd
 ```
 Output:
 ```
@@ -91,7 +94,7 @@ cat /tmp/myconfig.conf
 ```
 
 Output:
-``` 
+```
 # This a comment
 [myconfig]
 database_url = db.example.com
