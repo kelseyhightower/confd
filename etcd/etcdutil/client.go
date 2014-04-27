@@ -11,27 +11,28 @@ import (
 
 var replacer = strings.NewReplacer("/", "_")
 
+// Client is a wrapper around the etcd client
+type Client struct {
+	client *etcd.Client
+}
+
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewEtcdClient(machines []string, cert, key string, caCert string) (*etcd.Client, error) {
+func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client, error) {
 	var c *etcd.Client
 	if cert != "" && key != "" {
 		c, err := etcd.NewTLSClient(machines, cert, key, caCert)
 		if err != nil {
-			return c, err
+			return &Client{c}, err
 		}
 	} else {
 		c = etcd.NewClient(machines)
 	}
 	success := c.SetCluster(machines)
 	if !success {
-		return c, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+		return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
 	}
-	return c, nil
-}
-
-type EtcdClient interface {
-	Get(key string, sort bool, recursive bool) (*etcd.Response, error)
+	return &Client{c}, nil
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
@@ -40,10 +41,10 @@ type EtcdClient interface {
 // keys were '/nginx/port'; the prefixed '/production/nginx/port' key would
 // be queried for. If the value for the prefixed key where 80, the returned map
 // would contain the entry vars["nginx_port"] = "80".
-func GetValues(c EtcdClient, prefix string, keys []string) (map[string]interface{}, error) {
+func (c *Client) GetValues(prefix string, keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
-		resp, err := c.Get(key, false, true)
+		resp, err := c.client.Get(key, false, true)
 		if err != nil {
 			return vars, err
 		}
