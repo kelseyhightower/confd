@@ -23,7 +23,7 @@ func NewConsulClient(addr string) (*Client, error) {
 	return c, nil
 }
 
-// GetValues queries Consul for keys prefixed by prefix.
+// GetValues queries Consul for keys
 func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {

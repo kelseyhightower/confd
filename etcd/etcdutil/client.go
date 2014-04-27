@@ -11,7 +11,11 @@ import (
 
 // Client is a wrapper around the etcd client
 type Client struct {
-	client *etcd.Client
+	client EtcdClient
+}
+
+type EtcdClient interface {
+	Get(key string, sort, recurse bool) (*etcd.Response, error)
 }
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.

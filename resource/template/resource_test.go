@@ -7,14 +7,38 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"text/template"
 
-	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/config"
-	"github.com/kelseyhightower/confd/etcd/etcdtest"
 	"github.com/kelseyhightower/confd/log"
 )
+
+type MockKey struct {
+	Key   string
+	Value string
+}
+
+type MockStore struct {
+	Keys []*MockKey
+}
+
+func (m *MockStore) GetValues(keys []string) (map[string]interface{}, error) {
+	vals := make(map[string]interface{})
+	for _, key := range keys {
+		for _, set := range m.Keys {
+			if strings.HasPrefix(set.Key, key) {
+				vals[set.Key] = set.Value
+			}
+		}
+	}
+	return vals, nil
+}
+
+func (m *MockStore) AddKey(key string, value string) {
+	m.Keys = append(m.Keys, &MockKey{key, value})
+}
 
 // createTempDirs is a helper function which creates temporary directories
 // required by confd. createTempDirs returns the path name representing the
@@ -107,9 +131,8 @@ func TestProcessTemplateResources(t *testing.T) {
 	config.SetConfDir(tempConfDir)
 
 	// Create the stub etcd client.
-	c := etcdtest.NewClient()
-	fooResp := &etcd.Response{Action: "GET", Node: &etcd.Node{Key: "/foo", Dir: false, Value: "bar"}}
-	c.AddResponse("/foo", fooResp)
+	c := &MockStore{}
+	c.AddKey("/foo", "bar")
 
 	// Process the test template resource.
 	runErrors := ProcessTemplateResources(c)
@@ -181,9 +204,8 @@ func TestProcessTemplateResourcesNoop(t *testing.T) {
 	config.SetNoop(true)
 
 	// Create the stub etcd client.
-	c := etcdtest.NewClient()
-	fooResp := &etcd.Response{Action: "GET", Node: &etcd.Node{Key: "/foo", Dir: false, Value: "bar"}}
-	c.AddResponse("/foo", fooResp)
+	c := &MockStore{}
+	c.AddKey("/foo", "bar")
 
 	// Process the test template resource.
 	runErrors := ProcessTemplateResources(c)
@@ -214,8 +236,9 @@ func TestBrokenTemplateResourceFile(t *testing.T) {
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	// Create the stub etcd client.
-	c := etcdtest.NewClient()
+	// Create the stub client.
+	c := &MockStore{}
+
 	// Process broken template resource config file.
 	_, err = NewTemplateResourceFromPath(tempFile.Name(), c)
 	if err == nil {
@@ -295,5 +318,30 @@ func TestIsFileExist(t *testing.T) {
 	result = isFileExist(f.Name())
 	if result != true {
 		t.Errorf("Expected IsFileExist(%s) to be true, got %v", f.Name(), result)
+	}
+}
+
+type PathToKeyTest struct {
+	key, prefix, expected string
+}
+
+var pathToKeyTests = []PathToKeyTest{
+	// Without prefix
+	{"/nginx/port", "", "nginx_port"},
+	{"/nginx/worker_processes", "", "nginx_worker_processes"},
+	{"/foo/bar/mat/zoo", "", "foo_bar_mat_zoo"},
+	// With prefix
+	{"/prefix/nginx/port", "/prefix", "nginx_port"},
+	// With prefix and trailing slash
+	{"/prefix/nginx/port", "/prefix/", "nginx_port"},
+}
+
+func TestPathToKey(t *testing.T) {
+	for _, pt := range pathToKeyTests {
+		result := pathToKey(pt.key, pt.prefix)
+		if result != pt.expected {
+			t.Errorf("Expected pathToKey(%s, %s) to == %s, got %s",
+				pt.key, pt.prefix, pt.expected, result)
+		}
 	}
 }
