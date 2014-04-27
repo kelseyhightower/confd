@@ -345,3 +345,25 @@ func TestPathToKey(t *testing.T) {
 		}
 	}
 }
+
+func TestCleanKeys(t *testing.T) {
+	pre := map[string]interface{}{
+		"/my/cool_val/here": "test",
+		"/this_key":         "foo",
+		"/prefix/key":       "test",
+	}
+	config.SetPrefix("/prefix")
+	clean := cleanKeys(pre)
+	if len(clean) != len(pre) {
+		t.Fatalf("bad length")
+	}
+	if _, ok := clean["my_cool_val_here"]; !ok {
+		t.Fatalf("bad: %v", clean)
+	}
+	if _, ok := clean["this_key"]; !ok {
+		t.Fatalf("bad: %v", clean)
+	}
+	if _, ok := clean["key"]; !ok {
+		t.Fatalf("bad: %v", clean)
+	}
+}

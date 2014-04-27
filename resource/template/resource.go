@@ -78,11 +78,13 @@ func (t *TemplateResource) setVars() error {
 	if err != nil {
 		return err
 	}
-	t.Vars = t.cleanKeys(vars)
+	t.Vars = cleanKeys(vars)
 	return nil
 }
 
-func (t *TemplateResource) cleanKeys(vars map[string]interface{}) map[string]interface{} {
+// cleanKeys is used to transform the path based keys we
+// get from the StoreClient to a more friendly format.
+func cleanKeys(vars map[string]interface{}) map[string]interface{} {
 	clean := make(map[string]interface{}, len(vars))
 	prefix := config.Prefix()
 	for key, val := range vars {
