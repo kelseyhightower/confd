@@ -27,7 +27,7 @@ etcdctl set /myapp/database/url db.example.com
 etcdctl set /myapp/database/user rob
 ```
 
-Alternatively, Consul can be used a Key/Value store.
+Alternatively, Consul can be used as a Key/Value store.
 
 ### Create the confdir
 
