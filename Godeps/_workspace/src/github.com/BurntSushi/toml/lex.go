@@ -77,12 +77,11 @@ func (lx *lexer) nextItem() item {
 			lx.state = lx.state(lx)
 		}
 	}
-	panic("not reached")
 }
 
 func lex(input string) *lexer {
 	lx := &lexer{
-		input: input,
+		input: input + "\n",
 		state: lexTop,
 		line:  1,
 		items: make(chan item, 10),
@@ -160,11 +159,6 @@ func (lx *lexer) peek() rune {
 // Note that any value that is a character is escaped if it's a special
 // character (new lines, tabs, etc.).
 func (lx *lexer) errorf(format string, values ...interface{}) stateFn {
-	for i, value := range values {
-		if v, ok := value.(rune); ok {
-			values[i] = escapeSpecial(v)
-		}
-	}
 	lx.items <- item{
 		itemError,
 		fmt.Sprintf(format, values...),
@@ -221,7 +215,7 @@ func lexTopEnd(lx *lexer) stateFn {
 		return lexTop
 	}
 	return lx.errorf("Expected a top-level item to end with a new line, "+
-		"comment or EOF, but got '%s' instead.", r)
+		"comment or EOF, but got %q instead.", r)
 }
 
 // lexTable lexes the beginning of a table. Namely, it makes sure that
@@ -248,8 +242,8 @@ func lexTableEnd(lx *lexer) stateFn {
 
 func lexArrayTableEnd(lx *lexer) stateFn {
 	if r := lx.next(); r != arrayTableEnd {
-		return lx.errorf("Expected end of table array name delimiter '%s', "+
-			"but got '%s' instead.", arrayTableEnd, r)
+		return lx.errorf("Expected end of table array name delimiter %q, "+
+			"but got %q instead.", arrayTableEnd, r)
 	}
 	lx.emit(itemArrayTableEnd)
 	return lexTopEnd
@@ -272,7 +266,7 @@ func lexTableNameStart(lx *lexer) stateFn {
 func lexTableName(lx *lexer) stateFn {
 	switch lx.peek() {
 	case tableStart:
-		return lx.errorf("Table names cannot contain '%s' or '%s'.",
+		return lx.errorf("Table names cannot contain %q or %q.",
 			tableStart, tableEnd)
 	case tableEnd:
 		lx.emit(itemText)
@@ -294,7 +288,7 @@ func lexKeyStart(lx *lexer) stateFn {
 	r := lx.peek()
 	switch {
 	case r == keySep:
-		return lx.errorf("Unexpected key separator '%s'.", keySep)
+		return lx.errorf("Unexpected key separator %q.", keySep)
 	case isWhitespace(r) || isNL(r):
 		lx.next()
 		return lexSkip(lx, lexKeyStart)
@@ -342,7 +336,7 @@ func lexKeyEnd(lx *lexer) stateFn {
 	case r == keySep:
 		return lexSkip(lx, lexValue)
 	}
-	return lx.errorf("Expected key separator '%s', but got '%s' instead.",
+	return lx.errorf("Expected key separator %q, but got %q instead.",
 		keySep, r)
 }
 
@@ -377,7 +371,7 @@ func lexValue(lx *lexer) stateFn {
 	case r == '.': // special error case, be kind to users
 		return lx.errorf("Floats must start with a digit, not '.'.")
 	}
-	return lx.errorf("Expected value but found '%s' instead.", r)
+	return lx.errorf("Expected value but found %q instead.", r)
 }
 
 // lexArrayValue consumes one value in an array. It assumes that '[' or ','
@@ -391,7 +385,7 @@ func lexArrayValue(lx *lexer) stateFn {
 		lx.push(lexArrayValue)
 		return lexCommentStart
 	case r == arrayValTerm:
-		return lx.errorf("Unexpected array value terminator '%s'.",
+		return lx.errorf("Unexpected array value terminator %q.",
 			arrayValTerm)
 	case r == arrayEnd:
 		return lexArrayEnd
@@ -413,12 +407,13 @@ func lexArrayValueEnd(lx *lexer) stateFn {
 		lx.push(lexArrayValueEnd)
 		return lexCommentStart
 	case r == arrayValTerm:
+		lx.ignore()
 		return lexArrayValue // move on to the next value
 	case r == arrayEnd:
 		return lexArrayEnd
 	}
-	return lx.errorf("Expected an array value terminator '%s' or an array "+
-		"terminator '%s', but got '%s' instead.", arrayValTerm, arrayEnd, r)
+	return lx.errorf("Expected an array value terminator %q or an array "+
+		"terminator %q, but got %q instead.", arrayValTerm, arrayEnd, r)
 }
 
 // lexArrayEnd finishes the lexing of an array. It assumes that a ']' has
@@ -472,7 +467,7 @@ func lexStringEscape(lx *lexer) stateFn {
 	case 'u':
 		return lexStringUnicode
 	}
-	return lx.errorf("Invalid escape character '%s'. Only the following "+
+	return lx.errorf("Invalid escape character %q. Only the following "+
 		"escape characters are allowed: "+
 		"\\b, \\t, \\n, \\f, \\r, \\\", \\/, \\\\, and \\uXXXX.", r)
 }
@@ -500,7 +495,7 @@ func lexNumberOrDateStart(lx *lexer) stateFn {
 		if r == '.' {
 			return lx.errorf("Floats must start with a digit, not '.'.")
 		} else {
-			return lx.errorf("Expected a digit but got '%s'.", r)
+			return lx.errorf("Expected a digit but got %q.", r)
 		}
 	}
 	return lexNumberOrDate
@@ -542,11 +537,11 @@ func lexDateAfterYear(lx *lexer) stateFn {
 		if f == '0' {
 			if !isDigit(r) {
 				return lx.errorf("Expected digit in ISO8601 datetime, "+
-					"but found '%s' instead.", r)
+					"but found %q instead.", r)
 			}
 		} else if f != r {
-			return lx.errorf("Expected '%s' in ISO8601 datetime, "+
-				"but found '%s' instead.", f, r)
+			return lx.errorf("Expected %q in ISO8601 datetime, "+
+				"but found %q instead.", f, r)
 		}
 	}
 	lx.emit(itemDatetime)
@@ -563,7 +558,7 @@ func lexNumberStart(lx *lexer) stateFn {
 		if r == '.' {
 			return lx.errorf("Floats must start with a digit, not '.'.")
 		} else {
-			return lx.errorf("Expected a digit but got '%s'.", r)
+			return lx.errorf("Expected a digit but got %q.", r)
 		}
 	}
 	return lexNumber
@@ -590,7 +585,7 @@ func lexFloatStart(lx *lexer) stateFn {
 	r := lx.next()
 	if !isDigit(r) {
 		return lx.errorf("Floats must have a digit after the '.', but got "+
-			"'%s' instead.", r)
+			"%q instead.", r)
 	}
 	return lexFloat
 }
@@ -608,17 +603,23 @@ func lexFloat(lx *lexer) stateFn {
 	return lx.pop()
 }
 
+// lexConst consumes the s[1:] in s. It assumes that s[0] has already been
+// consumed.
+func lexConst(lx *lexer, s string) stateFn {
+	for i := range s[1:] {
+		if r := lx.next(); r != rune(s[i+1]) {
+			return lx.errorf("Expected %q, but found %q instead.", s[:i+1],
+				s[:i]+string(r))
+		}
+	}
+	return nil
+}
+
 // lexTrue consumes the "rue" in "true". It assumes that 't' has already
 // been consumed.
 func lexTrue(lx *lexer) stateFn {
-	if r := lx.next(); r != 'r' {
-		return lx.errorf("Expected 'tr', but found 't%s' instead.", r)
-	}
-	if r := lx.next(); r != 'u' {
-		return lx.errorf("Expected 'tru', but found 'tr%s' instead.", r)
-	}
-	if r := lx.next(); r != 'e' {
-		return lx.errorf("Expected 'true', but found 'tru%s' instead.", r)
+	if fn := lexConst(lx, "true"); fn != nil {
+		return fn
 	}
 	lx.emit(itemBool)
 	return lx.pop()
@@ -627,17 +628,8 @@ func lexTrue(lx *lexer) stateFn {
 // lexFalse consumes the "alse" in "false". It assumes that 'f' has already
 // been consumed.
 func lexFalse(lx *lexer) stateFn {
-	if r := lx.next(); r != 'a' {
-		return lx.errorf("Expected 'fa', but found 'f%s' instead.", r)
-	}
-	if r := lx.next(); r != 'l' {
-		return lx.errorf("Expected 'fal', but found 'fa%s' instead.", r)
-	}
-	if r := lx.next(); r != 's' {
-		return lx.errorf("Expected 'fals', but found 'fal%s' instead.", r)
-	}
-	if r := lx.next(); r != 'e' {
-		return lx.errorf("Expected 'false', but found 'fals%s' instead.", r)
+	if fn := lexConst(lx, "false"); fn != nil {
+		return fn
 	}
 	lx.emit(itemBool)
 	return lx.pop()
@@ -725,17 +717,9 @@ func (itype itemType) String() string {
 	case itemCommentStart:
 		return "CommentStart"
 	}
-	panic(fmt.Sprintf("BUG: Unknown type '%s'.", itype))
+	panic(fmt.Sprintf("BUG: Unknown type '%d'.", int(itype)))
 }
 
 func (item item) String() string {
 	return fmt.Sprintf("(%s, %s)", item.typ.String(), item.val)
-}
-
-func escapeSpecial(c rune) string {
-	switch c {
-	case '\n':
-		return "\\n"
-	}
-	return string(c)
 }

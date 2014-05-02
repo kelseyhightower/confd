@@ -59,3 +59,15 @@ func printMap(m map[string]interface{}, depth int) {
 		}
 	}
 }
+
+var testParseSmall3 = `
+foo = [1, 2,3]
+`
+
+func TestParseSmall3(t *testing.T) {
+	m, err := parse(testParseSmall3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	printMap(m.mapping, 0)
+}

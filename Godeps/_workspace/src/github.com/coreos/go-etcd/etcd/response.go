@@ -73,7 +73,7 @@ type Node struct {
 	CreatedIndex  uint64     `json:"createdIndex,omitempty"`
 }
 
-type Nodes []Node
+type Nodes []*Node
 
 // interfaces for sorting
 func (ns Nodes) Len() int {

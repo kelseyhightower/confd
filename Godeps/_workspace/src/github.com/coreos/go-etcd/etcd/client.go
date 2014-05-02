@@ -32,7 +32,7 @@ type Config struct {
 	CertFile    string        `json:"certFile"`
 	KeyFile     string        `json:"keyFile"`
 	CaCertFile  []string      `json:"caCertFiles"`
-	Timeout     time.Duration `json:"timeout"`
+	DialTimeout time.Duration `json:"timeout"`
 	Consistency string        `json: "consistency"`
 }
 
@@ -63,7 +63,7 @@ type Client struct {
 func NewClient(machines []string) *Client {
 	config := Config{
 		// default timeout is one second
-		Timeout: time.Second,
+		DialTimeout: time.Second,
 		// default consistency level is STRONG
 		Consistency: STRONG_CONSISTENCY,
 	}
@@ -88,7 +88,7 @@ func NewTLSClient(machines []string, cert, key, caCert string) (*Client, error) 
 
 	config := Config{
 		// default timeout is one second
-		Timeout: time.Second,
+		DialTimeout: time.Second,
 		// default consistency level is STRONG
 		Consistency: STRONG_CONSISTENCY,
 		CertFile:    cert,
@@ -171,7 +171,7 @@ func (c *Client) SetTransport(tr *http.Transport) {
 // initHTTPClient initializes a HTTP client for etcd client
 func (c *Client) initHTTPClient() {
 	tr := &http.Transport{
-		Dial: dialTimeout,
+		Dial: c.dial,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
@@ -197,7 +197,7 @@ func (c *Client) initHTTPSClient(cert, key string) error {
 
 	tr := &http.Transport{
 		TLSClientConfig: tlsConfig,
-		Dial:            dialTimeout,
+		Dial:            c.dial,
 	}
 
 	c.httpClient = &http.Client{Transport: tr}
@@ -331,16 +331,17 @@ func (c *Client) createHttpPath(serverName string, _path string) string {
 	return u.String()
 }
 
-// Dial with timeout.
-func dialTimeout(network, addr string) (net.Conn, error) {
-	tcpAddr, err := net.ResolveTCPAddr(network, addr)
+// dial attempts to open a TCP connection to the provided address, explicitly
+// enabling keep-alives with a one-second interval.
+func (c *Client) dial(network, addr string) (net.Conn, error) {
+	conn, err := net.DialTimeout(network, addr, c.config.DialTimeout)
 	if err != nil {
 		return nil, err
 	}
 
-	tcpConn, err := net.DialTCP(network, nil, tcpAddr)
-	if err != nil {
-		return nil, err
+	tcpConn, ok := conn.(*net.TCPConn)
+	if !ok {
+		return nil, errors.New("Failed type-assertion of net.Conn as *net.TCPConn")
 	}
 
 	// Keep TCP alive to check whether or not the remote machine is down

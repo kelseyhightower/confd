@@ -18,9 +18,9 @@ func cleanResult(result *Response) {
 	//  TODO(philips): make this recursive.
 	cleanNode(result.Node)
 	for i, _ := range result.Node.Nodes {
-		cleanNode(&result.Node.Nodes[i])
+		cleanNode(result.Node.Nodes[i])
 		for j, _ := range result.Node.Nodes[i].Nodes {
-			cleanNode(&result.Node.Nodes[i].Nodes[j])
+			cleanNode(result.Node.Nodes[i].Nodes[j])
 		}
 	}
 }
@@ -67,12 +67,12 @@ func TestGetAll(t *testing.T) {
 	}
 
 	expected := Nodes{
-		Node{
+		&Node{
 			Key:   "/fooDir/k0",
 			Value: "v0",
 			TTL:   5,
 		},
-		Node{
+		&Node{
 			Key:   "/fooDir/k1",
 			Value: "v1",
 			TTL:   5,
@@ -99,11 +99,11 @@ func TestGetAll(t *testing.T) {
 	}
 
 	expected = Nodes{
-		Node{
+		&Node{
 			Key: "/fooDir/childDir",
 			Dir: true,
 			Nodes: Nodes{
-				Node{
+				&Node{
 					Key:   "/fooDir/childDir/k2",
 					Value: "v2",
 					TTL:   5,
@@ -111,12 +111,12 @@ func TestGetAll(t *testing.T) {
 			},
 			TTL: 5,
 		},
-		Node{
+		&Node{
 			Key:   "/fooDir/k0",
 			Value: "v0",
 			TTL:   5,
 		},
-		Node{
+		&Node{
 			Key:   "/fooDir/k1",
 			Value: "v1",
 			TTL:   5,

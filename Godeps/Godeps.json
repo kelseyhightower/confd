@@ -4,7 +4,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
-			"Rev": "2dff11163ee667d51dcc066660925a92ce138deb"
+			"Rev": "f87ce853111478914f0bcffa34d43a93643e6eda"
 		},
 		{
 			"ImportPath": "github.com/armon/consul-kv",
@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.2.0-rc1-96-g1e26d8e",
-			"Rev": "1e26d8ee84cf9b1000d2af8acfb45b2521f49be5"
+			"Comment": "v0.2.0-rc1-100-g1014044",
+			"Rev": "1014044eff94a4931724969b68867a0ee05beabc"
 		}
 	]
 }
