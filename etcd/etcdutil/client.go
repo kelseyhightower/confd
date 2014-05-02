@@ -67,7 +67,7 @@ func nodeWalk(node *etcd.Node, vars map[string]interface{}) error {
 		} else {
 			vars[key] = node.Nodes
 			for _, node := range node.Nodes {
-				nodeWalk(&node, vars)
+				nodeWalk(node, vars)
 			}
 		}
 	}
