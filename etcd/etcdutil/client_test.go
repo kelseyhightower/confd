@@ -21,14 +21,14 @@ func TestGetValues(t *testing.T) {
 			Dir:   true,
 			Value: "",
 			Nodes: etcd.Nodes{
-				etcd.Node{Key: "/foo/one", Dir: false, Value: "one"},
-				etcd.Node{Key: "foo/two", Dir: false, Value: "two"},
-				etcd.Node{
+				&etcd.Node{Key: "/foo/one", Dir: false, Value: "one"},
+				&etcd.Node{Key: "foo/two", Dir: false, Value: "two"},
+				&etcd.Node{
 					Key:   "/foo/three",
 					Dir:   true,
 					Value: "",
 					Nodes: etcd.Nodes{
-						etcd.Node{Key: "/foo/three/bar", Value: "three_bar", Dir: false},
+						&etcd.Node{Key: "/foo/three/bar", Value: "three_bar", Dir: false},
 					},
 				},
 			},
@@ -45,8 +45,8 @@ func TestGetValues(t *testing.T) {
 			Value: "",
 			Dir:   true,
 			Nodes: etcd.Nodes{
-				etcd.Node{Key: "/nginx/port", Dir: false, Value: "443"},
-				etcd.Node{Key: "/nginx/worker_processes", Dir: false, Value: "4"},
+				&etcd.Node{Key: "/nginx/port", Dir: false, Value: "443"},
+				&etcd.Node{Key: "/nginx/worker_processes", Dir: false, Value: "4"},
 			},
 		},
 	}
