@@ -6,6 +6,7 @@ package config
 import (
 	"errors"
 	"flag"
+	"io/ioutil"
 	"net"
 	"net/url"
 	"path/filepath"
@@ -86,7 +87,13 @@ func LoadConfig(path string) error {
 		log.Warning("Skipping confd config file.")
 	} else {
 		log.Debug("Loading " + path)
-		_, err := toml.DecodeFile(path, &config)
+
+		configBytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		_, err = toml.Decode(string(configBytes), &config)
 		if err != nil {
 			return err
 		}
