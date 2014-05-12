@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"reflect"
 	"strings"
 	"time"
@@ -344,29 +345,45 @@ func unifyFloat64(data interface{}, rv reflect.Value) error {
 
 func unifyInt(data interface{}, rv reflect.Value) error {
 	if num, ok := data.(int64); ok {
-		switch rv.Kind() {
-		case reflect.Int:
-			fallthrough
-		case reflect.Int8:
-			fallthrough
-		case reflect.Int16:
-			fallthrough
-		case reflect.Int32:
-			fallthrough
-		case reflect.Int64:
-			rv.SetInt(int64(num))
-		case reflect.Uint:
-			fallthrough
-		case reflect.Uint8:
-			fallthrough
-		case reflect.Uint16:
-			fallthrough
-		case reflect.Uint32:
-			fallthrough
-		case reflect.Uint64:
-			rv.SetUint(uint64(num))
-		default:
-			panic("bug")
+		if rv.Kind() >= reflect.Int && rv.Kind() <= reflect.Int64 {
+			switch rv.Kind() {
+			case reflect.Int, reflect.Int64:
+				// No bounds checking necessary.
+			case reflect.Int8:
+				if num < math.MinInt8 || num > math.MaxInt8 {
+					return e("Value '%d' is out of range for int8.", num)
+				}
+			case reflect.Int16:
+				if num < math.MinInt16 || num > math.MaxInt16 {
+					return e("Value '%d' is out of range for int16.", num)
+				}
+			case reflect.Int32:
+				if num < math.MinInt32 || num > math.MaxInt32 {
+					return e("Value '%d' is out of range for int32.", num)
+				}
+			}
+			rv.SetInt(num)
+		} else if rv.Kind() >= reflect.Uint && rv.Kind() <= reflect.Uint64 {
+			unum := uint64(num)
+			switch rv.Kind() {
+			case reflect.Uint, reflect.Uint64:
+				// No bounds checking necessary.
+			case reflect.Uint8:
+				if num < 0 || unum > math.MaxUint8 {
+					return e("Value '%d' is out of range for uint8.", num)
+				}
+			case reflect.Uint16:
+				if num < 0 || unum > math.MaxUint16 {
+					return e("Value '%d' is out of range for uint16.", num)
+				}
+			case reflect.Uint32:
+				if num < 0 || unum > math.MaxUint32 {
+					return e("Value '%d' is out of range for uint32.", num)
+				}
+			}
+			rv.SetInt(num)
+		} else {
+			panic("unreachable")
 		}
 		return nil
 	}

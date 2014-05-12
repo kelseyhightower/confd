@@ -295,6 +295,16 @@ func TestDecodeArrays(t *testing.T) {
 	}
 }
 
+func TestDecodeSmallInt(t *testing.T) {
+	type table struct {
+		Value int8
+	}
+	var tab table
+	if _, err := Decode(`value = 500`, &tab); err == nil {
+		t.Fatal("Expected integer out-of-bounds error.")
+	}
+}
+
 func ExamplePrimitiveDecode() {
 	var md MetaData
 	var err error
