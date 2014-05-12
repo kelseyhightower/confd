@@ -74,12 +74,20 @@ func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + config.Prefix())
-	vars, err := t.storeClient.GetValues(t.Keys)
+	vars, err := t.storeClient.GetValues(appendPrefix(config.Prefix(), t.Keys))
 	if err != nil {
 		return err
 	}
 	t.Vars = cleanKeys(vars)
 	return nil
+}
+
+func appendPrefix(prefix string, keys []string) []string {
+	s := make([]string, len(keys))
+	for i, k := range keys {
+		s[i] = path.Join(prefix, k)
+	}
+	return s
 }
 
 // cleanKeys is used to transform the path based keys we
