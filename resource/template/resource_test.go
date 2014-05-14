@@ -348,9 +348,10 @@ func TestPathToKey(t *testing.T) {
 
 func TestCleanKeys(t *testing.T) {
 	pre := map[string]interface{}{
-		"/my/cool_val/here": "test",
-		"/this_key":         "foo",
-		"/prefix/key":       "test",
+		"/my/cool_val/here":     "test",
+		"/this_key":             "foo",
+		"/prefix/key":           "test",
+		"/my/new-cool-val/here": "bar",
 	}
 	config.SetPrefix("/prefix")
 	clean := cleanKeys(pre)
@@ -364,6 +365,9 @@ func TestCleanKeys(t *testing.T) {
 		t.Fatalf("bad: %v", clean)
 	}
 	if _, ok := clean["key"]; !ok {
+		t.Fatalf("bad: %v", clean)
+	}
+	if _, ok := clean["my_new_cool_val_here"]; !ok {
 		t.Fatalf("bad: %v", clean)
 	}
 }

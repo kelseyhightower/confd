@@ -24,7 +24,7 @@ import (
 	"github.com/kelseyhightower/confd/log"
 )
 
-var replacer = strings.NewReplacer("/", "_")
+var replacer = strings.NewReplacer("/", "_", "-", "_")
 
 // StoreClient is used to swap out the
 type StoreClient interface {
