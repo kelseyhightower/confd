@@ -18,6 +18,8 @@ Optional:
 * `reload_cmd` (string) - command to reload config.
 * `check_cmd` (string) - command to check config. Use `{{ .src }}` to reference
   the rendered source template.
+* `prefix` (string) - The prefix string to prefix to keys for this
+  resource. See [example using prefix](/docs/templates-scoped-resources.md)
 
 Example:
 
