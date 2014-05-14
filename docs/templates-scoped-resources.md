@@ -2,7 +2,7 @@
 
 Using confd to manage nginx proxy config of several apps in subdomains
 
-## Add upstream servers to etcd
+## Add two apps with upstream servers to etcd
 
 ```Bash
 # Config for myapp
@@ -17,7 +17,7 @@ curl http://127.0.0.1:4001/v2/keys/yourapp/upstream/app2 -XPUT -d value="10.0.1.
 curl http://127.0.0.1:4001/v2/keys/yourapp/upstream/app1 -XPUT -d value="10.0.1.102:80"
 ```
 
-## Create a template resource
+## Create template resources
 
 `/etc/confd/conf.d/myapp-nginx.toml`
 
