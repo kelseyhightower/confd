@@ -52,4 +52,4 @@ database_user = {{ .myapp_database_user }}
 
 ## Next steps
 
-Checkout the [docs directory](docs) for more docs and [usage examples](docs/etcd-usage-examples.md).
+Checkout the [docs directory](docs) for more docs and [usage examples](etcd-usage-examples.md).

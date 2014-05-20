@@ -52,4 +52,4 @@ database_user = {{ .myapp_database_user }}
 
 ## Next steps
 
-Checkout the [docs directory](docs) for more docs and [usage examples](docs/consul-usage-examples.md).
+Checkout the [docs directory](docs) for more docs and [usage examples](consul-usage-examples.md).
