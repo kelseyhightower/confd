@@ -50,6 +50,12 @@ database_url = {{ .myapp_database_url }}
 database_user = {{ .myapp_database_user }}
 ```
 
+### Run confd
+
+```
+confd -onetime
+```
+
 ## Next steps
 
 Checkout the [docs directory](docs) for more docs and [usage examples](etcd-usage-examples.md).

@@ -50,6 +50,12 @@ database_url = {{ .myapp_database_url }}
 database_user = {{ .myapp_database_user }}
 ```
 
+### Run confd
+
+```
+confd -onetime -consul -consul-addr localhost:8500
+```
+
 ## Next steps
 
 Checkout the [docs directory](docs) for more docs and [usage examples](consul-usage-examples.md).
