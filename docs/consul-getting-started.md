@@ -48,6 +48,7 @@ Source templates are plain old [Golang text templates](http://golang.org/pkg/tex
 [myconfig]
 database_url = {{ .myapp_database_url }}
 database_user = {{ .myapp_database_user }}
+```
 
 ## Next steps
 
