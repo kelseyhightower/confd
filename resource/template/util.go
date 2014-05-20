@@ -45,6 +45,8 @@ func isFileExist(fpath string) bool {
 // pathToKey translates etcd key paths into something more suitable for use
 // in Golang templates. Turn /prefix/key/subkey into key_subkey.
 func pathToKey(key, prefix string) string {
+	prefix = strings.TrimPrefix(prefix, "/")
+	key = strings.TrimPrefix(key, "/")
 	key = strings.TrimPrefix(key, prefix)
 	key = strings.TrimPrefix(key, "/")
 	return replacer.Replace(key)

@@ -351,6 +351,7 @@ func TestCleanKeys(t *testing.T) {
 		"/my/cool_val/here": "test",
 		"/this_key":         "foo",
 		"/prefix/key":       "test",
+		"prefix/noslash":    "test",
 	}
 	config.SetPrefix("/prefix")
 	clean := cleanKeys(pre, "/prefix")
@@ -364,6 +365,9 @@ func TestCleanKeys(t *testing.T) {
 		t.Fatalf("bad: %v", clean)
 	}
 	if _, ok := clean["key"]; !ok {
+		t.Fatalf("bad: %v", clean)
+	}
+	if _, ok := clean["noslash"]; !ok {
 		t.Fatalf("bad: %v", clean)
 	}
 }
