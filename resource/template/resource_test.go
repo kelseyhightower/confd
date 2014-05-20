@@ -353,7 +353,7 @@ func TestCleanKeys(t *testing.T) {
 		"/prefix/key":       "test",
 	}
 	config.SetPrefix("/prefix")
-	clean := cleanKeys(pre)
+	clean := cleanKeys(pre, "/prefix")
 	if len(clean) != len(pre) {
 		t.Fatalf("bad length")
 	}
