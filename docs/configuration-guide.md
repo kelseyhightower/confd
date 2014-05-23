@@ -11,6 +11,7 @@ confd -config-file ~/confd.toml
 
 Optional:
 
+* `backend` (string) - The configuration backend to use. The default is etcd.
 * `debug` (bool) - Enable debug logging.
 * `client_cert` (string) The cert file of the client.
 * `client_key` (string) The key file of the client.

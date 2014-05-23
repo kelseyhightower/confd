@@ -15,6 +15,7 @@ Usage of confd:
   -config-file="": the confd config file
   -consul=false: specified to enable use of Consul
   -consul-addr="": address of Consul HTTP interface
+  -backend="": configuration backend to use. (consul, etcd, or env)
   -debug=false: enable debug logging
   -etcd-scheme="http": the etcd URI scheme. (http or https)
   -interval=600: etcd polling interval
