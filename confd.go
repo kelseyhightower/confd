@@ -8,9 +8,11 @@ import (
 	"os"
 	"strings"
 	"time"
+	"errors"
 
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/consul"
+	"github.com/kelseyhightower/confd/env"
 	"github.com/kelseyhightower/confd/etcd/etcdutil"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
@@ -20,11 +22,13 @@ var (
 	configFile        = ""
 	defaultConfigFile = "/etc/confd/confd.toml"
 	onetime           bool
+	backend           = ""
 )
 
 func init() {
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
+	flag.StringVar(&backend, "backend", "", "backend to use")
 }
 
 func main() {
@@ -50,7 +54,7 @@ func main() {
 	log.Notice("Starting confd")
 
 	// Create the storage client
-	store, err := createStoreClient()
+	store, err := createStoreClient(backend)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -71,16 +75,28 @@ func main() {
 
 // createStoreClient is used to create a storage client based
 // on our configuration. Either an etcd or Consul client.
-func createStoreClient() (template.StoreClient, error) {
-	if config.Consul() {
+func createStoreClient(backend string) (template.StoreClient, error) {
+	if backend == "" {
+		if config.Consul() {
+			backend = "consul"
+		} else {
+			backend = "etcd"
+		}
+	}
+	log.Notice("Backend set to " + backend)
+	switch backend {
+	case "consul":
 		log.Notice("Consul address set to " + config.ConsulAddr())
 		return consul.NewConsulClient(config.ConsulAddr())
-	} else {
+	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
 		log.Notice("etcd nodes set to " + strings.Join(config.EtcdNodes(), ", "))
 		return etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey(), config.ClientCaKeys())
+	case "env":
+		return env.NewEnvClient()
 	}
+	return nil, errors.New("Invalid backend")
 }
 
 // IsFileExist reports whether path exits.
