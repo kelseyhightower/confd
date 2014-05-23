@@ -1,4 +1,4 @@
-# Quick Start with etcd
+# Quick Start with env backend
 
 ### Set some environment variables
 
