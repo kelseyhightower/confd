@@ -19,6 +19,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/node"
 )
 
 var replacer = strings.NewReplacer("/", "_")
@@ -41,6 +42,7 @@ type TemplateResource struct {
 	StageFile   *os.File
 	Src         string
 	Vars        map[string]interface{}
+	Dirs        node.Directory
 	storeClient StoreClient
 }
 
@@ -70,8 +72,29 @@ func (t *TemplateResource) setVars() error {
 	if err != nil {
 		return err
 	}
+	t.setDirs(vars)
 	t.Vars = cleanKeys(vars, config.Prefix())
 	return nil
+}
+
+// setDirs sets the Dirs for the template resource.
+// All keys are grouped based on their directory path names.
+// For example, /upstream/app1 and upstream/app2 will be grouped as
+//    {
+//        "upstream": []Node{
+//            {"app1": value}},
+//            {"app2": value}},
+//         }
+//    }
+//
+// Dirs are exposed to resource templated to enable iteration.
+func (t *TemplateResource) setDirs(vars map[string]interface{}) {
+	d := node.NewDirectory()
+	for k, v := range vars {
+		directory := filepath.Dir(filepath.Join("/", strings.TrimPrefix(k, config.Prefix())))
+		d.Add(pathToKey(directory, config.Prefix()), node.Node{filepath.Base(k), v})
+	}
+	t.Dirs = d
 }
 
 // createStageFile stages the src configuration file by processing the src
@@ -93,6 +116,8 @@ func (t *TemplateResource) createStageFile() error {
 	log.Debug("Compiling source template " + t.Src)
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["Base"] = path.Base
+
+	tplFuncMap["GetDir"] = t.Dirs.Get
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err

@@ -4,11 +4,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"os"
 	"strings"
 	"time"
-	"errors"
 
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/consul"
@@ -22,13 +22,11 @@ var (
 	configFile        = ""
 	defaultConfigFile = "/etc/confd/confd.toml"
 	onetime           bool
-	backend           = ""
 )
 
 func init() {
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.StringVar(&backend, "backend", "", "backend to use")
 }
 
 func main() {
@@ -54,7 +52,7 @@ func main() {
 	log.Notice("Starting confd")
 
 	// Create the storage client
-	store, err := createStoreClient(backend)
+	store, err := createStoreClient(config.Backend())
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -76,13 +74,6 @@ func main() {
 // createStoreClient is used to create a storage client based
 // on our configuration. Either an etcd or Consul client.
 func createStoreClient(backend string) (template.StoreClient, error) {
-	if backend == "" {
-		if config.Consul() {
-			backend = "consul"
-		} else {
-			backend = "etcd"
-		}
-	}
 	log.Notice("Backend set to " + backend)
 	switch backend {
 	case "consul":

@@ -8,7 +8,7 @@ import (
 var replacer = strings.NewReplacer("/", "_")
 
 // Client provides a wrapper around the consulkv client
-type Client struct {}
+type Client struct{}
 
 // NewEnvClient returns a new client
 func NewEnvClient() (*Client, error) {
@@ -19,18 +19,16 @@ func NewEnvClient() (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
-		k := transform(key)		
+		k := transform(key)
 		value := os.Getenv(k)
 		if value != "" {
 			vars[key] = value
-		} 
+		}
 	}
 	return vars, nil
 }
 
-func transform(key string) (string) {
+func transform(key string) string {
 	k := strings.TrimPrefix(key, "/")
-	k = replacer.Replace(k)
-	k = strings.ToUpper(k)
-	return k	
+	return strings.ToUpper(replacer.Replace(k))
 }

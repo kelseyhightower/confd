@@ -5,6 +5,7 @@ package config
 
 import (
 	"testing"
+
 	"github.com/kelseyhightower/confd/log"
 )
 

@@ -5,8 +5,9 @@ package etcdutil
 
 import (
 	"errors"
-	"github.com/coreos/go-etcd/etcd"
 	"strings"
+
+	"github.com/coreos/go-etcd/etcd"
 )
 
 // Client is a wrapper around the etcd client

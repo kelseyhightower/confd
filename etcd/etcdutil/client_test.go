@@ -4,9 +4,10 @@
 package etcdutil
 
 import (
+	"testing"
+
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/etcd/etcdtest"
-	"testing"
 )
 
 func TestGetValues(t *testing.T) {

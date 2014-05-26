@@ -1,0 +1,9 @@
+[template]
+src = "basic.conf.tmpl"
+dest = "/tmp/confd-basic-test.conf"
+keys = [
+  "/database/host",
+  "/database/password",
+  "/database/port",
+  "/database/username",
+]
