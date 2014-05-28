@@ -131,6 +131,42 @@ func (t *TemplateResource) createStageFile() error {
 	return nil
 }
 
+// copy, copies the contents of the file named src to the file named
+// by dst. The file will be created if it does not already exist. If the
+// destination file exists, all it's contents will be replaced by the contents
+// of the source file.
+func copy(src, dst string) (err error) {
+    in, err := os.Open(src)
+    if err != nil {
+        return
+    }
+    defer in.Close()
+    out, err := os.Create(dst)
+    if err != nil {
+        return
+    }
+    defer func() {
+        cerr := out.Close()
+        if err == nil {
+            err = cerr
+        }
+    }()
+    if _, err = io.Copy(out, in); err != nil {
+        return
+    }
+    err = out.Sync()
+    return
+}
+
+// rename, first copies the src file int dst file and then deletes the source.
+func rename(src, dst string) (err error) {
+    if err = copy(src, dst); err != nil {
+        return
+    }
+    err = os.Remove(src)
+    return
+}
+
 // sync compares the staged and dest config files and attempts to sync them
 // if they differ. sync will run a config check command if set before
 // overwriting the target config file. Finally, sync will run a reload command
@@ -156,7 +192,7 @@ func (t *TemplateResource) sync() error {
 			}
 		}
 		log.Debug("Overwriting target config " + t.Dest)
-		if err := os.Rename(staged, t.Dest); err != nil {
+		if err := rename(staged, t.Dest); err != nil {
 			return err
 		}
 		if t.ReloadCmd != "" {
