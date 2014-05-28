@@ -13,8 +13,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/log"
-    "github.com/coreos/go-etcd/etcd"
 )
 
 func appendPrefix(prefix string, keys []string) []string {
@@ -37,14 +37,14 @@ func cleanKeys(vars map[string]interface{}, prefix string) map[string]interface{
 
 func mapNodes(node *etcd.Node) map[string]interface{} {
 	result := make(map[string]interface{})
-    for _, node := range node.Nodes {
-        if len(node.Nodes) > 0 {
-            result[node.Key] = node.Nodes
-        } else {
-            result[node.Key] = node.Value
-        }
-    }
-    return cleanKeys(result, node.Key)
+	for _, node := range node.Nodes {
+		if len(node.Nodes) > 0 {
+			result[node.Key] = node.Nodes
+		} else {
+			result[node.Key] = node.Value
+		}
+	}
+	return cleanKeys(result, node.Key)
 }
 
 // isFileExist reports whether path exits.

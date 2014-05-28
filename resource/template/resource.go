@@ -118,7 +118,7 @@ func (t *TemplateResource) createStageFile() error {
 	tplFuncMap["Base"] = path.Base
 
 	tplFuncMap["GetDir"] = t.Dirs.Get
-    tplFuncMap["MapDir"] = mapNodes
+	tplFuncMap["MapDir"] = mapNodes
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
