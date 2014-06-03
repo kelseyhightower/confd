@@ -80,12 +80,12 @@ func (t *TemplateResource) setVars() error {
 // setDirs sets the Dirs for the template resource.
 // All keys are grouped based on their directory path names.
 // For example, /upstream/app1 and upstream/app2 will be grouped as
-//    {
-//        "upstream": []Node{
-//            {"app1": value}},
-//            {"app2": value}},
-//         }
-//    }
+//	{
+//		"upstream": []Node{
+//			{"app1": value}},
+//			{"app2": value}},
+//		 }
+//	}
 //
 // Dirs are exposed to resource templated to enable iteration.
 func (t *TemplateResource) setDirs(vars map[string]interface{}) {
@@ -108,7 +108,7 @@ func (t *TemplateResource) createStageFile() error {
 		return errors.New("Missing template: " + t.Src)
 	}
 	// create TempFile in Dest directory to avoid cross-filesystem issues
-	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "." + filepath.Base(t.Dest))
+	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
 	if err != nil {
 		os.Remove(temp.Name())
 		return err
@@ -120,6 +120,7 @@ func (t *TemplateResource) createStageFile() error {
 
 	tplFuncMap["GetDir"] = t.Dirs.Get
 	tplFuncMap["MapDir"] = mapNodes
+	tplFuncMap["GetEnv"] = os.Getenv
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
@@ -273,13 +274,30 @@ func ProcessTemplateResources(s StoreClient) []error {
 	}
 	for _, p := range paths {
 		log.Debug("Processing template resource " + p)
-		t, err := NewTemplateResourceFromPath(p, s)
+		tplFuncMap := make(template.FuncMap)
+		tplFuncMap["Base"] = path.Base
+		tplFuncMap["GetEnv"] = os.Getenv
+		data := make(map[string]string)
+		data["file"] = path.Base(p)
+		data["src"] = "{{ .src }}"
+		data["dest"] = "{{ .dest }}"
+		resTemp, terr := template.New(path.Base(p)).Funcs(tplFuncMap).ParseFiles(p)
+		if terr != nil {
+			panic(terr)
+		}
+		var doc bytes.Buffer
+		resTemp.Execute(&doc, data)
+		docs := doc.String()
+		var tc *TemplateResourceConfig
+		log.Debug(fmt.Sprintf("Resource parsed as: %s", docs))
+		_, err := toml.Decode(docs, &tc)
 		if err != nil {
 			runErrors = append(runErrors, err)
 			log.Error(err.Error())
 			continue
 		}
-		if err := t.process(); err != nil {
+		tc.TemplateResource.storeClient = s
+		if err := tc.TemplateResource.process(); err != nil {
 			runErrors = append(runErrors, err)
 			log.Error(err.Error())
 			continue
