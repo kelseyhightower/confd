@@ -201,8 +201,18 @@ func (t *TemplateResource) check() error {
 // reload executes the reload command.
 // It returns nil if the reload command returns 0.
 func (t *TemplateResource) reload() error {
-	log.Debug("Running " + t.ReloadCmd)
-	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
+	var cmdBuffer bytes.Buffer
+	data := make(map[string]string)
+	data["dest"] = t.Dest
+	tmpl, err := template.New("reloadcmd").Parse(t.ReloadCmd)
+	if err != nil {
+		return err
+	}
+	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
+		return err
+	}
+	log.Debug("Running " + cmdBuffer.String())
+	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
 	if err := c.Run(); err != nil {
 		return err
 	}
