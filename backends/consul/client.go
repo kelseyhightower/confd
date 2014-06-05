@@ -37,3 +37,57 @@ func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 	}
 	return vars, nil
 }
+
+// WatchValues watches Consul for key changes and directs them to the channel
+func (c *Client) WatchValues(keys []string, vars chan map[string]interface{}) error {
+	receivers := make(map[string]chan map[string]interface{})
+
+	// close the channels when we're done with them
+	defer close(vars)
+
+	for _, key := range keys {
+		// if the key already is in the map, ignore
+		if _, ok := receivers[key]; !ok {
+			// create channel for each key
+			keyChan := make(chan map[string]interface{})
+			receivers[key] = keyChan
+			go c.watchKey(key, keyChan)
+		}
+	}
+
+	varUpdates := make(map[string]interface{})
+
+	for {
+		for key := range receivers {
+			select {
+			case varUpdate, ok := <-receivers[key]:
+				if !ok {
+					delete(receivers, key)
+					continue
+				}
+				for key, value := range varUpdate {
+					varUpdates[key] = value
+				}
+				vars <- varUpdates
+			}
+		}
+		if len(receivers) == 0 {
+			return nil
+		}
+	}
+}
+
+func (c *Client) watchKey(key string, varChan chan map[string]interface{}) error {
+	vars := make(map[string]interface{})
+	defer close(varChan)
+	for {
+		_, pairs, err := c.client.WatchList(key, 0)
+		if err != nil {
+			return err
+		}
+		for _, p := range pairs {
+			vars[p.Key] = string(p.Value)
+		}
+		varChan <- vars
+	}
+}

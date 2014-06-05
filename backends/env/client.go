@@ -28,6 +28,16 @@ func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 	return vars, nil
 }
 
+func (c *Client) WatchValues(keys []string, varChan chan map[string]interface{}) error {
+	vars, err := c.GetValues(keys)
+	if err != nil {
+		return err
+	}
+	varChan <-vars
+	close(varChan)
+	return nil
+}
+
 func transform(key string) string {
 	k := strings.TrimPrefix(key, "/")
 	return strings.ToUpper(replacer.Replace(k))

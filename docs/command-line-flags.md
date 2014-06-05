@@ -21,7 +21,8 @@ Usage of confd:
   -interval=600: etcd polling interval
   -node=[]: list of etcd nodes
   -noop=false: only show pending changes, don't sync configs.
-  -onetime=false: run once and exit
+  -onetime=false: run once and exit.
+  -watch=false: watch backend for changes
   -prefix="/": etcd key path prefix
   -quiet=false: enable quiet logging. Only error messages are printed.
   -srv-domain="": the domain to query for the etcd SRV record, i.e. example.com

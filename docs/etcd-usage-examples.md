@@ -20,6 +20,16 @@ confd -interval 30 -prefix '/production' -node 'http://127.0.0.1:4001' -noop
 
 See [Noop mode](noop-mode.md)
 
+### Watch backend for changes
+
+Using default settings run one time and exit.
+
+```
+confd -watch -prefix '/production' -node 'http://127.0.0.1:4001'
+```
+
+Note: `watch` is overriden by passing the `onetime` flag.
+
 ### Single run without polling
 
 Using default settings run one time and exit.

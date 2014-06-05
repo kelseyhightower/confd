@@ -17,6 +17,7 @@ type Client struct {
 
 type EtcdClient interface {
 	Get(key string, sort, recurse bool) (*etcd.Response, error)
+	Watch(key string, waitIndex uint64, recurse bool, receiver chan *etcd.Response, stop chan bool) (*etcd.Response, error)
 }
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
@@ -57,6 +58,56 @@ func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 		}
 	}
 	return vars, nil
+}
+
+// WatchValues watches etcd for updates to key prefixed by prefix.
+// Etcd paths (keys) are translated into names more suitable for use in
+// templates. For example if prefix were set to '/production' and one of the
+// keys were '/nginx/port'; the prefixed '/production/nginx/port' key would
+// be queried for. If the value for the prefixed key where 80, the returned map
+// would contain the entry vars["nginx_port"] = "80".
+func (c *Client) WatchValues(keys []string, varChan chan map[string]interface{}) error {
+	receivers := map[string]chan *etcd.Response{}
+	stop := make(chan bool)
+
+	// close the channels when we're done with them
+	defer close(varChan)
+	defer close(stop)
+
+	for _, key := range keys {
+		// if the key already is in the map, ignore
+		if _, ok := receivers[key]; !ok {
+			// create channel for each key
+			keyChan := make(chan *etcd.Response)
+			receivers[key] = keyChan
+			go c.client.Watch(key, 0, true, keyChan, stop)
+		}
+	}
+
+	varUpdates := make(map[string]interface{})
+
+	for {
+		for key := range receivers {
+			select {
+			case varUpdate, ok := <-receivers[key]:
+				if !ok {
+					delete(receivers, key)
+					continue
+				}
+				err := nodeWalk(varUpdate.Node, varUpdates)
+				if err != nil {
+					// stop all key watches
+					stop <- true
+					return err
+				}
+				varChan <- varUpdates
+
+			}
+		}
+		if len(receivers) == 0 {
+			return nil
+		}
+	}
 }
 
 // nodeWalk recursively descends nodes, updating vars.
