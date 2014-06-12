@@ -17,10 +17,10 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/node"
-	"github.com/kelseyhightower/confd/backends"
 )
 
 // TemplateResourceConfig holds the parsed template resource.

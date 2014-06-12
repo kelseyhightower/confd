@@ -12,4 +12,4 @@ curl -L -X PUT http://${etcd_host}:${etcd_port}/v2/keys/upstream/app1 -d value=1
 curl -L -X PUT http://${etcd_host}:${etcd_port}/v2/keys/upstream/app2 -d value=10.0.1.11:8080
 
 # Run confd
-./confd -debug -onetime -confdir ./integration/confdir -backend etcd -node "http://${etcd_host}:${etcd_port}"
+./confd -onetime -confdir ./integration/confdir -backend etcd -node "http://${etcd_host}:${etcd_port}"

@@ -4,17 +4,12 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcd/etcdutil"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
@@ -60,7 +55,8 @@ func main() {
 	log.Notice("Starting confd")
 
 	// Create the storage client
-	store, err := createStoreClient(config.Backend())
+	log.Notice("Backend set to " + config.Backend())
+	store, err := backends.New(config.Backend())
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -77,28 +73,6 @@ func main() {
 		}
 		time.Sleep(time.Duration(config.Interval()) * time.Second)
 	}
-}
-
-// createStoreClient is used to create a storage client based
-// on our configuration. Either an etcd or Consul client.
-func createStoreClient(backend string) (backends.StoreClient, error) {
-	log.Notice("Backend set to " + backend)
-	if backend == "" {
-		backend = "etcd"
-	}
-	switch backend {
-	case "consul":
-		log.Notice("Consul address set to " + config.ConsulAddr())
-		return consul.NewConsulClient(config.ConsulAddr())
-	case "etcd":
-		// Create the etcd client upfront and use it for the life of the process.
-		// The etcdClient is an http.Client and designed to be reused.
-		log.Notice("etcd nodes set to " + strings.Join(config.EtcdNodes(), ", "))
-		return etcdutil.NewEtcdClient(config.EtcdNodes(), config.ClientCert(), config.ClientKey(), config.ClientCaKeys())
-	case "env":
-		return env.NewEnvClient()
-	}
-	return nil, errors.New("Invalid backend")
 }
 
 // IsFileExist reports whether path exits.
