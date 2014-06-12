@@ -23,7 +23,6 @@ import (
 	"github.com/kelseyhightower/confd/backends"
 )
 
-
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
 	TemplateResource TemplateResource `toml:"template"`

@@ -1,4 +1,5 @@
 [template]
+mode = "0644"
 src = "basic.conf.tmpl"
 dest = "/tmp/confd-basic-test.conf"
 keys = [
