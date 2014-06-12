@@ -6,14 +6,15 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd/etcdutil"
+	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
 )
@@ -22,11 +23,13 @@ var (
 	configFile        = ""
 	defaultConfigFile = "/etc/confd/confd.toml"
 	onetime           bool
+	printVersion      bool
 )
 
 func init() {
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
+	flag.BoolVar(&printVersion, "version", false, "print the version and exit")
 }
 
 func main() {
@@ -34,6 +37,10 @@ func main() {
 	// override configuration settings from the command line. Parse the flags now
 	// to make them active.
 	flag.Parse()
+	if printVersion {
+		fmt.Printf("confd %s\n", Version)
+		os.Exit(0)
+	}
 	if configFile == "" {
 		if IsFileExist(defaultConfigFile) {
 			configFile = defaultConfigFile
