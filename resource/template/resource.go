@@ -38,6 +38,7 @@ type TemplateResource struct {
 	Uid         int
 	ReloadCmd   string `toml:"reload_cmd"`
 	CheckCmd    string `toml:"check_cmd"`
+	Prefix      string
 	StageFile   *os.File
 	Src         string
 	Vars        map[string]interface{}
@@ -66,14 +67,18 @@ func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*Template
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
-	log.Debug("Key prefix set to " + config.Prefix())
-	vars, err := t.storeClient.GetValues(appendPrefix(config.Prefix(), t.Keys))
+	log.Debug("Key prefix set to " + t.prefix())
+	vars, err := t.storeClient.GetValues(appendPrefix(t.prefix(), t.Keys))
 	if err != nil {
 		return err
 	}
 	t.setDirs(vars)
-	t.Vars = cleanKeys(vars, config.Prefix())
+	t.Vars = cleanKeys(vars, t.prefix())
 	return nil
+}
+
+func (t *TemplateResource) prefix() string {
+	return path.Join(config.Prefix(), t.Prefix)
 }
 
 // setDirs sets the Dirs for the template resource.
@@ -91,7 +96,7 @@ func (t *TemplateResource) setDirs(vars map[string]interface{}) {
 	d := node.NewDirectory()
 	for k, v := range vars {
 		directory := filepath.Dir(filepath.Join("/", strings.TrimPrefix(k, config.Prefix())))
-		d.Add(pathToKey(directory, config.Prefix()), node.Node{filepath.Base(k), v})
+		d.Add(pathToKey(directory, t.prefix()), node.Node{filepath.Base(k), v})
 	}
 	t.Dirs = d
 }

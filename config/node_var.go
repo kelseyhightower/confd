@@ -12,7 +12,7 @@ type Nodes []string
 
 // String returns the string representation of a node var.
 func (n *Nodes) String() string {
-	return fmt.Sprintf("%d", *n)
+	return fmt.Sprintf("%s", *n)
 }
 
 // Set appends the node to the etcd node list.
