@@ -109,7 +109,6 @@ func (t *TemplateResource) createStageFile() error {
 	// create TempFile in Dest directory to avoid cross-filesystem issues
 	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
 	if err != nil {
-		os.Remove(temp.Name())
 		return err
 	}
 	defer temp.Close()
