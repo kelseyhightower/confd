@@ -33,4 +33,4 @@ sudo mv confd /usr/local/bin/confd
 ```
 
 ### Next Steps
-Get up and running with the [Quick Start Guide](https://github.com/kelseyhightower/confd#quick-start).
+Get up and running with the [Quick Start Guide](https://github.com/kelseyhightower/confd/blob/master/docs/quick-start-guide.md).
