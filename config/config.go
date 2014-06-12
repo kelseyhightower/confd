@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	backend      string
 	clientCert   string
 	clientKey    string
 	clientCaKeys string
@@ -42,6 +43,7 @@ type Config struct {
 
 // confd represents the parsed configuration settings.
 type confd struct {
+	Backend      string   `toml:"backend"`
 	Debug        bool     `toml:"debug"`
 	ClientCert   string   `toml:"client_cert"`
 	ClientKey    string   `toml:"client_key"`
@@ -60,6 +62,7 @@ type confd struct {
 }
 
 func init() {
+	flag.StringVar(&backend, "backend", "", "backend to use")
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
@@ -107,6 +110,10 @@ func LoadConfig(path string) error {
 		return err
 	}
 	return nil
+}
+
+func Backend() string {
+	return config.Confd.Backend
 }
 
 // Debug reports whether debug mode is enabled.
@@ -276,6 +283,8 @@ func processFlags() {
 
 func setConfigFromFlag(f *flag.Flag) {
 	switch f.Name {
+	case "backend":
+		config.Confd.Backend = backend
 	case "debug":
 		config.Confd.Debug = debug
 	case "client-cert":

@@ -5,10 +5,8 @@ package template
 
 import (
 	"bytes"
-	"crypto/md5"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -16,20 +14,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"text/template"
 
 	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/node"
 )
-
-var replacer = strings.NewReplacer("/", "_", "-", "_")
-
-// StoreClient is used to swap out the
-type StoreClient interface {
-	GetValues(keys []string) (map[string]interface{}, error)
-}
 
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
@@ -50,13 +42,14 @@ type TemplateResource struct {
 	StageFile   *os.File
 	Src         string
 	Vars        map[string]interface{}
-	storeClient StoreClient
+	Dirs        node.Directory
+	storeClient backends.StoreClient
 }
 
 // NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
 // and the supplied StoreClient as input.
 // It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, s StoreClient) (*TemplateResource, error) {
+func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*TemplateResource, error) {
 	if s == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
@@ -79,6 +72,7 @@ func (t *TemplateResource) setVars() error {
 	if err != nil {
 		return err
 	}
+	t.setDirs(vars)
 	t.Vars = cleanKeys(vars, t.prefix())
 	return nil
 }
@@ -87,30 +81,24 @@ func (t *TemplateResource) prefix() string {
 	return path.Join(config.Prefix(), t.Prefix)
 }
 
-func appendPrefix(prefix string, keys []string) []string {
-	s := make([]string, len(keys))
-	for i, k := range keys {
-		s[i] = path.Join(prefix, k)
+// setDirs sets the Dirs for the template resource.
+// All keys are grouped based on their directory path names.
+// For example, /upstream/app1 and upstream/app2 will be grouped as
+//    {
+//        "upstream": []Node{
+//            {"app1": value}},
+//            {"app2": value}},
+//         }
+//    }
+//
+// Dirs are exposed to resource templated to enable iteration.
+func (t *TemplateResource) setDirs(vars map[string]interface{}) {
+	d := node.NewDirectory()
+	for k, v := range vars {
+		directory := filepath.Dir(filepath.Join("/", strings.TrimPrefix(k, config.Prefix())))
+		d.Add(pathToKey(directory, t.prefix()), node.Node{filepath.Base(k), v})
 	}
-	return s
-}
-
-// cleanKeys is used to transform the path based keys we
-// get from the StoreClient to a more friendly format.
-func cleanKeys(vars map[string]interface{}, prefix string) map[string]interface{} {
-	clean := make(map[string]interface{}, len(vars))
-	for key, val := range vars {
-		clean[pathToKey(key, prefix)] = val
-	}
-	return clean
-}
-
-// pathToKey translates etcd key paths into something more suitable for use
-// in Golang templates. Turn /prefix/key/subkey into key_subkey.
-func pathToKey(key, prefix string) string {
-	key = strings.TrimPrefix(key, prefix)
-	key = strings.TrimPrefix(key, "/")
-	return replacer.Replace(key)
+	t.Dirs = d
 }
 
 // createStageFile stages the src configuration file by processing the src
@@ -123,15 +111,18 @@ func (t *TemplateResource) createStageFile() error {
 	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
-	temp, err := ioutil.TempFile("", "")
+	// create TempFile in Dest directory to avoid cross-filesystem issues
+	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
 	if err != nil {
-		os.Remove(temp.Name())
 		return err
 	}
 	defer temp.Close()
 	log.Debug("Compiling source template " + t.Src)
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["Base"] = path.Base
+
+	tplFuncMap["GetDir"] = t.Dirs.Get
+	tplFuncMap["MapDir"] = mapNodes
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
@@ -266,7 +257,7 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It returns a list of errors if any.
-func ProcessTemplateResources(s StoreClient) []error {
+func ProcessTemplateResources(s backends.StoreClient) []error {
 	runErrors := make([]error, 0)
 	var err error
 	if s == nil {
@@ -299,67 +290,4 @@ func ProcessTemplateResources(s StoreClient) []error {
 		log.Debug("Processing of template resource " + p + " complete")
 	}
 	return runErrors
-}
-
-// fileStat return a fileInfo describing the named file.
-func fileStat(name string) (fi fileInfo, err error) {
-	if isFileExist(name) {
-		f, err := os.Open(name)
-		defer f.Close()
-		if err != nil {
-			return fi, err
-		}
-		stats, _ := f.Stat()
-		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
-		fi.Gid = stats.Sys().(*syscall.Stat_t).Gid
-		fi.Mode = stats.Sys().(*syscall.Stat_t).Mode
-		h := md5.New()
-		io.Copy(h, f)
-		fi.Md5 = fmt.Sprintf("%x", h.Sum(nil))
-		return fi, nil
-	} else {
-		return fi, errors.New("File not found")
-	}
-}
-
-// sameConfig reports whether src and dest config files are equal.
-// Two config files are equal when they have the same file contents and
-// Unix permissions. The owner, group, and mode must match.
-// It return false in other cases.
-func sameConfig(src, dest string) (bool, error) {
-	if !isFileExist(dest) {
-		return false, nil
-	}
-	d, err := fileStat(dest)
-	if err != nil {
-		return false, err
-	}
-	s, err := fileStat(src)
-	if err != nil {
-		return false, err
-	}
-	if d.Uid != s.Uid {
-		log.Info(fmt.Sprintf("%s has UID %d should be %d", dest, d.Uid, s.Uid))
-	}
-	if d.Gid != s.Gid {
-		log.Info(fmt.Sprintf("%s has GID %d should be %d", dest, d.Gid, s.Gid))
-	}
-	if d.Mode != s.Mode {
-		log.Info(fmt.Sprintf("%s has mode %s should be %s", dest, os.FileMode(d.Mode), os.FileMode(s.Mode)))
-	}
-	if d.Md5 != s.Md5 {
-		log.Info(fmt.Sprintf("%s has md5sum %s should be %s", dest, d.Md5, s.Md5))
-	}
-	if d.Uid != s.Uid || d.Gid != s.Gid || d.Mode != s.Mode || d.Md5 != s.Md5 {
-		return false, nil
-	}
-	return true, nil
-}
-
-// isFileExist reports whether path exits.
-func isFileExist(fpath string) bool {
-	if _, err := os.Stat(fpath); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
