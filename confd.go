@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/config"
-	"github.com/kelseyhightower/confd/consul"
-	"github.com/kelseyhightower/confd/env"
-	"github.com/kelseyhightower/confd/etcd/etcdutil"
+	"github.com/kelseyhightower/confd/backends/consul"
+	"github.com/kelseyhightower/confd/backends/env"
+	"github.com/kelseyhightower/confd/backends/etcd/etcdutil"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
 )
@@ -75,6 +75,9 @@ func main() {
 // on our configuration. Either an etcd or Consul client.
 func createStoreClient(backend string) (template.StoreClient, error) {
 	log.Notice("Backend set to " + backend)
+	if backend == "" {
+		backend = "etcd"
+	}
 	switch backend {
 	case "consul":
 		log.Notice("Consul address set to " + config.ConsulAddr())

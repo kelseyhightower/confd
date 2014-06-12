@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/coreos/go-etcd/etcd"
-	"github.com/kelseyhightower/confd/etcd/etcdtest"
+	"github.com/kelseyhightower/confd/backends/etcd/etcdtest"
 )
 
 func TestGetValues(t *testing.T) {
