@@ -17,6 +17,8 @@ import (
 	"github.com/kelseyhightower/confd/log"
 )
 
+var replacer = strings.NewReplacer("/", "_")
+
 func appendPrefix(prefix string, keys []string) []string {
 	s := make([]string, len(keys))
 	for i, k := range keys {

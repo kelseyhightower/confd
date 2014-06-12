@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd/etcdutil"
@@ -80,7 +81,7 @@ func main() {
 
 // createStoreClient is used to create a storage client based
 // on our configuration. Either an etcd or Consul client.
-func createStoreClient(backend string) (template.StoreClient, error) {
+func createStoreClient(backend string) (backends.StoreClient, error) {
 	log.Notice("Backend set to " + backend)
 	if backend == "" {
 		backend = "etcd"

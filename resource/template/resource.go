@@ -20,9 +20,9 @@ import (
 	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/node"
+	"github.com/kelseyhightower/confd/backends"
 )
 
-var replacer = strings.NewReplacer("/", "_")
 
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
@@ -43,13 +43,13 @@ type TemplateResource struct {
 	Src         string
 	Vars        map[string]interface{}
 	Dirs        node.Directory
-	storeClient StoreClient
+	storeClient backends.StoreClient
 }
 
 // NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
 // and the supplied StoreClient as input.
 // It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, s StoreClient) (*TemplateResource, error) {
+func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*TemplateResource, error) {
 	if s == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
@@ -254,7 +254,7 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It returns a list of errors if any.
-func ProcessTemplateResources(s StoreClient) []error {
+func ProcessTemplateResources(s backends.StoreClient) []error {
 	runErrors := make([]error, 0)
 	var err error
 	if s == nil {
