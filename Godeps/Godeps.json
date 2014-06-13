@@ -8,12 +8,12 @@
 		},
 		{
 			"ImportPath": "github.com/armon/consul-kv",
-			"Rev": "dd970a5ff3f0dd6e00c76b3f306b230f62f567dd"
+			"Rev": "d9bed0798395bbc5b77990c38e6c4ba542576a67"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.2.0-rc1-100-g1014044",
-			"Rev": "1014044eff94a4931724969b68867a0ee05beabc"
+			"Comment": "v0.2.0-rc1-106-g26f4504",
+			"Rev": "26f4504e71d6abefd467eb44a02ff15b933b6eb6"
 		}
 	]
 }

@@ -1,9 +1,7 @@
 consul-kv
 =========
 
-This package provides the `consulkv` package which is a Key/Value
-client for Consul. It supports all the commands, and has a very
-simple API.
+This package provides the `consulkv` package which is a Key/Value client for Consul. It supports all the commands, and has a very simple API.
 
 Documentation
 =============
@@ -26,3 +24,17 @@ meta, pair, err := client.Get(key)
 fmt.Printf("Got %s (%d): %s", pair.Key, pair.Flags, pair.Value)
 ```
 
+Development
+===========
+
+To run the tests, first run a consul server with API port 8500:
+
+```
+consul agent -data-dir /tmp/consul -server -bootstrap
+```
+
+The run tests:
+
+```
+go test
+```

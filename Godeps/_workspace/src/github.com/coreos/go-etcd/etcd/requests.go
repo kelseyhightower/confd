@@ -154,7 +154,7 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 		go func() {
 			select {
 			case <-rr.Cancel:
-				cancelled <-true
+				cancelled <- true
 				logger.Debug("send.request is cancelled")
 			case <-cancelRoutine:
 				return
@@ -208,10 +208,14 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 
 		reqLock.Lock()
 		if rr.Values == nil {
-			req, _ = http.NewRequest(rr.Method, httpPath, nil)
+			if req, err = http.NewRequest(rr.Method, httpPath, nil); err != nil {
+				return nil, err
+			}
 		} else {
-			req, _ = http.NewRequest(rr.Method, httpPath,
-				strings.NewReader(rr.Values.Encode()))
+			body := strings.NewReader(rr.Values.Encode())
+			if req, err = http.NewRequest(rr.Method, httpPath, body); err != nil {
+				return nil, err
+			}
 
 			req.Header.Set("Content-Type",
 				"application/x-www-form-urlencoded; param=value")

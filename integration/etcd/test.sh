@@ -8,4 +8,4 @@ curl -L -X PUT http://127.0.0.1:4001/v2/keys/upstream/app1 -d value=10.0.1.10:80
 curl -L -X PUT http://127.0.0.1:4001/v2/keys/upstream/app2 -d value=10.0.1.11:8080
 
 # Run confd
-./confd -onetime -confdir ./integration/confdir -backend etcd -node http://127.0.0.1:4001
+./confd -verbose -interval 1 -confdir ./integration/confdir -backend etcd -node http://127.0.0.1:4001

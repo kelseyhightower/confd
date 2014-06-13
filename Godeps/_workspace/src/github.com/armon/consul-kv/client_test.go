@@ -20,7 +20,7 @@ func testClient(t *testing.T) *Client {
 func testKey() string {
 	buf := make([]byte, 16)
 	if _, err := crand.Read(buf); err != nil {
-		panic(fmt.Errorf("Failed to read random bytes: %v", err))
+		panic(fmt.Errorf("failed to read random bytes: %v", err))
 	}
 
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%12x",

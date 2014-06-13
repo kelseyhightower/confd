@@ -33,7 +33,7 @@ type Config struct {
 	KeyFile     string        `json:"keyFile"`
 	CaCertFile  []string      `json:"caCertFiles"`
 	DialTimeout time.Duration `json:"timeout"`
-	Consistency string        `json: "consistency"`
+	Consistency string        `json:"consistency"`
 }
 
 type Client struct {
@@ -416,8 +416,8 @@ func (c *Client) MarshalJSON() ([]byte, error) {
 // as defined by the standard JSON package.
 func (c *Client) UnmarshalJSON(b []byte) error {
 	temp := struct {
-		Config  Config   `json: "config"`
-		Cluster *Cluster `json: "cluster"`
+		Config  Config   `json:"config"`
+		Cluster *Cluster `json:"cluster"`
 	}{}
 	err := json.Unmarshal(b, &temp)
 	if err != nil {

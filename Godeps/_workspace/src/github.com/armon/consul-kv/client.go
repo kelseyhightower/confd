@@ -22,9 +22,9 @@ type Config struct {
 	// Datacenter to use. If not provided, the default agent datacenter is used.
 	Datacenter string
 
-	// HttpClient is the client to use. Default will be
+	// HTTPClient is the client to use. Default will be
 	// used if not provided.
-	HttpClient *http.Client
+	HTTPClient *http.Client
 
 	// WaitTime limits how long a Watch will block. If not provided,
 	// the agent default values will be used.
@@ -65,7 +65,7 @@ func NewClient(config *Config) (*Client, error) {
 func DefaultConfig() *Config {
 	return &Config{
 		Address:    "127.0.0.1:8500",
-		HttpClient: http.DefaultClient,
+		HTTPClient: http.DefaultClient,
 	}
 }
 
@@ -84,7 +84,7 @@ func (c *Client) WatchGet(key string, modifyIndex uint64) (*KVMeta, *KVPair, err
 	return selectOne(c.getRecurse(key, false, modifyIndex))
 }
 
-// WatchGet is used to block and wait for a change on a prefix
+// WatchList is used to block and wait for a change on a prefix
 func (c *Client) WatchList(prefix string, modifyIndex uint64) (*KVMeta, KVPairs, error) {
 	return c.getRecurse(prefix, true, modifyIndex)
 }
@@ -110,16 +110,17 @@ func (c *Client) getRecurse(key string, recurse bool, waitIndex uint64) (*KVMeta
 		Method: "GET",
 		URL:    url,
 	}
-	resp, err := c.config.HttpClient.Do(&req)
+	resp, err := c.config.HTTPClient.Do(&req)
 	if err != nil {
 		return nil, nil, err
 	}
+	defer resp.Body.Close()
 
 	// Decode the KVMeta
 	meta := &KVMeta{}
 	index, err := strconv.ParseUint(resp.Header.Get("X-Consul-Index"), 10, 64)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to parse X-Consul-Index: %v", err)
+		return nil, nil, fmt.Errorf("failed to parse X-Consul-Index: %v", err)
 	}
 	meta.ModifyIndex = index
 
@@ -127,7 +128,7 @@ func (c *Client) getRecurse(key string, recurse bool, waitIndex uint64) (*KVMeta
 	if resp.StatusCode == 404 {
 		return meta, nil, nil
 	} else if resp.StatusCode != 200 {
-		return nil, nil, fmt.Errorf("Unexpected response code: %d", resp.StatusCode)
+		return nil, nil, fmt.Errorf("unexpected response code: %d", resp.StatusCode)
 	}
 
 	// Decode the response
@@ -166,16 +167,17 @@ func (c *Client) putCAS(key string, value []byte, flags, index uint64, cas bool)
 		Body:   ioutil.NopCloser(bytes.NewReader(value)),
 	}
 	req.ContentLength = int64(len(value))
-	resp, err := c.config.HttpClient.Do(&req)
+	resp, err := c.config.HTTPClient.Do(&req)
 	if err != nil {
 		return false, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return false, fmt.Errorf("Unexpected response code: %d", resp.StatusCode)
+		return false, fmt.Errorf("unexpected response code: %d", resp.StatusCode)
 	}
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, resp.Body); err != nil {
-		return false, fmt.Errorf("Failed to read response: %v", err)
+		return false, fmt.Errorf("failed to read response: %v", err)
 	}
 	res := strings.Contains(string(buf.Bytes()), "true")
 	return res, nil
@@ -203,12 +205,13 @@ func (c *Client) deleteRecurse(key string, recurse bool) error {
 		Method: "DELETE",
 		URL:    url,
 	}
-	resp, err := c.config.HttpClient.Do(&req)
+	resp, err := c.config.HTTPClient.Do(&req)
 	if err != nil {
 		return err
 	}
+	resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Unexpected response code: %d", resp.StatusCode)
+		return fmt.Errorf("unexpected response code: %d", resp.StatusCode)
 	}
 	return nil
 
