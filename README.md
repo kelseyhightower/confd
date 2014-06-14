@@ -23,4 +23,4 @@ Before we begin be sure to [download and install confd](docs/installation.md).
 
 ## Next steps
 
-Checkout the [docs directory](docs) for more docs and [usage examples](docs/usage-examples.md).
+Check out the [docs directory](docs) for more docs and [usage examples](docs/usage-examples.md).

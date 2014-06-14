@@ -62,7 +62,7 @@ confd -verbose -onetime -consul -consul-addr 127.0.0.1:8500 -confdir ~/confd
 Output:
 ```
 2013-11-03T18:00:47-08:00 confd[21294]: NOTICE Starting confd
-2013-11-03T18:00:47-08:00 confd[21294]: NOTICE NOTICE Consul address set to 127.0.0.1:8500
+2013-11-03T18:00:47-08:00 confd[21294]: NOTICE Consul address set to 127.0.0.1:8500
 2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf out of sync
 2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf has been updated
 ```
@@ -83,4 +83,4 @@ database_user = rob
 
 ## Next steps
 
-Checkout the [docs directory](docs) for more docs and [usage examples](consul-usage-examples.md).
+Check out the [docs directory](.) for more docs and [usage examples](consul-usage-examples.md).

@@ -83,4 +83,4 @@ database_user = rob
 
 ## Next steps
 
-Checkout the [docs directory](docs) for more docs and [usage examples](etcd-usage-examples.md).
+Check out the [docs directory](.) for more docs and [usage examples](etcd-usage-examples.md).
