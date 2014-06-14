@@ -5,7 +5,7 @@
 /*
 Package log provides support for logging to stdout and stderr.
 
-Log entries will be log in the following format:
+Log entries will be logged in the following format:
 
     timestamp hostname tag[pid]: SEVERITY Message
 */
@@ -36,7 +36,7 @@ func SetTag(t string) {
 	tag = t
 }
 
-// SetQuiet sets quite mode.
+// SetQuiet sets quiet mode.
 func SetQuiet(enable bool) {
 	quiet = enable
 }
