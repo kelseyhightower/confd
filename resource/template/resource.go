@@ -123,6 +123,29 @@ func (t *TemplateResource) createStageFile() error {
 
 	tplFuncMap["GetDir"] = t.Dirs.Get
 	tplFuncMap["MapDir"] = mapNodes
+
+  tplFuncMap["JsonUnmarshalObject"] = func(j string) (map[string]interface{}, error) {
+    var ret map[string]interface{}
+    err = json.Unmarshal([]byte(j), &ret)
+    return ret, err
+  }
+  tplFuncMap["JsonUnmarshalArray"] = func(j string) ([]interface{}, error) {
+    var ret []interface{}
+    err = json.Unmarshal([]byte(j), &ret)
+    return ret, err
+  }
+  tplFuncMap["Split"] = strings.Split
+  tplFuncMap["RequireRegexMatch"] = func(r string, s string) (string, error) {
+    matches, err := regexp.Match(r, []byte(s))
+    if !matches {
+      return "", fmt.Errorf("'%s' does not match regex '%s'", s, r)
+    }
+    if err != nil {
+      return "", fmt.Errorf("Error parsing regex '%s' - %s", r, err)
+    }
+    return s, nil
+  }
+
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
