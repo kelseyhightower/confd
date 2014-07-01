@@ -135,6 +135,7 @@ func (t *TemplateResource) createStageFile() error {
     return ret, err
   }
   tplFuncMap["Split"] = strings.Split
+  tplFuncMap["Join"] = strings.Join
   tplFuncMap["RequireRegexMatch"] = func(r string, s string) (string, error) {
     matches, err := regexp.Match(r, []byte(s))
     if !matches {
