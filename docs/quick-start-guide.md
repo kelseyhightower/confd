@@ -36,9 +36,9 @@ Lets create a simple template resource to manage the `/tmp/myconfig.conf` config
 src = "myconfig.conf.tmpl"
 dest = "/tmp/myconfig.conf"
 keys = [
-  "/myapp/database/url",
+    "/myapp/database/url",
     "/myapp/database/user",
-    ]
+]
 ```
 Save the file under the `confdir` directory, i.e. `~/confd/conf.d/myconfig.toml`
 
@@ -50,8 +50,8 @@ Source templates are plain old [Golang text templates](http://golang.org/pkg/tex
 ```
 # This a comment
 [myconfig]
-database_url = {{ .myapp_database_url }}
-database_user = {{ .myapp_database_user }}
+database_url = {{get "/myapp/database/url"}}
+database_user = {{get "/myapp/database/user"}}
 ```
 
 ### Processing template resources

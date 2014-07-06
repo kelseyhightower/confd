@@ -16,8 +16,8 @@ func NewEnvClient() (*Client, error) {
 }
 
 // GetValues queries the environment for keys
-func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
-	vars := make(map[string]interface{})
+func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	vars := make(map[string]string)
 	for _, key := range keys {
 		k := transform(key)
 		value := os.Getenv(k)

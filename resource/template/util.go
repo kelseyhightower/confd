@@ -13,7 +13,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/coreos/go-etcd/etcd"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -35,44 +34,12 @@ func appendPrefix(prefix string, keys []string) []string {
 	return s
 }
 
-// cleanKeys is used to transform the path based keys we
-// get from the StoreClient to a more friendly format.
-func cleanKeys(vars map[string]interface{}, prefix string) map[string]interface{} {
-	clean := make(map[string]interface{}, len(vars))
-	for key, val := range vars {
-		clean[pathToKey(key, prefix)] = val
-	}
-	return clean
-}
-
-func mapNodes(node *etcd.Node) map[string]interface{} {
-	result := make(map[string]interface{})
-	for _, node := range node.Nodes {
-		if len(node.Nodes) > 0 {
-			result[node.Key] = node.Nodes
-		} else {
-			result[node.Key] = node.Value
-		}
-	}
-	return cleanKeys(result, node.Key)
-}
-
 // isFileExist reports whether path exits.
 func isFileExist(fpath string) bool {
 	if _, err := os.Stat(fpath); os.IsNotExist(err) {
 		return false
 	}
 	return true
-}
-
-// pathToKey translates etcd key paths into something more suitable for use
-// in Golang templates. Turn /prefix/key/subkey into key_subkey.
-func pathToKey(key, prefix string) string {
-	prefix = strings.TrimPrefix(prefix, "/")
-	key = strings.TrimPrefix(key, "/")
-	key = strings.TrimPrefix(key, prefix)
-	key = strings.TrimPrefix(key, "/")
-	return replacer.Replace(key)
 }
 
 // fileStat return a fileInfo describing the named file.

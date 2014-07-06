@@ -24,8 +24,8 @@ func NewConsulClient(addr string) (*Client, error) {
 }
 
 // GetValues queries Consul for keys
-func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
-	vars := make(map[string]interface{})
+func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	vars := make(map[string]string)
 	for _, key := range keys {
 		_, pairs, err := c.client.List(key)
 		if err != nil {
