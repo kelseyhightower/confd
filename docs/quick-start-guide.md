@@ -2,14 +2,39 @@
 
 Before we begin be sure to [download and install confd](installation.md). 
 
-### Add keys to etcd
+## Select a backend
 
-This guide assumes you have a working [etcd](https://github.com/coreos/etcd#getting-started) server up and running and the ability to add new keys. Using the `etcdctl` command line tool add the following keys and values to etcd:
+confd support the following backends:
+
+* etcd
+* consul
+* environment variables
+
+### Add keys
+
+This guide assumes you have a working [etcd](https://github.com/coreos/etcd#getting-started), or [consul](http://www.consul.io/intro/getting-started/install.html) server up and running and the ability to add new keys.
+
+#### etcd
 
 ```
 etcdctl set /myapp/database/url db.example.com
 etcdctl set /myapp/database/user rob
 ```
+
+#### consul
+
+```
+curl -X PUT -d 'db.example.com' http://localhost:8500/v1/kv/myapp/database/url
+curl -X PUT -d 'rob' http://localhost:8500/v1/kv/myapp/database/user
+```
+
+#### environment variables
+
+```
+export MYAPP_DATABASE_URL=db.example.com
+export MYAPP_DATABASE_USER=rob
+```
+
 
 ### Create the confdir
 
