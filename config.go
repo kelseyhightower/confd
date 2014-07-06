@@ -8,30 +8,38 @@ import (
 	"flag"
 	"io/ioutil"
 	"net"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/resource/template"
 )
 
 var (
-	backend      string
-	clientCaKeys string
-	clientCert   string
-	clientKey    string
-	confdir      string
-	config       Config // holds the global confd config.
-	debug        bool
-	interval     int
-	nodes        Nodes
-	noop         bool
-	prefix       string
-	quiet        bool
-	scheme       string
-	srvDomain    string
-	verbose      bool
+	configFile        = ""
+	defaultConfigFile = "/etc/confd/confd.toml"
+	backend           string
+	clientCaKeys      string
+	clientCert        string
+	clientKey         string
+	confdir           string
+	config            Config // holds the global confd config.
+	debug             bool
+	interval          int
+	nodes             Nodes
+	noop              bool
+	onetime           bool
+	prefix            string
+	printVersion      bool
+	quiet             bool
+	scheme            string
+	srvDomain         string
+	templateConfig    template.Config
+	verbose           bool
 )
 
 // A Config structure is used to configure confd.
@@ -42,16 +50,14 @@ type Config struct {
 	ClientCert   string   `toml:"client_cert"`
 	ClientKey    string   `toml:"client_key"`
 	ConfDir      string   `toml:"confdir"`
-	ConfigDir    string
-	Debug        bool   `toml:"debug"`
-	Interval     int    `toml:"interval"`
-	Noop         bool   `toml:"noop"`
-	Prefix       string `toml:"prefix"`
-	Quiet        bool   `toml:"quiet"`
-	SRVDomain    string `toml:"srv_domain"`
-	Scheme       string `toml:"scheme"`
-	TemplateDir  string
-	Verbose      bool `toml:"verbose"`
+	Debug        bool     `toml:"debug"`
+	Interval     int      `toml:"interval"`
+	Noop         bool     `toml:"noop"`
+	Prefix       string   `toml:"prefix"`
+	Quiet        bool     `toml:"quiet"`
+	SRVDomain    string   `toml:"srv_domain"`
+	Scheme       string   `toml:"scheme"`
+	Verbose      bool     `toml:"verbose"`
 }
 
 func init() {
@@ -60,22 +66,30 @@ func init() {
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
+	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.IntVar(&interval, "interval", 600, "etcd polling interval")
 	flag.Var(&nodes, "node", "list of backend nodes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
+	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
+	flag.BoolVar(&printVersion, "version", false, "print the version and exit")
 	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging. Only error messages are printed.")
 	flag.StringVar(&scheme, "backend-scheme", "http", "the backend URI scheme. (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the domain to query for the backend SRV record, i.e. example.com")
 	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 }
 
-// LoadConfig initializes the confd configuration by first setting defaults,
+// initConfig initializes the confd configuration by first setting defaults,
 // then overriding setting from the confd config file, and finally overriding
 // settings from flags set on the command line.
 // It returns an error if any.
-func LoadConfig(path string) error {
+func initConfig() error {
+	if configFile == "" {
+		if _, err := os.Stat(defaultConfigFile); !os.IsNotExist(err) {
+			configFile = defaultConfigFile
+		}
+	}
 	// Set defaults.
 	config = Config{
 		ConfDir:      "/etc/confd",
@@ -84,11 +98,11 @@ func LoadConfig(path string) error {
 		BackendNodes: []string{"127.0.0.1:4001"},
 	}
 	// Update config from the TOML configuration file.
-	if path == "" {
+	if configFile == "" {
 		log.Warning("Skipping confd config file.")
 	} else {
-		log.Debug("Loading " + path)
-		configBytes, err := ioutil.ReadFile(path)
+		log.Debug("Loading " + configFile)
+		configBytes, err := ioutil.ReadFile(configFile)
 		if err != nil {
 			return err
 		}
@@ -100,6 +114,11 @@ func LoadConfig(path string) error {
 	// Update config from commandline flags.
 	processFlags()
 
+	// Configure logging.
+	log.SetQuiet(config.Quiet)
+	log.SetVerbose(config.Verbose)
+	log.SetDebug(config.Debug)
+
 	// Update BackendNodes from SRV records.
 	if config.Backend != "env" && config.SRVDomain != "" {
 		log.Info("SRV domain set to " + config.SRVDomain)
@@ -110,9 +129,45 @@ func LoadConfig(path string) error {
 		config.BackendNodes = srvNodes
 	}
 
-	config.ConfigDir = filepath.Join(config.ConfDir, "conf.d")
-	config.TemplateDir = filepath.Join(config.ConfDir, "templates")
+	// Initialize the storage client
+	log.Notice("Backend set to " + config.Backend)
+	storeConfig := backends.Config{
+		Backend:      config.Backend,
+		ClientCaKeys: config.ClientCaKeys,
+		ClientCert:   config.ClientCert,
+		ClientKey:    config.ClientKey,
+		BackendNodes: config.BackendNodes,
+		Scheme:       config.Scheme,
+	}
+	storeClient, err := backends.New(storeConfig)
+	if err != nil {
+		return err
+	}
+	// Template configuration.
+	templateConfig = template.Config{
+		ConfDir:     config.ConfDir,
+		ConfigDir:   filepath.Join(config.ConfDir, "conf.d"),
+		Noop:        config.Noop,
+		Prefix:      config.Prefix,
+		StoreClient: storeClient,
+		TemplateDir: filepath.Join(config.ConfDir, "templates"),
+	}
 	return nil
+}
+
+func getBackendNodesFromSRV(backend, domain string) ([]string, error) {
+	nodes := make([]string, 0)
+	// Ignore the CNAME as we don't need it.
+	_, addrs, err := net.LookupSRV(backend, "tcp", domain)
+	if err != nil {
+		return nodes, err
+	}
+	for _, srv := range addrs {
+		host := strings.TrimRight(srv.Target, ".")
+		port := strconv.FormatUint(uint64(srv.Port), 10)
+		nodes = append(nodes, net.JoinHostPort(host, port))
+	}
+	return nodes, nil
 }
 
 // processFlags iterates through each flag set on the command line and
@@ -152,19 +207,4 @@ func setConfigFromFlag(f *flag.Flag) {
 	case "verbose":
 		config.Verbose = verbose
 	}
-}
-
-func getBackendNodesFromSRV(backend, domain string) ([]string, error) {
-	nodes := make([]string, 0)
-	// Ignore the CNAME as we don't need it.
-	_, addrs, err := net.LookupSRV(backend, "tcp", domain)
-	if err != nil {
-		return nodes, err
-	}
-	for _, srv := range addrs {
-		host := strings.TrimRight(srv.Target, ".")
-		port := strconv.FormatUint(uint64(srv.Port), 10)
-		nodes = append(nodes, net.JoinHostPort(host, port))
-	}
-	return nodes, nil
 }
