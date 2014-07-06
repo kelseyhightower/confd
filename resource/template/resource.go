@@ -18,10 +18,18 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/memkv"
 )
+
+type Config struct {
+	ConfDir     string
+	ConfigDir   string
+	Noop        bool
+	Prefix      string
+	StoreClient backends.StoreClient
+	TemplateDir string
+}
 
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
@@ -30,26 +38,28 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
+	CheckCmd    string `toml:"check_cmd"`
 	Dest        string
 	FileMode    os.FileMode
 	Gid         int
 	Keys        []string
 	Mode        string
-	Uid         int
-	ReloadCmd   string `toml:"reload_cmd"`
-	CheckCmd    string `toml:"check_cmd"`
 	Prefix      string
-	StageFile   *os.File
+	ReloadCmd   string `toml:"reload_cmd"`
 	Src         string
-	Store       memkv.Store
+	StageFile   *os.File
+	Uid         int
+	noop        bool
+	prefix      string
+	store       memkv.Store
 	storeClient backends.StoreClient
 }
 
 // NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
 // and the supplied StoreClient as input.
 // It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*TemplateResource, error) {
-	if s == nil {
+func NewTemplateResourceFromPath(path string, config Config) (*TemplateResource, error) {
+	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
 	var tc *TemplateResourceConfig
@@ -58,8 +68,11 @@ func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*Template
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
-	tc.TemplateResource.storeClient = s
-	tc.TemplateResource.Store = memkv.New()
+	tc.TemplateResource.noop = config.Noop
+	tc.TemplateResource.storeClient = config.StoreClient
+	tc.TemplateResource.store = memkv.New()
+	tc.TemplateResource.prefix = filepath.Join("/", config.Prefix, tc.TemplateResource.Prefix)
+	tc.TemplateResource.Src = filepath.Join(config.TemplateDir, tc.TemplateResource.Src)
 	return &tc.TemplateResource, nil
 }
 
@@ -67,19 +80,15 @@ func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*Template
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
-	log.Debug("Key prefix set to " + t.prefix())
-	result, err := t.storeClient.GetValues(appendPrefix(t.prefix(), t.Keys))
+	log.Debug("Key prefix set to " + t.prefix)
+	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys))
 	if err != nil {
 		return err
 	}
 	for k, v := range result {
-		t.Store.Set(filepath.Join("/", strings.TrimPrefix(k, t.prefix())), v)
+		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.prefix)), v)
 	}
 	return nil
-}
-
-func (t *TemplateResource) prefix() string {
-	return path.Join("/", config.Prefix(), t.Prefix)
 }
 
 // createStageFile stages the src configuration file by processing the src
@@ -87,7 +96,6 @@ func (t *TemplateResource) prefix() string {
 // StageFile for the template resource.
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
-	t.Src = filepath.Join(config.TemplateDir(), t.Src)
 	log.Debug("Using source template " + t.Src)
 	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
@@ -103,8 +111,8 @@ func (t *TemplateResource) createStageFile() error {
 	// Add template functions
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["base"] = path.Base
-	tplFuncMap["get"] = t.Store.Get
-	tplFuncMap["glob"] = t.Store.Glob
+	tplFuncMap["get"] = t.store.Get
+	tplFuncMap["glob"] = t.store.Glob
 
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, nil); err != nil {
@@ -131,7 +139,7 @@ func (t *TemplateResource) sync() error {
 	if err != nil {
 		log.Error(err.Error())
 	}
-	if config.Noop() {
+	if t.noop {
 		log.Warning("Noop mode enabled " + t.Dest + " will not be modified")
 		return nil
 	}
@@ -244,26 +252,26 @@ func (t *TemplateResource) setFileMode() error {
 // ProcessTemplateResources is a convenience function that loads all the
 // template resources and processes them serially. Called from main.
 // It returns a list of errors if any.
-func ProcessTemplateResources(s backends.StoreClient) []error {
+func ProcessTemplateResources(config Config) []error {
 	runErrors := make([]error, 0)
 	var err error
-	if s == nil {
+	if config.StoreClient == nil {
 		runErrors = append(runErrors, errors.New("A StoreClient client is required"))
 		return runErrors
 	}
-	log.Debug("Loading template resources from confdir " + config.ConfDir())
-	if !isFileExist(config.ConfDir()) {
-		log.Warning(fmt.Sprintf("Cannot load template resources confdir '%s' does not exist", config.ConfDir()))
+	log.Debug("Loading template resources from confdir " + config.ConfDir)
+	if !isFileExist(config.ConfDir) {
+		log.Warning(fmt.Sprintf("Cannot load template resources confdir '%s' does not exist", config.ConfDir))
 		return runErrors
 	}
-	paths, err := filepath.Glob(filepath.Join(config.ConfigDir(), "*toml"))
+	paths, err := filepath.Glob(filepath.Join(config.ConfigDir, "*toml"))
 	if err != nil {
 		runErrors = append(runErrors, err)
 		return runErrors
 	}
 	for _, p := range paths {
 		log.Debug("Processing template resource " + p)
-		t, err := NewTemplateResourceFromPath(p, s)
+		t, err := NewTemplateResourceFromPath(p, config)
 		if err != nil {
 			runErrors = append(runErrors, err)
 			log.Error(err.Error())

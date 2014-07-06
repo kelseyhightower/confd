@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
 )
@@ -46,27 +45,43 @@ func main() {
 	}
 	// Initialize the global configuration.
 	log.Debug("Loading confd configuration")
-	if err := config.LoadConfig(configFile); err != nil {
+	if err := LoadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
 	// Configure logging. While you can enable debug and verbose logging, however
 	// if quiet is set to true then debug and verbose messages will not be printed.
-	log.SetQuiet(config.Quiet())
-	log.SetVerbose(config.Verbose())
-	log.SetDebug(config.Debug())
+	log.SetQuiet(config.Quiet)
+	log.SetVerbose(config.Verbose)
+	log.SetDebug(config.Debug)
 	log.Notice("Starting confd")
 
 	// Create the storage client
-	log.Notice("Backend set to " + config.Backend())
-	store, err := backends.New(config.Backend())
+	log.Notice("Backend set to " + config.Backend)
+	storeConfig := backends.Config{
+		config.Backend,
+		config.ClientCaKeys,
+		config.ClientCert,
+		config.ClientKey,
+		config.BackendNodes,
+		config.Scheme,
+	}
+	storeClient, err := backends.New(storeConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	templateConfig := template.Config{
+		config.ConfDir,
+		config.ConfigDir,
+		config.Noop,
+		config.Prefix,
+		storeClient,
+		config.TemplateDir,
+	}
 	for {
-		runErrors := template.ProcessTemplateResources(store)
+		runErrors := template.ProcessTemplateResources(templateConfig)
 		// If the -onetime flag is passed on the command line we immediately exit
 		// after processing the template config files.
 		if onetime {
@@ -79,7 +94,7 @@ func main() {
 		case c := <-signalChan:
 			log.Info(fmt.Sprintf("captured %v exiting...", c))
 			os.Exit(0)
-		case <-time.After(time.Duration(config.Interval()) * time.Second):
+		case <-time.After(time.Duration(config.Interval) * time.Second):
 			// Continue processing templates.
 		}
 	}
