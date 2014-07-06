@@ -7,6 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/kelseyhightower/confd/backends"
@@ -61,6 +63,8 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	for {
 		runErrors := template.ProcessTemplateResources(store)
 		// If the -onetime flag is passed on the command line we immediately exit
@@ -71,7 +75,13 @@ func main() {
 			}
 			os.Exit(0)
 		}
-		time.Sleep(time.Duration(config.Interval()) * time.Second)
+		select {
+		case c := <-signalChan:
+			log.Info(fmt.Sprintf("captured %v exiting...", c))
+			os.Exit(0)
+		case <-time.After(time.Duration(config.Interval()) * time.Second):
+			// Continue processing templates.
+		}
 	}
 }
 
