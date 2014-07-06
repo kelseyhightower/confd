@@ -14,13 +14,12 @@
 * Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
 * Website: [www.confd.io](http://www.confd.io)
 
-## Quick Start Guides
+## Getting Started
 
 Before we begin be sure to [download and install confd](docs/installation.md).
 
-* [etcd](docs/etcd-getting-started.md)
-* [consul](docs/consul-getting-started.md)
+* [quick start guide](docs/quick-start-guide.md)
 
 ## Next steps
 
-Check out the [docs directory](docs) for more docs and [usage examples](docs/usage-examples.md).
+Check out the [docs directory](docs) for more docs.
