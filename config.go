@@ -92,10 +92,10 @@ func initConfig() error {
 	}
 	// Set defaults.
 	config = Config{
+		BackendNodes: []string{"127.0.0.1:4001"},
 		ConfDir:      "/etc/confd",
 		Interval:     600,
-		Prefix:       "/",
-		BackendNodes: []string{"127.0.0.1:4001"},
+		Scheme:       "http",
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {

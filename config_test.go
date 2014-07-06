@@ -4,52 +4,34 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/kelseyhightower/confd/log"
 )
 
-func TestLoadConfig(t *testing.T) {
+func TestInitConfigDefaultConfig(t *testing.T) {
 	log.SetQuiet(true)
-	var expected = struct {
-		clientCert  string
-		clientKey   string
-		configDir   string
-		etcdNodes   []string
-		interval    int
-		prefix      string
-		templateDir string
-	}{
-		"", "", "/etc/confd/conf.d", []string{"http://127.0.0.1:4001"},
-		600, "/", "/etc/confd/templates",
+	want := Config{
+		Backend:      "",
+		BackendNodes: []string{"127.0.0.1:4001"},
+		ClientCaKeys: "",
+		ClientCert:   "",
+		ClientKey:    "",
+		ConfDir:      "/etc/confd",
+		Debug:        false,
+		Interval:     600,
+		Noop:         false,
+		Prefix:       "",
+		Quiet:        false,
+		SRVDomain:    "",
+		Scheme:       "http",
+		Verbose:      false,
 	}
-	LoadConfig("")
-	cc := ClientCert()
-	if cc != expected.clientCert {
-		t.Errorf("Expected default clientCert = %s, got %s", expected.clientCert, cc)
+	if err := initConfig(); err != nil {
+		t.Errorf(err.Error())
 	}
-	ck := ClientKey()
-	if ck != expected.clientKey {
-		t.Errorf("Expected default clientKey = %s, got %s", expected.clientKey, ck)
-	}
-	cd := ConfigDir()
-	if cd != expected.configDir {
-		t.Errorf("Expected default configDir = %s, got %s", expected.configDir, cd)
-	}
-	en := EtcdNodes()
-	if en[0] != expected.etcdNodes[0] {
-		t.Errorf("Expected default etcdNodes = %v, got %v", expected.etcdNodes, en)
-	}
-	i := Interval()
-	if i != expected.interval {
-		t.Errorf("Expected default interval = %d, got %d", expected.interval, i)
-	}
-	p := Prefix()
-	if p != expected.prefix {
-		t.Errorf("Expected default prefix = %s, got %s", expected.prefix, p)
-	}
-	td := TemplateDir()
-	if td != expected.templateDir {
-		t.Errorf("Expected default templateDir = %s, got %s", expected.templateDir, td)
+	if !reflect.DeepEqual(want, config) {
+		t.Errorf("initConfig() = %v, want %v", config, want)
 	}
 }
