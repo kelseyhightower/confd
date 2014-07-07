@@ -35,11 +35,6 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
-// Etcd paths (keys) are translated into names more suitable for use in
-// templates. For example if prefix were set to '/production' and one of the
-// keys were '/nginx/port'; the prefixed '/production/nginx/port' key would
-// be queried for. If the value for the prefixed key where 80, the returned map
-// would contain the entry vars["nginx_port"] = "80".
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
