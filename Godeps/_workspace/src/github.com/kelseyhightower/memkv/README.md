@@ -11,6 +11,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/kelseyhightower/memkv"
 )
@@ -20,19 +21,24 @@ func main() {
 	s.Set("/myapp/database/username", "admin")
 	s.Set("/myapp/database/password", "123456789")
 	s.Set("/myapp/port", "80")
-
-	// Get a specific node.
-	node, ok := s.Get("/myapp/database/username")	
-	if ok {
-		fmt.Printf("Key: %s, Value: %s\n", node.Key, node.Value)
+	kv, err := s.Get("/myapp/database/username")	
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	// Get all nodes where Key matches pattern.
-	nodes, err := s.Glob("/myapp/*/*")
+	fmt.Printf("Key: %s, Value: %s\n", kv.Key, kv.Value)
+	ks, err := s.GetAll("/myapp/*/*")
 	if err == nil {
-		for _, n := range nodes {
-			fmt.Printf("Key: %s, Value: %s\n", n.Key, n.Value)
+		for _, kv := range ks {
+			fmt.Printf("Key: %s, Value: %s\n", kv.Key, kv.Value)
 		}
 	}
-}	
+}
+```
+
+---
+
+```
+Key: /myapp/database/username, Value: admin
+Key: /myapp/database/password, Value: 123456789
+Key: /myapp/database/username, Value: admin
 ```

@@ -76,7 +76,7 @@ func TestProcessTemplateResources(t *testing.T) {
 
 	// Create the src template.
 	srcTemplateFile := filepath.Join(tempConfDir, "templates", "foo.tmpl")
-	err = ioutil.WriteFile(srcTemplateFile, []byte(`foo = {{get "/foo"}}`), 0644)
+	err = ioutil.WriteFile(srcTemplateFile, []byte(`foo = {{getv "/foo"}}`), 0644)
 	if err != nil {
 		t.Error(err.Error())
 	}

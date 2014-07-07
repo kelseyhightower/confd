@@ -112,7 +112,9 @@ func (t *TemplateResource) createStageFile() error {
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["base"] = path.Base
 	tplFuncMap["get"] = t.store.Get
-	tplFuncMap["glob"] = t.store.Glob
+	tplFuncMap["gets"] = t.store.GetAll
+	tplFuncMap["getv"] = t.store.GetValue
+	tplFuncMap["getvs"] = t.store.GetAllValues
 
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, nil); err != nil {

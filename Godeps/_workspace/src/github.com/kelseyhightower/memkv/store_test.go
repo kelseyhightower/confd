@@ -10,11 +10,11 @@ var gettests = []struct {
 	key   string
 	value string
 	err   error
-	want  string
+	want  KVPair
 }{
-	{"/db/user", "admin", nil, "admin"},
-	{"/db/pass", "foo", nil, "foo"},
-	{"/missing", "", ErrNotExist, ""},
+	{"/db/user", "admin", nil, KVPair{"/db/user", "admin"}},
+	{"/db/pass", "foo", nil, KVPair{"/db/pass", "foo"}},
+	{"/missing", "", ErrNotExist, KVPair{}},
 }
 
 func TestGet(t *testing.T) {
@@ -30,7 +30,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
-var globtestinput = map[string]string{
+var getalltestinput = map[string]string{
 	"/app/db/pass":               "foo",
 	"/app/db/user":               "admin",
 	"/app/port":                  "443",
@@ -42,55 +42,53 @@ var globtestinput = map[string]string{
 	"/app/upstream/host2/domain": "app.example.com",
 }
 
-var globtests = []struct {
+var getalltests = []struct {
 	pattern string
 	err     error
-	want    []Node
+	want    []KVPair
 }{
 	{"/app/db/*", nil,
-		[]Node{
-			Node{"/app/db/pass", "foo"},
-			Node{"/app/db/user", "admin"}}},
+		[]KVPair{
+			KVPair{"/app/db/pass", "foo"},
+			KVPair{"/app/db/user", "admin"}}},
 	{"/app/*/host1", nil,
-		[]Node{
-			Node{"/app/upstream/host1", "203.0.113.0.1:8080"},
-			Node{"/app/vhosts/host1", "app.example.com"}}},
+		[]KVPair{
+			KVPair{"/app/upstream/host1", "203.0.113.0.1:8080"},
+			KVPair{"/app/vhosts/host1", "app.example.com"}}},
 
 	{"/app/upstream/*", nil,
-		[]Node{
-			Node{"/app/upstream/host1", "203.0.113.0.1:8080"},
-			Node{"/app/upstream/host2", "203.0.113.0.2:8080"}}},
+		[]KVPair{
+			KVPair{"/app/upstream/host1", "203.0.113.0.1:8080"},
+			KVPair{"/app/upstream/host2", "203.0.113.0.2:8080"}}},
 	{"[]a]", filepath.ErrBadPattern, nil},
 }
 
-func TestGlob(t *testing.T) {
+func TestGetAll(t *testing.T) {
 	s := New()
-	for k, v := range globtestinput {
+	for k, v := range getalltestinput {
 		s.Set(k, v)
 	}
-	for _, tt := range globtests {
-		got, err := s.Glob(tt.pattern)
-		if !reflect.DeepEqual([]Node(got), []Node(tt.want)) || err != tt.err {
-			t.Errorf("Glob(%q) = %v, %v, want %v, %v", tt.pattern, got, err, tt.want, tt.err)
+	for _, tt := range getalltests {
+		got, err := s.GetAll(tt.pattern)
+		if !reflect.DeepEqual([]KVPair(got), []KVPair(tt.want)) || err != tt.err {
+			t.Errorf("GetAll(%q) = %v, %v, want %v, %v", tt.pattern, got, err, tt.want, tt.err)
 		}
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDel(t *testing.T) {
 	s := New()
 	s.Set("/app/port", "8080")
-	want := "8080"
+	want := KVPair{"/app/port", "8080"}
 	got, err := s.Get("/app/port")
 	if err != nil || got != want {
 		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
 	}
-	// Delete the node.
-	s.Delete("/app/port")
-	want = ""
+	s.Del("/app/port")
+	want = KVPair{}
 	got, err = s.Get("/app/port")
 	if err != ErrNotExist || got != want {
 		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
 	}
-	// Delete a missing node.
-	s.Delete("/app/port")
+	s.Del("/app/port")
 }
