@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"text/template"
 
+	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -41,7 +41,7 @@ var templateResourceConfigTmpl = `
 src = "{{ .src }}"
 dest = "{{ .dest }}"
 keys = [
-  "/foo",
+  "foo",
 ]
 `
 
@@ -76,7 +76,7 @@ func TestProcessTemplateResources(t *testing.T) {
 
 	// Create the src template.
 	srcTemplateFile := filepath.Join(tempConfDir, "templates", "foo.tmpl")
-	err = ioutil.WriteFile(srcTemplateFile, []byte("foo = {{ .foo }}"), 0644)
+	err = ioutil.WriteFile(srcTemplateFile, []byte(`foo = {{get "/foo"}}`), 0644)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -106,6 +106,17 @@ func TestProcessTemplateResources(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
+	os.Setenv("FOO", "bar")
+	storeClient, err := env.NewEnvClient()
+	if err != nil{
+		t.Errorf(err.Error())
+	}
+	c := Config{
+		ConfDir:     tempConfDir,
+		ConfigDir:   filepath.Join(tempConfDir, "conf.d"),
+		StoreClient: storeClient, 
+		TemplateDir: filepath.Join(tempConfDir, "templates"),
+	}
 	// Process the test template resource.
 	runErrors := ProcessTemplateResources(c)
 	if len(runErrors) > 0 {
