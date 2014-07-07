@@ -13,7 +13,7 @@ import (
 func TestInitConfigDefaultConfig(t *testing.T) {
 	log.SetQuiet(true)
 	want := Config{
-		Backend:      "",
+		Backend:      "etcd",
 		BackendNodes: []string{"127.0.0.1:4001"},
 		ClientCaKeys: "",
 		ClientCert:   "",
