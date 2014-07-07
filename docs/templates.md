@@ -7,17 +7,18 @@ Templates are written in Go's [`text/template`](http://golang.org/pkg/text/templ
 
 ## Template Functions
 
-* get - returns a KVPair
-* gets - returns a []KVPair
-* getv - returns a string representing the value.
-* getvs - returns a []string representing the all values.
+* [get](#get)
+* [gets](#gets)
+* [getv](#getv)
+* [getvs](#getvs)
 
 ### get
 
 ```
 {{with get "/key"}}
-key: {{.Key}}
-value: {{.Value}}
+  key: {{.Key}}
+  value: {{.Value}}
+{{end}}
 ```
 
 ### gets
@@ -40,7 +41,7 @@ value: {{getv "/key"}}
 ```
 {{range getvs "/*"}}
   value: {{.}}
-{{}}
+{{end}}
 ```
 
 ## Example Usage  
