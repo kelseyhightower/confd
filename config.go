@@ -62,7 +62,7 @@ type Config struct {
 }
 
 func init() {
-	flag.StringVar(&backend, "backend", "", "backend to use")
+	flag.StringVar(&backend, "backend", "etcd", "backend to use")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
@@ -71,13 +71,13 @@ func init() {
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.Var(&nodes, "node", "list of backend nodes")
-	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
+	flag.BoolVar(&noop, "noop", false, "only show pending changes")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
+	flag.StringVar(&prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
-	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging. Only error messages are printed.")
-	flag.StringVar(&scheme, "backend-scheme", "http", "the backend URI scheme. (http or https)")
-	flag.StringVar(&srvDomain, "srv-domain", "", "the domain for the backend SRV record, i.e. example.com")
+	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging")
+	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
+	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 }
 
@@ -93,6 +93,7 @@ func initConfig() error {
 	}
 	// Set defaults.
 	config = Config{
+		Backend:      "etcd",
 		BackendNodes: []string{"127.0.0.1:4001"},
 		ConfDir:      "/etc/confd",
 		Interval:     600,

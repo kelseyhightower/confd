@@ -8,8 +8,7 @@ confd -h
 
 ```Text
 Usage of confd:
-  -backend="": backend to use
-  -backend-scheme="http": the backend URI scheme. (http or https)
+  -backend="etcd": backend to use
   -client-ca-keys="": client ca keys
   -client-cert="": the client cert
   -client-key="": the client key
@@ -18,11 +17,12 @@ Usage of confd:
   -debug=false: enable debug logging
   -interval=600: backend polling interval
   -node=[]: list of backend nodes
-  -noop=false: only show pending changes, don't sync configs.
+  -noop=false: only show pending changes
   -onetime=false: run once and exit
-  -prefix="/": key path prefix
-  -quiet=false: enable quiet logging. Only error messages are printed.
-  -srv-domain="": the domain for the backend SRV record, i.e. example.com
+  -prefix="": key path prefix
+  -quiet=false: enable quiet logging
+  -scheme="http": the backend URI scheme (http or https)
+  -srv-domain="": the name of the resource record
   -verbose=false: enable verbose logging
   -version=false: print version and exit
 ```

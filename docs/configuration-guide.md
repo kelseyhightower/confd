@@ -1,43 +1,43 @@
 # Configuration Guide
 
 The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
-and loaded from `/etc/confd/confd.toml` by default. You can specify a different config file location via the `-config-file` command line flag.
-
-```Bash
-confd -config-file ~/confd.toml
-```
+and loaded from `/etc/confd/confd.toml` by default. You can specify the config file via the `-config-file` command line flag.
 
 > Note: You can use confd without a configuration file. See [Command Line Flags](https://github.com/kelseyhightower/confd/wiki/Command-Line-Flags).
 
 Optional:
 
-* `backend` (string) - The configuration backend to use. The default is etcd.
+* `backend` (string) - The backend to use. (etcd)
+* `client_cakeys` (string) - The client CA key file.
+* `client_cert` (string) - The client cert file.
+* `client_key` (string) - The client key file.
+* `confdir` (string) - The path to confd configs. (/etc/confd)
 * `debug` (bool) - Enable debug logging.
-* `client_cert` (string) The cert file of the client.
-* `client_key` (string) The key file of the client.
-* `confdir` (string) - The path to confd configs. The default is /etc/confd.
-* `nodes` (array of strings) - An array of backend cluster nodes. The default
-  is ["http://127.0.0.1:4001"].
-* `interval` (int) - The number of seconds to wait between calls to etcd. The
-  default is 600.
-* `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
-* `prefix` (string) - The prefix string to prefix to keys when making calls to
-  the backend. The default is "/".
-* `quiet` (bool) - Enable quiet logging. Only error messages are printed.
-* `srv_domain` (string) - The domain to query for backend SRV records.
+* `interval` (int) - The backend polling interval. (600)
+* `nodes` (array of strings) - List of backend nodes. (["127.0.0.1:4001"])
+* `noop` (bool) - Enable noop mode. Process all template resources; skip target update.
+* `prefix` (string) - The string to prefix to keys.
+* `quiet` (bool) - Enable quiet logging.
+* `scheme` (string) - The backend URI scheme. (http or https)
+* `srv_domain` (string) - The name of the resource record.
 * `verbose` (bool) - Enable verbose logging.
 
 Example:
 
 ```TOML
-[confd]
 backend = "etcd"
-confdir  = "/etc/confd"
-interval = 600
-prefix   = "/"
-nodes = [
-  "http://127.0.0.1:4001",
-]
 client_cert = "/etc/confd/ssl/client.crt"
-client_key  = "/etc/confd/ssl/client.key"
+client_key = "/etc/confd/ssl/client.key"
+confdir = "/etc/confd"
+debug = false
+interval = 600
+nodes = [
+  "127.0.0.1:4001",
+]
+noop = false
+prefix = "/production"
+quiet = false
+scheme = "https"
+srv_domain = "etcd.example.com"
+verbose = false
 ```
