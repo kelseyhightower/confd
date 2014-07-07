@@ -7,10 +7,10 @@ Templates are written in Go's [`text/template`](http://golang.org/pkg/text/templ
 
 ## Template Functions
 
-* [get](#get)
-* [gets](#gets)
-* [getv](#getv)
-* [getvs](#getvs)
+* [get](#get) - Returns the KVPair where key matches its argument.
+* [gets](#gets) - Returns all KVPair, []KVPair, where key matches its argument.
+* [getv](#getv) - Returns the value as a string where key matches its argument.
+* [getvs](#getvs) - Returns all values, []string, where key matches its argument.
 
 ### get
 
