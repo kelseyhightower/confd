@@ -1,35 +1,31 @@
 // Copyright (c) 2013 Kelsey Hightower. All rights reserved.
 // Use of this source code is governed by the Apache License, Version 2.0
 // that can be found in the LICENSE file.
-package etcdutil
+package etcd
 
 import (
 	"errors"
 	"strings"
 
-	"github.com/coreos/go-etcd/etcd"
+	goetcd "github.com/coreos/go-etcd/etcd"
 )
 
 // Client is a wrapper around the etcd client
 type Client struct {
-	client EtcdClient
-}
-
-type EtcdClient interface {
-	Get(key string, sort, recurse bool) (*etcd.Response, error)
+	client *goetcd.Client
 }
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
 func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client, error) {
-	var c *etcd.Client
+	var c *goetcd.Client
 	if cert != "" && key != "" {
-		c, err := etcd.NewTLSClient(machines, cert, key, caCert)
+		c, err := goetcd.NewTLSClient(machines, cert, key, caCert)
 		if err != nil {
 			return &Client{c}, err
 		}
 	} else {
-		c = etcd.NewClient(machines)
+		c = goetcd.NewClient(machines)
 	}
 	success := c.SetCluster(machines)
 	if !success {
@@ -60,7 +56,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 }
 
 // nodeWalk recursively descends nodes, updating vars.
-func nodeWalk(node *etcd.Node, vars map[string]string) error {
+func nodeWalk(node *goetcd.Node, vars map[string]string) error {
 	if node != nil {
 		key := node.Key
 		if !node.Dir {

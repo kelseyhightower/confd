@@ -6,7 +6,7 @@ import (
 
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcd/etcdutil"
+	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -28,7 +28,7 @@ func New(config Config) (StoreClient, error) {
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
-		return etcdutil.NewEtcdClient(config.BackendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
+		return etcd.NewEtcdClient(config.BackendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
 	case "env":
 		return env.NewEnvClient()
 	}
