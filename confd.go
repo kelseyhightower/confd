@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
 )
@@ -25,6 +26,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	log.Notice("Starting confd")
+	storeClient, err := backends.New(backendsConfig)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	templateConfig.StoreClient = storeClient
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	for {

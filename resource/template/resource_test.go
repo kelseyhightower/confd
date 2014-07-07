@@ -108,13 +108,13 @@ func TestProcessTemplateResources(t *testing.T) {
 
 	os.Setenv("FOO", "bar")
 	storeClient, err := env.NewEnvClient()
-	if err != nil{
+	if err != nil {
 		t.Errorf(err.Error())
 	}
 	c := Config{
 		ConfDir:     tempConfDir,
 		ConfigDir:   filepath.Join(tempConfDir, "conf.d"),
-		StoreClient: storeClient, 
+		StoreClient: storeClient,
 		TemplateDir: filepath.Join(tempConfDir, "templates"),
 	}
 	// Process the test template resource.

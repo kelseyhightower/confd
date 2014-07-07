@@ -39,6 +39,7 @@ var (
 	scheme            string
 	srvDomain         string
 	templateConfig    template.Config
+	backendsConfig    backends.Config
 	verbose           bool
 )
 
@@ -128,10 +129,9 @@ func initConfig() error {
 		}
 		config.BackendNodes = srvNodes
 	}
-
 	// Initialize the storage client
 	log.Notice("Backend set to " + config.Backend)
-	storeConfig := backends.Config{
+	backendsConfig = backends.Config{
 		Backend:      config.Backend,
 		ClientCaKeys: config.ClientCaKeys,
 		ClientCert:   config.ClientCert,
@@ -139,17 +139,12 @@ func initConfig() error {
 		BackendNodes: config.BackendNodes,
 		Scheme:       config.Scheme,
 	}
-	storeClient, err := backends.New(storeConfig)
-	if err != nil {
-		return err
-	}
 	// Template configuration.
 	templateConfig = template.Config{
 		ConfDir:     config.ConfDir,
 		ConfigDir:   filepath.Join(config.ConfDir, "conf.d"),
 		Noop:        config.Noop,
 		Prefix:      config.Prefix,
-		StoreClient: storeClient,
 		TemplateDir: filepath.Join(config.ConfDir, "templates"),
 	}
 	return nil
