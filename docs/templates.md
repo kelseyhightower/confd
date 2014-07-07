@@ -13,8 +13,8 @@ Returns the KVPair where key matches its argument.
 
 ```
 {{with get "/key"}}
-  key: {{.Key}}
-  value: {{.Value}}
+    key: {{.Key}}
+    value: {{.Value}}
 {{end}}
 ```
 
@@ -24,8 +24,8 @@ Returns all KVPair, []KVPair, where key matches its argument.
 
 ```
 {{range gets "/*"}}
-  key: {{.Key}}
-  value: {{.Value}}
+    key: {{.Key}}
+    value: {{.Value}}
 {{end}}
 ```
 
@@ -43,7 +43,7 @@ Returns all values, []string, where key matches its argument.
 
 ```
 {{range getvs "/*"}}
-  value: {{.}}
+    value: {{.}}
 {{end}}
 ```
 
@@ -57,14 +57,14 @@ etcdctl set /app/upstream/app1 "10.0.1.100:80"
 etcdctl set /app/upstream/app2 "10.0.1.101:80"
 ```
 
-`$ cat /etc/confd/templates/nginx.conf.tmpl`:
+`/etc/confd/templates/nginx.conf.tmpl`
 
 ```Text
 worker_processes {{getv "/nginx/worker_processes"}};
 
 upstream app {
-{{range $server := getvs "/app/upstream/*"}}
-    server {{$server}};
+{{range getvs "/app/upstream/*"}}
+    server {{.}};
 {{end}}
 }
 
@@ -86,7 +86,7 @@ server {
 }
 ```
 
-Will produce `/etc/nginx/nginx.conf`:
+Output: `/etc/nginx/nginx.conf`
 
 ```Text
 worker_processes 2;
