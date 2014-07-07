@@ -34,34 +34,11 @@ func createTempDirs() (string, error) {
 	return confDir, nil
 }
 
-var fakeFile = "/this/shoud/not/exist"
-
 var templateResourceConfigTmpl = `
-[template]
-src = "{{ .src }}"
-dest = "{{ .dest }}"
+src = "{{.src}}"
+dest = "{{.dest}}"
 keys = [
   "foo",
-]
-`
-
-var brokenTemplateResourceConfig = `
-[template]
-src = "/does/not/exist"
-dest = "/does/not/exist"
-keys = [
-  "/foo"
-  "/bar"
-]
-`
-
-var templateResourceConfigWithPrefixTmpl = `
-[template]
-prefix = "/template_prefix"
-src = "{{ .src }}"
-dest = "{{ .dest }}"
-keys = [
-  "/foo",
 ]
 `
 

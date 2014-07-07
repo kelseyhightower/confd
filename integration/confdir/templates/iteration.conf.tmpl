@@ -1,12 +1,11 @@
 upstream app {
-{{range $node := glob "/upstream/*"}}  
-  server {{.Value}};
+{{range getvs "/upstream/*"}}  
+  server {{.}};
 {{end}}
 }
 
 server {
     server_name  www.example.com;
-
     location / {
         proxy_pass        http://app;
         proxy_redirect    off;

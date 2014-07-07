@@ -57,7 +57,6 @@ Template resources are defined in [TOML](https://github.com/mojombo/toml) config
 Lets create a simple template resource to manage the `/tmp/myconfig.conf` configuration file.
 
 ```toml
-[template]
 src = "myconfig.conf.tmpl"
 dest = "/tmp/myconfig.conf"
 keys = [

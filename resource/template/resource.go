@@ -31,11 +31,6 @@ type Config struct {
 	TemplateDir string
 }
 
-// TemplateResourceConfig holds the parsed template resource.
-type TemplateResourceConfig struct {
-	TemplateResource TemplateResource `toml:"template"`
-}
-
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
 	CheckCmd    string `toml:"check_cmd"`
@@ -55,25 +50,23 @@ type TemplateResource struct {
 	storeClient backends.StoreClient
 }
 
-// NewTemplateResourceFromPath creates a TemplateResource using a decoded file path
-// and the supplied StoreClient as input.
-// It returns a TemplateResource and an error if any.
-func NewTemplateResourceFromPath(path string, config Config) (*TemplateResource, error) {
+// New creates a TemplateResource.
+func New(path string, config Config) (*TemplateResource, error) {
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
-	var tc *TemplateResourceConfig
+	var tr *TemplateResource
 	log.Debug("Loading template resource from " + path)
-	_, err := toml.DecodeFile(path, &tc)
+	_, err := toml.DecodeFile(path, &tr)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
-	tc.TemplateResource.noop = config.Noop
-	tc.TemplateResource.storeClient = config.StoreClient
-	tc.TemplateResource.store = memkv.New()
-	tc.TemplateResource.prefix = filepath.Join("/", config.Prefix, tc.TemplateResource.Prefix)
-	tc.TemplateResource.Src = filepath.Join(config.TemplateDir, tc.TemplateResource.Src)
-	return &tc.TemplateResource, nil
+	tr.noop = config.Noop
+	tr.storeClient = config.StoreClient
+	tr.store = memkv.New()
+	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
+	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
+	return tr, nil
 }
 
 // setVars sets the Vars for template resource.
@@ -273,7 +266,7 @@ func ProcessTemplateResources(config Config) []error {
 	}
 	for _, p := range paths {
 		log.Debug("Processing template resource " + p)
-		t, err := NewTemplateResourceFromPath(p, config)
+		t, err := New(p, config)
 		if err != nil {
 			runErrors = append(runErrors, err)
 			log.Error(err.Error())
