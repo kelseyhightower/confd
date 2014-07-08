@@ -64,9 +64,8 @@ keys = [
 
 Source templates are [Golang text templates](http://golang.org/pkg/text/template/#pkg-overview), and are stored under the `confdir` templates directory.
 
-/etc/confd/templates/myconfig.conf.tmpl
 ```
-# This a comment
+# /etc/confd/templates/myconfig.conf.tmpl
 [myconfig]
 database_url = {{get "/myapp/database/url"}}
 database_user = {{get "/myapp/database/user"}}
@@ -76,7 +75,7 @@ database_user = {{get "/myapp/database/user"}}
 
 confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground and processing template resources every 5 mins by default. For this tutorial we are going to use onetime mode.
 
-Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
+Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the all the template resources under `/etc/confd/conf.d`:
 
 ```
 confd -verbose -onetime -node '127.0.0.1:4001'
