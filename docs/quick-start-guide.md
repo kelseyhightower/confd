@@ -73,12 +73,12 @@ database_user = {{get "/myapp/database/user"}}
 
 ### Processing template resources
 
-confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground and processing template resources every 5 mins by default. For this tutorial we are going to use onetime mode.
+confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground processing template resources every 5 minutes by default.
 
 Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the all the template resources under `/etc/confd/conf.d`:
 
 ```
-confd -verbose -onetime -node '127.0.0.1:4001'
+confd -verbose -onetime -backend etcd -node '127.0.0.1:4001'
 ```
 Output:
 ```
