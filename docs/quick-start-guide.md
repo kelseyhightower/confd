@@ -52,6 +52,7 @@ The follow template resource will managed the `/tmp/myconfig.conf` configuration
 
 /etc/confd/conf.d/myconfig.toml
 ```
+[template]
 src = "myconfig.conf.tmpl"
 dest = "/tmp/myconfig.conf"
 keys = [
@@ -67,8 +68,8 @@ Source templates are [Golang text templates](http://golang.org/pkg/text/template
 /etc/confd/templates/myconfig.conf.tmpl
 ```
 [myconfig]
-database_url = {{get "/myapp/database/url"}}
-database_user = {{get "/myapp/database/user"}}
+database_url = {{getv "/myapp/database/url"}}
+database_user = {{getv "/myapp/database/user"}}
 ```
 
 ### Processing template resources

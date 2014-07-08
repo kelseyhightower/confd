@@ -31,6 +31,11 @@ type Config struct {
 	TemplateDir string
 }
 
+// TemplateResourceConfig holds the parsed template resource.
+type TemplateResourceConfig struct {
+	TemplateResource TemplateResource `toml:"template"`
+}
+
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
 	CheckCmd    string `toml:"check_cmd"`
@@ -50,23 +55,29 @@ type TemplateResource struct {
 	storeClient backends.StoreClient
 }
 
+var ErrEmptySrc = errors.New("empty src template")
+
 // New creates a TemplateResource.
 func New(path string, config Config) (*TemplateResource, error) {
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
-	var tr *TemplateResource
+	var tc *TemplateResourceConfig
 	log.Debug("Loading template resource from " + path)
-	_, err := toml.DecodeFile(path, &tr)
+	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
+	tr := tc.TemplateResource
 	tr.noop = config.Noop
 	tr.storeClient = config.StoreClient
 	tr.store = memkv.New()
 	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
+	if tr.Src == "" {
+		return nil, ErrEmptySrc 
+	}
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-	return tr, nil
+	return &tr, nil
 }
 
 // setVars sets the Vars for template resource.
