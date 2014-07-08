@@ -21,6 +21,7 @@ Optional:
 Example:
 
 ```TOML
+[template]
 src = "nginx.conf.tmpl"
 dest = "/etc/nginx/nginx.conf"
 owner = "root"

@@ -35,6 +35,7 @@ func createTempDirs() (string, error) {
 }
 
 var templateResourceConfigTmpl = `
+[template]
 src = "{{.src}}"
 dest = "{{.dest}}"
 keys = [
