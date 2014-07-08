@@ -50,8 +50,8 @@ Template resources are defined in [TOML](https://github.com/mojombo/toml) config
 
 The follow template resource will managed the `/tmp/myconfig.conf` configuration file.
 
+/etc/confd/conf.d/myconfig.toml
 ```toml
-# /etc/confd/conf.d/myconfig.toml
 src = "myconfig.conf.tmpl"
 dest = "/tmp/myconfig.conf"
 keys = [
@@ -64,8 +64,8 @@ keys = [
 
 Source templates are [Golang text templates](http://golang.org/pkg/text/template/#pkg-overview), and are stored under the `confdir` templates directory.
 
+/etc/confd/templates/myconfig.conf.tmpl
 ```
-# /etc/confd/templates/myconfig.conf.tmpl
 [myconfig]
 database_url = {{get "/myapp/database/url"}}
 database_user = {{get "/myapp/database/user"}}
