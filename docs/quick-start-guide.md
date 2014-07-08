@@ -51,7 +51,7 @@ Template resources are defined in [TOML](https://github.com/mojombo/toml) config
 The follow template resource will managed the `/tmp/myconfig.conf` configuration file.
 
 /etc/confd/conf.d/myconfig.toml
-```toml
+```
 src = "myconfig.conf.tmpl"
 dest = "/tmp/myconfig.conf"
 keys = [
