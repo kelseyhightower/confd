@@ -13,9 +13,9 @@ etcdctl set /myapp/upstream/app1 "10.0.1.101:80"
 
 yourapp
 ```
-etcdctl set /myapp/subdomain yourapp
-etcdctl set /myapp/upstream/app2 "10.0.1.102:80"
-etcdctl set /myapp/upstream/app1 "10.0.1.103:80"
+etcdctl set /yourapp/subdomain yourapp
+etcdctl set /yourapp/upstream/app2 "10.0.1.102:80"
+etcdctl set /yourapp/upstream/app1 "10.0.1.103:80"
 ```
 
 ## Create template resources
