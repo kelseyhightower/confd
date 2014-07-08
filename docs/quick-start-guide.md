@@ -52,9 +52,11 @@ mkdir -p ~/confd/{conf.d,templates}
 
 ### Create a template resource config
 
-Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir` (i.e. ~/confd/conf.d/*.toml).
+Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir` (i.e. /etc/confd/conf.d/*.toml).
 
 Lets create a simple template resource to manage the `/tmp/myconfig.conf` configuration file.
+
+Edit `/etc/confd/conf.d/myconfig.toml`
 
 ```toml
 src = "myconfig.conf.tmpl"
@@ -64,8 +66,6 @@ keys = [
     "/myapp/database/user",
 ]
 ```
-Save the file under the `confdir` directory, i.e. `~/confd/conf.d/myconfig.toml`
-
 
 ### Create the source template
 
