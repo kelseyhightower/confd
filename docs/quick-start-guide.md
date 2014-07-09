@@ -71,15 +71,28 @@ database_url = {{getv "/myapp/database/url"}}
 database_user = {{getv "/myapp/database/user"}}
 ```
 
-### Processing template resources
+### Process the template
 
 confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground processing template resources every 5 minutes by default.
 
-Assuming you etcd server is running at http://127.0.0.1:4001 you can run the following command to process the all the template resources under `/etc/confd/conf.d`:
+#### etcd
 
 ```
-confd -verbose -onetime -backend etcd -node '127.0.0.1:4001'
+confd -onetime -backend etcd -node 127.0.0.1:4001
 ```
+
+#### consul
+
+```
+confd -onetime -backend consul -node 127.0.0.1:8500
+```
+
+#### env
+
+```
+confd -onetime -backend env
+```
+
 Output:
 ```
 2013-11-03T18:00:47-08:00 confd[21294]: NOTICE Starting confd
@@ -87,6 +100,9 @@ Output:
 2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf out of sync
 2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf has been updated
 ```
+
+
+
 
 The `dest` config should now be in sync with the template resource configuration.
 
