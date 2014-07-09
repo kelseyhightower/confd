@@ -22,7 +22,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		Debug:        false,
 		Interval:     600,
 		Noop:         false,
-		Prefix:       "",
+		Prefix:       "/",
 		Quiet:        false,
 		SRVDomain:    "",
 		Scheme:       "http",

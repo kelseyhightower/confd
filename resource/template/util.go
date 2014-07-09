@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"strings"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/log"
@@ -23,8 +22,6 @@ type fileInfo struct {
 	Mode os.FileMode
 	Md5  string
 }
-
-var replacer = strings.NewReplacer("/", "_", "-", "_")
 
 func appendPrefix(prefix string, keys []string) []string {
 	s := make([]string, len(keys))

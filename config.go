@@ -97,6 +97,7 @@ func initConfig() error {
 		BackendNodes: []string{"127.0.0.1:4001"},
 		ConfDir:      "/etc/confd",
 		Interval:     600,
+		Prefix:       "/",
 		Scheme:       "http",
 	}
 	// Update config from the TOML configuration file.

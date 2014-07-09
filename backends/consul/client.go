@@ -1,6 +1,9 @@
 package consul
 
 import (
+	"path"
+	"strings"
+
 	"github.com/armon/consul-api"
 )
 
@@ -26,12 +29,13 @@ func NewConsulClient(nodes []string) (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
+		key := strings.TrimPrefix(key, "/")
 		pairs, _, err := c.client.List(key, nil)
 		if err != nil {
 			return vars, err
 		}
 		for _, p := range pairs {
-			vars[p.Key] = string(p.Value)
+			vars[path.Join("/", p.Key)] = string(p.Value)
 		}
 	}
 	return vars, nil
