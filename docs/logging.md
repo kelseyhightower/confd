@@ -1,6 +1,6 @@
 # Logging
 
-confd logs all error message to stderr and everything else to stdout. You can control the types of messages that get printed by using the `-debug`, `-verbose`, and `-quiet` flags and corresponding configuration file settings. See the [Configuration Guide](https://github.com/kelseyhightower/confd/wiki/Configuration-Guide) for more details.
+confd logs all error message to stderr and everything else to stdout. You can control the types of messages that get printed by using the `-debug`, `-verbose`, and `-quiet` flags and corresponding configuration file settings. See the [Configuration Guide](configuration-guide.md) for more details.
 
 Example log messages:
 
