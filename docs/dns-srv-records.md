@@ -11,10 +11,9 @@ dig SRV _etcd._tcp.confd.io
 ```
 
 ```
-... 
+...
 ;; ANSWER SECTION:
-_etcd._tcp.confd.io.  300 IN  SRV 1 50 4001 etcd0.confd.io.
-_etcd._tcp.confd.io.  300 IN  SRV 2 50 4001 etcd1.confd.io.
+_etcd._tcp.confd.io.	300	IN	SRV	1 100 4001 etcd.confd.io.
 ```
 
 ```
@@ -30,7 +29,7 @@ dig SRV _consul._tcp.confd.io
 ```
 ...
 ;; ANSWER SECTION:
-_consul._tcp.confd.io.  300 IN  SRV 1 50 8500 consul.confd.io.
+_consul._tcp.confd.io.	300	IN	SRV	1 100 8500 consul.confd.io.
 ```
 
 ```
