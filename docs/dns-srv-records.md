@@ -48,4 +48,4 @@ By default the `scheme` is set to http; change it with the `-scheme` flag.
 confd -scheme https -srv-domain confd.io
 ```
 
-Both the SRV domain and scheme can be configured in the confd configuration file. See the [Configuration Guide](https://github.com/kelseyhightower/confd/wiki/Configuration-Guide) for more details.
+Both the SRV domain and scheme can be configured in the confd configuration file. See the [Configuration Guide](configuration-guide.md) for more details.
