@@ -146,7 +146,7 @@ curl -X PUT -d '10.0.1.103:80' http://localhost:8500/v1/kv/yourapp/upstream/app2
 
 ```
 [template]
-prefix = "myapp"
+prefix = "/myapp"
 src = "nginx.tmpl"
 dest = "/tmp/myapp.conf"
 owner = "nginx"
@@ -163,7 +163,7 @@ reload_cmd = "/usr/sbin/service nginx reload"
 
 ```
 [template]
-prefix = "yourapp"
+prefix = "/yourapp"
 src = "nginx.tmpl"
 dest = "/tmp/yourapp.conf"
 owner = "nginx"
