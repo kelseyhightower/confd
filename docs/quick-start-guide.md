@@ -4,7 +4,7 @@ Before we begin be sure to [download and install confd](installation.md).
 
 ## Select a backend
 
-confd support the following backends:
+confd supports the following backends:
 
 * etcd
 * consul
@@ -71,7 +71,7 @@ database_user = {{getv "/myapp/database/user"}}
 
 ### Process the template
 
-confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd polls for key changes and reprocesses templates.
+confd supports two modes of operation daemon and onetime. In daemon mode confd polls for key changes and reprocesses templates.
 
 #### etcd
 
