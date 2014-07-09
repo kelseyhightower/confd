@@ -71,7 +71,7 @@ database_user = {{getv "/myapp/database/user"}}
 
 ### Process the template
 
-confd supports two modes of operation daemon and onetime. In daemon mode confd polls for key changes and reprocesses templates.
+confd supports two modes of operation daemon and onetime. In daemon mode confd polls a backend for changes and updates destination configuration files if necessary.
 
 #### etcd
 
