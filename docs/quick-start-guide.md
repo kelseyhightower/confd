@@ -104,11 +104,13 @@ database_user = rob
 
 ## Advanced Example
 
-Using confd to manage nginx proxy config of several apps in subdomains
+In this example we will use confd to manage two nginx config files using a single template. 
 
 ### Add two apps with upstream servers to your backend
 
-### etcd
+### Add keys
+
+#### etcd
 
 ```
 etcdctl set /myapp/subdomain myapp
@@ -119,7 +121,7 @@ etcdctl set /yourapp/upstream/app2 "10.0.1.102:80"
 etcdctl set /yourapp/upstream/app1 "10.0.1.103:80"
 ```
 
-### consul
+#### consul
 
 ```
 curl -X PUT -d 'myapp' http://localhost:8500/v1/kv/myapp/subdomain
@@ -190,13 +192,13 @@ server {
 
 ### Process the templates
 
-### etcd
+#### etcd
 
 ```
 confd -onetime
 ```
 
-### consul
+#### consul
 
 ```
 confd -onetime -backend consul -node 127.0.0.1:8500
