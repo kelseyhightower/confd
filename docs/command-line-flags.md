@@ -1,6 +1,6 @@
 # Command Line Flags
 
-Command line flags override the confd [configuration file](https://github.com/kelseyhightower/confd/wiki/Configuration-Guide).
+Command line flags override the confd [configuration file](configuration-guide.md).
 
 ```
 confd -h
