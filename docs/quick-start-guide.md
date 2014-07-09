@@ -106,23 +106,31 @@ database_user = rob
 
 Using confd to manage nginx proxy config of several apps in subdomains
 
-## Add two apps with upstream servers to etcd
+### Add two apps with upstream servers to your backend
 
-myapp
+### etcd
+
 ```
 etcdctl set /myapp/subdomain myapp
 etcdctl set /myapp/upstream/app2 "10.0.1.100:80"
 etcdctl set /myapp/upstream/app1 "10.0.1.101:80"
-```
-
-yourapp
-```
 etcdctl set /yourapp/subdomain yourapp
 etcdctl set /yourapp/upstream/app2 "10.0.1.102:80"
 etcdctl set /yourapp/upstream/app1 "10.0.1.103:80"
 ```
 
-## Create template resources
+### consul
+
+```
+curl -X PUT -d 'myapp' http://localhost:8500/v1/kv/myapp/subdomain
+curl -X PUT -d '10.0.1.100:80' http://localhost:8500/v1/kv/myapp/upstream/app1
+curl -X PUT -d '10.0.1.101:80' http://localhost:8500/v1/kv/myapp/upstream/app2
+curl -X PUT -d 'yourapp' http://localhost:8500/v1/kv/yourapp/subdomain
+curl -X PUT -d '10.0.1.102:80' http://localhost:8500/v1/kv/yourapp/upstream/app1
+curl -X PUT -d '10.0.1.103:80' http://localhost:8500/v1/kv/yourapp/upstream/app2
+```
+
+### Create template resources
 
 /etc/confd/conf.d/myapp-nginx.toml
 
@@ -158,7 +166,7 @@ check_cmd = "/usr/sbin/nginx -t -c {{.src}}"
 reload_cmd = "/usr/sbin/service nginx reload"
 ```
 
-## Create a source template
+### Create the source template
 
 /etc/confd/templates/nginx.tmpl
 ```
@@ -178,4 +186,18 @@ server {
         proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
    }
 }
+```
+
+### Process the templates
+
+### etcd
+
+```
+confd -onetime
+```
+
+### consul
+
+```
+confd -onetime -backend consul -node 127.0.0.1:8500
 ```
