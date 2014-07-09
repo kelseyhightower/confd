@@ -3,13 +3,13 @@
 Template resources are written in TOML and define a single template resource.
 Template resources are stored under the `/etc/confd/conf.d` directory by default.
 
-Required:
+### Required
 
 * `dest` (string) - The target file.
 * `keys` (array of strings) - An array of keys.
 * `src` (string) - The relative path of a [configuration template](templates.md).
 
-Optional:
+### Optional
 
 * `group` (string) - The group name that should own the file.
 * `mode` (string) - The permission mode of the file.
@@ -18,7 +18,7 @@ Optional:
 * `check_cmd` (string) - The command to check config. Use `{{.src}}` to reference the rendered source template.
 * `prefix` (string) - The string to prefix to keys.
 
-Example:
+## Example
 
 ```TOML
 [template]
