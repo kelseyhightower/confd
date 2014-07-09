@@ -95,14 +95,10 @@ confd -onetime -backend env
 
 Output:
 ```
-2013-11-03T18:00:47-08:00 confd[21294]: NOTICE Starting confd
-2013-11-03T18:00:47-08:00 confd[21294]: NOTICE etcd nodes set to http://127.0.0.1:4001
-2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf out of sync
-2013-11-03T18:00:47-08:00 confd[21294]: INFO Target config /tmp/myconfig.conf has been updated
+2014-07-08T20:38:36-07:00 confd[16252]: WARNING Skipping confd config file.
+2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf out of sync
+2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf has been updated
 ```
-
-
-
 
 The `dest` config should now be in sync with the template resource configuration.
 
@@ -202,18 +198,4 @@ server {
         proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
    }
 }
-```
-
-### Process the templates
-
-#### etcd
-
-```
-confd -onetime
-```
-
-#### consul
-
-```
-confd -onetime -backend consul -node 127.0.0.1:8500
 ```
