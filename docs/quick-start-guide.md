@@ -37,17 +37,15 @@ export MYAPP_DATABASE_USER=rob
 
 ### Create the confdir
 
-The confdir is where template resource configs and source templates are stored. The default confdir is `/etc/confd`. Create the confdir by executing the following command:
+The confdir is where template resource configs and source templates are stored.
 
-```Bash
+```
 sudo mkdir -p /etc/confd/{conf.d,templates}
 ```
 
 ### Create a template resource config
 
 Template resources are defined in [TOML](https://github.com/mojombo/toml) config files under the `confdir`.
-
-The follow template resource will managed the `/tmp/myconfig.conf` configuration file.
 
 /etc/confd/conf.d/myconfig.toml
 ```
@@ -62,7 +60,7 @@ keys = [
 
 ### Create the source template
 
-Source templates are [Golang text templates](http://golang.org/pkg/text/template/#pkg-overview), and are stored under the `confdir` templates directory.
+Source templates are [Golang text templates](http://golang.org/pkg/text/template/#pkg-overview).
 
 /etc/confd/templates/myconfig.conf.tmpl
 ```
@@ -73,7 +71,7 @@ database_user = {{getv "/myapp/database/user"}}
 
 ### Process the template
 
-confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd runs in the foreground processing template resources every 5 minutes by default.
+confd supports two modes of operation, daemon and onetime mode. In daemon mode, confd polls for key changes and reprocesses templates.
 
 #### etcd
 
@@ -100,7 +98,7 @@ Output:
 2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf has been updated
 ```
 
-The `dest` config should now be in sync with the template resource configuration.
+The `dest` configuration file should now be in sync.
 
 ```
 cat /tmp/myconfig.conf
