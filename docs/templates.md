@@ -7,6 +7,17 @@ Templates are written in Go's [`text/template`](http://golang.org/pkg/text/templ
 
 ## Template Functions
 
+### base
+
+Alias for the path.Base function.
+
+```
+{{with get "/key"}}
+    key: {{base .Key}}
+    value: {{.Value}}
+{{end}}
+```
+
 ### get
 
 Returns the KVPair where key matches its argument.

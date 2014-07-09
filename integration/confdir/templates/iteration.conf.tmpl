@@ -1,6 +1,6 @@
 upstream app {
-{{range getvs "/upstream/*"}}  
-  server {{.}};
+{{range gets "/upstream/*"}}  
+  server {{.Value}};
 {{end}}
 }
 
