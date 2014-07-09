@@ -106,8 +106,6 @@ database_user = rob
 
 In this example we will use confd to manage two nginx config files using a single template. 
 
-### Add two apps with upstream servers to your backend
-
 ### Add keys
 
 #### etcd
