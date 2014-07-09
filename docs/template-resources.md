@@ -11,12 +11,12 @@ Required:
 
 Optional:
 
-* `group` (string) - name of the group that should own the file.
-* `mode` (string) - mode the file should be in.
-* `owner` (string) - name of the user that should own the file.
-* `reload_cmd` (string) - command to reload config.
-* `check_cmd` (string) - command to check config. Use `{{.src}}` to reference the rendered source template.
-* `prefix` (string) - The string to prefix to keys for this resource. See [example using prefix](/docs/templates-scoped-resources.md)
+* `group` (string) - The group name that should own the file.
+* `mode` (string) - The permission mode of the file.
+* `owner` (string) - The username that should own the file.
+* `reload_cmd` (string) - The command to reload config.
+* `check_cmd` (string) - The command to check config. Use `{{.src}}` to reference the rendered source template.
+* `prefix` (string) - The string to prefix to keys.
 
 Example:
 
