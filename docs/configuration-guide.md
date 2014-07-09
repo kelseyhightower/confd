@@ -7,18 +7,18 @@ and loaded from `/etc/confd/confd.toml` by default. You can specify the config f
 
 Optional:
 
-* `backend` (string) - The backend to use. (etcd)
+* `backend` (string) - The backend to use. ("etcd")
 * `client_cakeys` (string) - The client CA key file.
 * `client_cert` (string) - The client cert file.
 * `client_key` (string) - The client key file.
-* `confdir` (string) - The path to confd configs. (/etc/confd)
+* `confdir` (string) - The path to confd configs. ("/etc/confd")
 * `debug` (bool) - Enable debug logging.
 * `interval` (int) - The backend polling interval. (600)
 * `nodes` (array of strings) - List of backend nodes. (["127.0.0.1:4001"])
 * `noop` (bool) - Enable noop mode. Process all template resources; skip target update.
-* `prefix` (string) - The string to prefix to keys.
+* `prefix` (string) - The string to prefix to keys. ("/")
 * `quiet` (bool) - Enable quiet logging.
-* `scheme` (string) - The backend URI scheme. (http or https)
+* `scheme` (string) - The backend URI scheme. ("http" or "https")
 * `srv_domain` (string) - The name of the resource record.
 * `verbose` (bool) - Enable verbose logging.
 

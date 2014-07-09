@@ -73,7 +73,7 @@ func init() {
 	flag.Var(&nodes, "node", "list of backend nodes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.StringVar(&prefix, "prefix", "", "key path prefix")
+	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")

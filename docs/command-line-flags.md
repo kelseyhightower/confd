@@ -19,7 +19,7 @@ Usage of confd:
   -node=[]: list of backend nodes
   -noop=false: only show pending changes
   -onetime=false: run once and exit
-  -prefix="": key path prefix
+  -prefix="/": key path prefix
   -quiet=false: enable quiet logging
   -scheme="http": the backend URI scheme (http or https)
   -srv-domain="": the name of the resource record

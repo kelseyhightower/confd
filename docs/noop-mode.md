@@ -2,28 +2,30 @@
 
 When in noop mode target configuration files will not be modified.
 
-Noop mode can be enabled by passing the `-noop` flag on the command line:
+## Usage
 
-```Bash
+### commandline flag
+
+```
 confd -noop
 ```
 
-Or setting `noop` to true in the confd config file (i.e. /etc/confd/confd.toml). 
+### configuration file
 
-```TOML
+```
 noop = true
 ```
 
-### Example usage
+### Example
 
-```Bash
+```
 confd -onetime -noop -verbose
 ```
 
-Output:
-```Bash
-2013-11-03T18:55:38-08:00 confd[21353]: NOTICE Starting confd
-2013-11-03T18:55:38-08:00 confd[21353]: NOTICE etcd nodes set to http://127.0.0.1:4001
-2013-11-03T18:55:38-08:00 confd[21353]: INFO /tmp/myconf2.conf has md5sum ae5c061f41de8895b6ef70803de9a455 should be 50d4ce679e1cf13e10cd9de90d258996
-2013-11-03T18:55:38-08:00 confd[21353]: WARNING Noop mode enabled /tmp/myconf2.conf will not be modified
+-
+
+```
+2014-07-08T22:30:10-07:00 confd[16397]: WARNING Skipping confd config file.
+2014-07-08T22:30:10-07:00 confd[16397]: INFO /tmp/myconfig.conf has md5sum c1924fc5c5f2698e2019080b7c043b7a should be 8e76340b541b8ee29023c001a5e4da18
+2014-07-08T22:30:10-07:00 confd[16397]: WARNING Noop mode enabled /tmp/myconfig.conf will not be modified
 ```
