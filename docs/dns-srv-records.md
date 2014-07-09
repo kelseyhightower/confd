@@ -36,13 +36,11 @@ _consul._tcp.confd.io.	300	IN	SRV	1 100 8500 consul.confd.io.
 confd -backend consul -srv-domain confd.io
 ```
 
-```
-
 ## The backend scheme
 
 By default the `scheme` will be set to http. If you would like to use https instead use the `-scheme` flag
 
-```Bash
+```
 confd -onetime -scheme https -srv-domain confd.io
 ```
 
