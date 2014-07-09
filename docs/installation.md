@@ -6,31 +6,27 @@ Currently confd ships binaries for OS X and Linux 64bit systems. You can downloa
 
 > Note: You don't need Go installed to use confd unless you plan to build from source.
 
-Download confd version 0.3.0 using wget from the command line:
-* OSX
-```Bash
-wget https://github.com/kelseyhightower/confd/releases/download/v0.3.0/confd_0.3.0_darwin_amd64.zip
+Download confd version 0.5.0 using wget from the command line:
+
+#### OS X
+
 ```
-* LINUX
-```Bash
-wget -O confd_0.3.0_linux_amd64.tar.gz https://github.com/kelseyhightower/confd/releases/download/v0.3.0/confd_0.3.0_linux_amd64.tar.gz
+wget https://github.com/kelseyhightower/confd/releases/download/v0.5.0/confd-0.5.0-darwin-amd64
 ```
 
-Unzip the confd package.
-* OSX
-```Bash
-unzip confd_0.3.0_darwin_amd64.zip
+#### Linux
+
 ```
-* LINUX
-```Bash
-tar -zxvf confd_0.3.0_linux_amd64.tar.gz
+https://github.com/kelseyhightower/confd/releases/download/v0.5.0/confd-0.5.0-linux-amd64
 ```
 
 Copy the confd binary to a bin directory in your path.
 
-```Bash
+```
 sudo mv confd /usr/local/bin/confd
+sudo chmod +x /usr/local/bin/confd
 ```
 
 ### Next Steps
+
 Get up and running with the [Quick Start Guide](https://github.com/kelseyhightower/confd/blob/master/docs/quick-start-guide.md).
