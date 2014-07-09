@@ -114,7 +114,6 @@ func (t *TemplateResource) createStageFile() error {
 
 	// Add template functions
 	tplFuncMap := make(template.FuncMap)
-	tplFuncMap["base"] = path.Base
 	tplFuncMap["get"] = t.store.Get
 	tplFuncMap["gets"] = t.store.GetAll
 	tplFuncMap["getv"] = t.store.GetValue
