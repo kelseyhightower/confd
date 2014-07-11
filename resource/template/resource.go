@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+  "encoding/json"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
@@ -133,18 +134,6 @@ func (t *TemplateResource) createStageFile() error {
     var ret []interface{}
     err = json.Unmarshal([]byte(j), &ret)
     return ret, err
-  }
-  tplFuncMap["Split"] = strings.Split
-  tplFuncMap["Join"] = strings.Join
-  tplFuncMap["RequireRegexMatch"] = func(r string, s string) (string, error) {
-    matches, err := regexp.Match(r, []byte(s))
-    if !matches {
-      return "", fmt.Errorf("'%s' does not match regex '%s'", s, r)
-    }
-    if err != nil {
-      return "", fmt.Errorf("Error parsing regex '%s' - %s", r, err)
-    }
-    return s, nil
   }
 
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
