@@ -1,0 +1,7 @@
+[template]
+mode = "0644"
+src = "service.conf.tmpl"
+dest = "/tmp/confd-service-test.conf"
+keys = [
+  "/_consul",
+]
