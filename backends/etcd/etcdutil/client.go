@@ -47,7 +47,7 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 func (c *Client) GetValues(keys []string) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	for _, key := range keys {
-		resp, err := c.client.Get(key, false, true)
+		resp, err := c.client.Get(key, true, true)
 		if err != nil {
 			return vars, err
 		}
