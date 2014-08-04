@@ -29,7 +29,7 @@ reload_cmd = "/usr/sbin/service nginx reload"
 
 ## Create a source template
 
-`/etc/confd/templates/nginx.tmpl`
+`/etc/confd/templates/myapp-nginx.tmpl`
 
 ```
 upstream myapp {
