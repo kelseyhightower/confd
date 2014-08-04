@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"encoding/json"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
@@ -123,6 +124,18 @@ func (t *TemplateResource) createStageFile() error {
 
 	tplFuncMap["GetDir"] = t.Dirs.Get
 	tplFuncMap["MapDir"] = mapNodes
+
+	tplFuncMap["JsonUnmarshalObject"] = func(j string) (map[string]interface{}, error) {
+	var ret map[string]interface{}
+		err = json.Unmarshal([]byte(j), &ret)
+		return ret, err
+	}
+	tplFuncMap["JsonUnmarshalArray"] = func(j string) ([]interface{}, error) {
+	var ret []interface{}
+		err = json.Unmarshal([]byte(j), &ret)
+		return ret, err
+	}
+
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
