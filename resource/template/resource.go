@@ -74,7 +74,7 @@ func New(path string, config Config) (*TemplateResource, error) {
 	tr.store = memkv.New()
 	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
 	if tr.Src == "" {
-		return nil, ErrEmptySrc 
+		return nil, ErrEmptySrc
 	}
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
 	return &tr, nil
