@@ -1,0 +1,25 @@
+# All web services
+[all]
+{{range gets "/_consul/service/rails/*"}}{{$service := (json .Value)}}
+server {{$service.Node.Address}}:{{$service.Service.Port}}
+{{end}}
+
+[v1]
+{{range gets "/_consul/service/rails/v1/*"}}{{$service := (json .Value)}}
+server {{$service.Node.Address}}:{{$service.Service.Port}}
+{{end}}
+
+[v2]
+{{range gets "/_consul/service/rails/v2/*"}}{{$service := (json .Value)}}
+server {{$service.Node.Address}}:{{$service.Service.Port}}
+{{end}}
+
+[master]
+{{range gets "/_consul/service/rails/master/*"}}{{$service := (json .Value)}}
+server {{$service.Node.Address}}:{{$service.Service.Port}}
+{{end}}
+
+[slave]
+{{range gets "/_consul/service/rails/slave/*"}}{{$service := (json .Value)}}
+server {{$service.Node.Address}}:{{$service.Service.Port}}
+{{end}}
