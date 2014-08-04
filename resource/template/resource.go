@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"encoding/json"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
@@ -115,10 +116,14 @@ func (t *TemplateResource) createStageFile() error {
 	// Add template functions
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["base"] = path.Base
+	tplFuncMap["parent"] = path.Dir
+	tplFuncMap["sibling"] = t.GetSibling
 	tplFuncMap["get"] = t.store.Get
 	tplFuncMap["gets"] = t.store.GetAll
 	tplFuncMap["getv"] = t.store.GetValue
 	tplFuncMap["getvs"] = t.store.GetAllValues
+	tplFuncMap["json"] = t.UnmarshalJsonObject
+	tplFuncMap["jsonArray"] = t.UnmarshalJsonArray
 
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, nil); err != nil {
@@ -253,6 +258,22 @@ func (t *TemplateResource) setFileMode() error {
 		t.FileMode = os.FileMode(mode)
 	}
 	return nil
+}
+
+func (t *TemplateResource) UnmarshalJsonObject(data string) (map[string]interface{}, error) {
+	var ret map[string]interface{}
+	err := json.Unmarshal([]byte(data), &ret)
+	return ret, err
+}
+
+func (t *TemplateResource) UnmarshalJsonArray(data string) ([]interface{}, error) {
+	var ret []interface{}
+	err := json.Unmarshal([]byte(data), &ret)
+	return ret, err
+}
+
+func (t *TemplateResource) GetSibling(origin string, newKey string) (memkv.KVPair, error) {
+	return t.store.Get(path.Join("/", path.Dir(origin), newKey))
 }
 
 // ProcessTemplateResources is a convenience function that loads all the
