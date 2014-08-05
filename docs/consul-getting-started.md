@@ -57,7 +57,7 @@ confd supports two modes of operation, daemon and onetime mode. In daemon mode, 
 Assuming your consul server is running at http://127.0.0.1:8500 you can run the following command to process the `~/confd/conf.d/myconfig.toml` template resource:
 
 ```
-confd -verbose -onetime -consul -consul-addr 127.0.0.1:8500 -confdir ~/confd
+confd -verbose -onetime -backend consul -node 127.0.0.1:8500 -confdir ~/confd
 ```
 Output:
 ```
