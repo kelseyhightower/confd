@@ -24,12 +24,13 @@ import (
 )
 
 type Config struct {
-	ConfDir     string
-	ConfigDir   string
-	Noop        bool
-	Prefix      string
-	StoreClient backends.StoreClient
-	TemplateDir string
+	ConfDir       string
+	ConfigDir     string
+	KeepStageFile bool
+	Noop          bool
+	Prefix        string
+	StoreClient   backends.StoreClient
+	TemplateDir   string
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -39,21 +40,22 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
-	CheckCmd    string `toml:"check_cmd"`
-	Dest        string
-	FileMode    os.FileMode
-	Gid         int
-	Keys        []string
-	Mode        string
-	Prefix      string
-	ReloadCmd   string `toml:"reload_cmd"`
-	Src         string
-	StageFile   *os.File
-	Uid         int
-	noop        bool
-	prefix      string
-	store       memkv.Store
-	storeClient backends.StoreClient
+	CheckCmd      string `toml:"check_cmd"`
+	Dest          string
+	FileMode      os.FileMode
+	Gid           int
+	Keys          []string
+	Mode          string
+	Prefix        string
+	ReloadCmd     string `toml:"reload_cmd"`
+	Src           string
+	StageFile     *os.File
+	Uid           int
+	keepStageFile bool
+	noop          bool
+	prefix        string
+	store         memkv.Store
+	storeClient   backends.StoreClient
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -70,6 +72,7 @@ func New(path string, config Config) (*TemplateResource, error) {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
 	tr := tc.TemplateResource
+	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
 	tr.storeClient = config.StoreClient
 	tr.store = memkv.New()
@@ -144,7 +147,11 @@ func (t *TemplateResource) createStageFile() error {
 // It returns an error if any.
 func (t *TemplateResource) sync() error {
 	staged := t.StageFile.Name()
-	defer os.Remove(staged)
+	if t.keepStageFile {
+		log.Info("Keeping staged file: " + staged)
+	} else {
+		defer os.Remove(staged)
+	}
 	log.Debug("Comparing candidate config to " + t.Dest)
 	ok, err := sameConfig(staged, t.Dest)
 	if err != nil {

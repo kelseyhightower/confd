@@ -16,6 +16,7 @@ Usage of confd:
   -config-file="": the confd config file
   -debug=false: enable debug logging
   -interval=600: backend polling interval
+  -keep-stage-file=false: keep staged files
   -node=[]: list of backend nodes
   -noop=false: only show pending changes
   -onetime=false: run once and exit

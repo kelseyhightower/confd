@@ -30,6 +30,7 @@ var (
 	config            Config // holds the global confd config.
 	debug             bool
 	interval          int
+	keepStageFile     bool
 	nodes             Nodes
 	noop              bool
 	onetime           bool
@@ -70,6 +71,7 @@ func init() {
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
+	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.Var(&nodes, "node", "list of backend nodes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
@@ -143,11 +145,12 @@ func initConfig() error {
 	}
 	// Template configuration.
 	templateConfig = template.Config{
-		ConfDir:     config.ConfDir,
-		ConfigDir:   filepath.Join(config.ConfDir, "conf.d"),
-		Noop:        config.Noop,
-		Prefix:      config.Prefix,
-		TemplateDir: filepath.Join(config.ConfDir, "templates"),
+		ConfDir:       config.ConfDir,
+		ConfigDir:     filepath.Join(config.ConfDir, "conf.d"),
+		KeepStageFile: keepStageFile,
+		Noop:          config.Noop,
+		Prefix:        config.Prefix,
+		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
 	}
 	return nil
 }
