@@ -1,10 +1,13 @@
 {
 	"ImportPath": "github.com/kelseyhightower/confd",
 	"GoVersion": "go1.3",
+	"Packages": [
+		"."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
-			"Rev": "890ff2dcee0c5b7fc3c7453325d8146aaf1850c1"
+			"Rev": "2ceedfee35ad3848e49308ab0c9a4f640cfb5fb2"
 		},
 		{
 			"ImportPath": "github.com/armon/consul-api",
@@ -12,12 +15,12 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.2.0-rc1-106-g26f4504",
-			"Rev": "26f4504e71d6abefd467eb44a02ff15b933b6eb6"
+			"Comment": "v0.2.0-rc1-120-g23142f6",
+			"Rev": "23142f6773a676cc2cae8dd0cb90b2ea761c853f"
 		},
 		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
-			"Rev": "0ccfc221d5b753984821ee1e6fb27b8eb0cf5e15"
+			"Rev": "752d630b47eca8d5b192402b3dae6df6049391cc"
 		}
 	]
 }

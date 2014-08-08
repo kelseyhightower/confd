@@ -27,14 +27,14 @@ func New() Store {
 	return Store{m: make(map[string]KVPair)}
 }
 
-// Delete deletes the Node associated with key.
+// Delete deletes the KVPair associated with key.
 func (s Store) Del(key string) {
 	s.Lock()
 	delete(s.m, key)
 	s.Unlock()
 }
 
-// Get gets the value associated with key. If there are no values
+// Get gets the KVPair associated with key. If there is no KVPair
 // associated with key, Get returns KVPair{}, ErrNotExist.
 func (s Store) Get(key string) (KVPair, error) {
 	s.RLock()
@@ -46,6 +46,8 @@ func (s Store) Get(key string) (KVPair, error) {
 	return kv, nil
 }
 
+// GetValue gets the value associated with key. If there are no values
+// associated with key, GetValue returns "", ErrNotExist.
 func (s Store) GetValue(key string) (string, error) {
 	kv, err := s.Get(key)
 	if err != nil {
@@ -54,7 +56,7 @@ func (s Store) GetValue(key string) (string, error) {
 	return kv.Value, nil
 }
 
-// GetAll returns a memkv.KVPair for all nodes with keys matching pattern.
+// GetAll returns a KVPair for all nodes with keys matching pattern.
 // The syntax of patterns is the same as in filepath.Match.
 func (s Store) GetAll(pattern string) (KVPairs, error) {
 	ks := make(KVPairs, 0)
