@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -222,7 +221,7 @@ func (c *Client) pathURL(key string) *url.URL {
 	url := &url.URL{
 		Scheme: "http",
 		Host:   c.config.Address,
-		Path:   path.Join("/v1/kv/", key),
+		Path:   "/v1/kv/" + strings.TrimPrefix(key, "/"),
 	}
 	if c.config.Datacenter != "" {
 		query := url.Query()

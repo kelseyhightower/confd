@@ -1,3 +1,4 @@
+// Command tomlv validates TOML documents and prints each key's type.
 package main
 
 import (

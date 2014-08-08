@@ -1,7 +1,11 @@
 consul-kv
 =========
 
-This package provides the `consulkv` package which is a Key/Value client for Consul. It supports all the commands, and has a very simple API.
+*DEPRECATED* Please use [consul-api](https://github.com/armon/consul-api) instead.
+
+This package provides the `consulkv` package which is a Key/Value
+client for Consul. It supports all the commands as of Consul 0.1,
+and has a very simple API.
 
 Documentation
 =============

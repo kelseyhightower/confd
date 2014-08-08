@@ -3,7 +3,7 @@
 If Go is installed, it's simple to try it out:
 
 ```bash
-go get github.com/BurntSushi/toml/tomlv
+go get github.com/BurntSushi/toml/cmd/tomlv
 tomlv some-toml-file.toml
 ```
 
