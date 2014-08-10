@@ -20,7 +20,7 @@ Alias for the path.Base function.
 
 ### get
 
-Returns the KVPair where key matches its argument.
+Returns the KVPair where key matches its argument. Returns an error if key is not found.
 
 ```
 {{with get "/key"}}
@@ -31,7 +31,7 @@ Returns the KVPair where key matches its argument.
 
 ### gets
 
-Returns all KVPair, []KVPair, where key matches its argument.
+Returns all KVPair, []KVPair, where key matches its argument. Returns an error if key is not found.
 
 ```
 {{range gets "/*"}}
@@ -42,7 +42,7 @@ Returns all KVPair, []KVPair, where key matches its argument.
 
 ### getv
 
-Returns the value as a string where key matches its argument.
+Returns the value as a string where key matches its argument. Returns an error if key is not found.
 
 ```
 value: {{getv "/key"}}
@@ -50,11 +50,31 @@ value: {{getv "/key"}}
 
 ### getvs
 
-Returns all values, []string, where key matches its argument.
+Returns all values, []string, where key matches its argument. Returns an error if key is not found.
 
 ```
 {{range getvs "/*"}}
     value: {{.}}
+{{end}}
+```
+
+### ls
+
+Returns all subkeys, []string, where path matches its argument. Returns an empty list if path is not found.
+
+```
+{{range ls "/deis/services"}}
+   value: {{.}}
+{{end}}
+```
+
+### lsdir
+
+Returns all subkeys, []string, where path matches its argument. It only returns subkeys that also have subkeys. Returns an empty list if path is not found.
+
+```
+{{range lsdir "/deis/services"}}
+   value: {{.}}
 {{end}}
 ```
 

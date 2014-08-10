@@ -92,3 +92,39 @@ func TestDel(t *testing.T) {
 	}
 	s.Del("/app/port")
 }
+
+var listTestMap = map[string]string{
+	"/deis/database/user":            "user",
+	"/deis/database/pass":            "pass",
+	"/deis/services/key":             "value",
+	"/deis/services/notaservice/foo": "bar",
+	"/deis/services/srv1/node1":      "10.244.1.1:80",
+	"/deis/services/srv1/node2":      "10.244.1.2:80",
+	"/deis/services/srv1/node3":      "10.244.1.3:80",
+	"/deis/services/srv2/node1":      "10.244.2.1:80",
+	"/deis/services/srv2/node2":      "10.244.2.2:80",
+}
+
+func TestList(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"key", "notaservice", "srv1", "srv2"}
+	got := s.List("/deis/services")
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
+	}
+}
+
+func TestListDir(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"notaservice", "srv1", "srv2"}
+	got := s.ListDir("/deis/services")
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
+	}
+}

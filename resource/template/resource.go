@@ -119,14 +119,16 @@ func (t *TemplateResource) createStageFile() error {
 	// Add template functions
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["base"] = path.Base
-	tplFuncMap["parent"] = path.Dir
-	tplFuncMap["sibling"] = t.GetSibling
+	tplFuncMap["ls"] = t.store.List
+	tplFuncMap["lsdir"] = t.store.ListDir
 	tplFuncMap["get"] = t.store.Get
 	tplFuncMap["gets"] = t.store.GetAll
 	tplFuncMap["getv"] = t.store.GetValue
 	tplFuncMap["getvs"] = t.store.GetAllValues
 	tplFuncMap["json"] = t.UnmarshalJsonObject
 	tplFuncMap["jsonArray"] = t.UnmarshalJsonArray
+	tplFuncMap["sibling"] = t.GetSibling
+	tplFuncMap["parent"] = path.Dir
 
 	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, nil); err != nil {

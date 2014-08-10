@@ -9,6 +9,7 @@ import (
 	"errors"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -88,6 +89,46 @@ func (s Store) GetAllValues(pattern string) ([]string, error) {
 		vs = append(vs, kv.Value)
 	}
 	return vs, nil
+}
+
+func (s Store) List(path string) []string {
+	vs := make([]string, 0)
+	m := make(map[string]bool)
+	s.RLock()
+	defer s.RUnlock()
+	for _, kv := range s.m {
+		if strings.HasPrefix(kv.Key, path) {
+			strippedKey := strings.TrimPrefix(kv.Key, path)
+			m[strings.SplitN(strippedKey[1:], "/", 2)[0]] = true
+		}
+	}
+	for k := range m {
+		vs = append(vs, k)
+	}
+	sort.Strings(vs)
+	return vs
+}
+
+func (s Store) ListDir(path string) []string {
+	vs := make([]string, 0)
+	m := make(map[string]bool)
+	s.RLock()
+	defer s.RUnlock()
+	for _, kv := range s.m {
+		if strings.HasPrefix(kv.Key, path) {
+			strippedKey := strings.TrimPrefix(kv.Key, path)
+			items := strings.SplitN(strippedKey[1:], "/", 2)
+			if len(items) < 2 {
+				continue
+			}
+			m[items[0]] = true
+		}
+	}
+	for k := range m {
+		vs = append(vs, k)
+	}
+	sort.Strings(vs)
+	return vs
 }
 
 // Set sets the KVPair entry associated with key to value.
