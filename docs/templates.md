@@ -58,6 +58,38 @@ Returns all values, []string, where key matches its argument. Returns an error i
 {{end}}
 ```
 
+### json
+
+Returns an map[string]interface{} of the json value.
+
+#### Add keys to etcd
+
+```
+etcdctl set /services/zookeeper/host1 '{"Id":"host1", "IP":"192.168.10.11"}'
+etcdctl set /services/zookeeper/host2 '{"Id":"host2", "IP":"192.168.10.12"}'
+```
+
+#### Create the template resource
+
+```
+[template]
+src = "services.conf.tmpl"
+dest = "/tmp/services.conf"
+keys = [
+  "/services/zookeeper/"
+]
+```
+
+#### Create the template
+
+```
+{{range gets "/services/zookeeper/*"}}
+{{$data := json .Value}}
+  id: {{$data.Id}}
+  ip: {{$data.IP}}
+{{end}}
+```
+
 ### ls
 
 Returns all subkeys, []string, where path matches its argument. Returns an empty list if path is not found.
