@@ -177,4 +177,50 @@ server {
 }
 ```
 
+### Complex example
+
+This examples show how to use a combination of the templates functions to do nested iteration.
+
+#### Add keys to etcd
+
+```
+etcdctl mkdir /services/web/cust1/
+etcdctl mkdir /services/web/cust2/
+etcdctl set /services/web/cust1/2 '{"IP": "10.0.0.2"}'
+etcdctl set /services/web/cust2/2 '{"IP": "10.0.0.4"}'
+etcdctl set /services/web/cust2/1 '{"IP": "10.0.0.3"}'
+etcdctl set /services/web/cust1/1 '{"IP": "10.0.0.1"}'
+```
+
+#### Create the template resource
+
+```
+[template]
+src = "services.conf.tmpl"
+dest = "/tmp/services.conf"
+keys = [
+  "/services/web"
+]
+```
+
+#### Create the template
+
+```
+{{range $dir := lsdir "/services/web"}}
+upstream {{base $dir}} {
+    {{$custdir := printf "/services/web/%s/*" $dir}}{{range gets $custdir}}
+    server {{$data := json .Value}}{{$data.IP}}:80;
+    {{end}}
+}
+
+server {
+    server_name {{base $dir}}.example.com;
+    location / {
+        proxy_pass {{base $dir}};
+    }
+}
+{{end}}
+```
+
 Go's [`text/template`](http://golang.org/pkg/text/template/) package is very powerful. For more details on it's capabilities see its [documentation.](http://golang.org/pkg/text/template/)
+
