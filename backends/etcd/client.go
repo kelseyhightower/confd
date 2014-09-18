@@ -19,8 +19,9 @@ type Client struct {
 // It returns an error if a connection to the cluster cannot be made.
 func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client, error) {
 	var c *goetcd.Client
+	var err error
 	if cert != "" && key != "" {
-		c, err := goetcd.NewTLSClient(machines, cert, key, caCert)
+		c, err = goetcd.NewTLSClient(machines, cert, key, caCert)
 		if err != nil {
 			return &Client{c}, err
 		}
