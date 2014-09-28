@@ -181,7 +181,7 @@ func (t *TemplateResource) sync() error {
 		}
 		log.Info("Target config " + t.Dest + " has been updated")
 	} else {
-		log.Info("Target config " + t.Dest + " in sync")
+		log.Debug("Target config " + t.Dest + " in sync")
 	}
 	return nil
 }
