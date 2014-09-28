@@ -20,6 +20,7 @@ Before we begin be sure to [download and install confd](docs/installation.md).
 
 * [etcd](docs/etcd-getting-started.md)
 * [consul](docs/consul-getting-started.md)
+* [env](docs/env-getting-started.md)
 
 ## Next steps
 
