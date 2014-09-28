@@ -125,6 +125,7 @@ func (t *TemplateResource) createStageFile() error {
 	tplFuncMap["gets"] = t.store.GetAll
 	tplFuncMap["getv"] = t.store.GetValue
 	tplFuncMap["getvs"] = t.store.GetAllValues
+	tplFuncMap["split"] = strings.Split
 	tplFuncMap["json"] = t.UnmarshalJsonObject
 	tplFuncMap["jsonArray"] = t.UnmarshalJsonArray
 	tplFuncMap["sibling"] = t.GetSibling

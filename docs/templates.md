@@ -58,6 +58,17 @@ Returns all values, []string, where key matches its argument. Returns an error i
 {{end}}
 ```
 
+### split
+
+Wrapper for [strings.Split](http://golang.org/pkg/strings/#Split). Splits the input string on the separating string and returns a slice of substrings.
+
+```
+{{ $url := split (getv "/deis/service") ":" }}
+    host: {{index $url 0}}
+    port: {{index $url 1}}
+{{end}}
+```
+
 ### json
 
 Returns an map[string]interface{} of the json value.
