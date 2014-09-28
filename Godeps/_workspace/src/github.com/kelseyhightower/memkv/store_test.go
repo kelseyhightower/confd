@@ -117,6 +117,18 @@ func TestList(t *testing.T) {
 	}
 }
 
+func TestListForFile(t *testing.T) {
+	s := New()
+	for k, v := range listTestMap {
+		s.Set(k, v)
+	}
+	want := []string{"key"}
+	got := s.List("/deis/services/key")
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
+	}
+}
+
 func TestListDir(t *testing.T) {
 	s := New()
 	for k, v := range listTestMap {

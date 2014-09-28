@@ -7,6 +7,7 @@ package memkv
 
 import (
 	"errors"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -91,14 +92,16 @@ func (s Store) GetAllValues(pattern string) ([]string, error) {
 	return vs, nil
 }
 
-func (s Store) List(path string) []string {
+func (s Store) List(filePath string) []string {
 	vs := make([]string, 0)
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
 	for _, kv := range s.m {
-		if strings.HasPrefix(kv.Key, path) {
-			strippedKey := strings.TrimPrefix(kv.Key, path)
+		if kv.Key == filePath {
+			m[path.Base(kv.Key)] = true
+		} else if strings.HasPrefix(kv.Key, filePath) {
+			strippedKey := strings.TrimPrefix(kv.Key, filePath)
 			m[strings.SplitN(strippedKey[1:], "/", 2)[0]] = true
 		}
 	}
@@ -109,14 +112,14 @@ func (s Store) List(path string) []string {
 	return vs
 }
 
-func (s Store) ListDir(path string) []string {
+func (s Store) ListDir(filePath string) []string {
 	vs := make([]string, 0)
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
 	for _, kv := range s.m {
-		if strings.HasPrefix(kv.Key, path) {
-			strippedKey := strings.TrimPrefix(kv.Key, path)
+		if strings.HasPrefix(kv.Key, filePath) {
+			strippedKey := strings.TrimPrefix(kv.Key, filePath)
 			items := strings.SplitN(strippedKey[1:], "/", 2)
 			if len(items) < 2 {
 				continue

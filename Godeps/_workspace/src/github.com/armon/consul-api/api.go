@@ -33,6 +33,10 @@ type QueryOptions struct {
 	// WaitTime is used to bound the duration of a wait.
 	// Defaults to that of the Config, but can be overriden.
 	WaitTime time.Duration
+
+	// Token is used to provide a per-request ACL token
+	// which overrides the agent's default token.
+	Token string
 }
 
 // WriteOptions are used to parameterize a write
@@ -40,6 +44,10 @@ type WriteOptions struct {
 	// Providing a datacenter overwrites the DC provided
 	// by the Config
 	Datacenter string
+
+	// Token is used to provide a per-request ACL token
+	// which overrides the agent's default token.
+	Token string
 }
 
 // QueryMeta is used to return meta data about a query
@@ -80,6 +88,10 @@ type Config struct {
 	// WaitTime limits how long a Watch will block. If not provided,
 	// the agent default values will be used.
 	WaitTime time.Duration
+
+	// Token is used to provide a per-request ACL token
+	// which overrides the agent's default token.
+	Token string
 }
 
 // DefaultConfig returns a default configuration for the client
@@ -136,6 +148,11 @@ func (r *request) setQueryOptions(q *QueryOptions) {
 	} else if r.config.WaitTime != 0 {
 		r.params.Set("wait", durToMsec(r.config.WaitTime))
 	}
+	if q.Token != "" {
+		r.params.Set("token", q.Token)
+	} else if r.config.Token != "" {
+		r.params.Set("token", r.config.Token)
+	}
 }
 
 // durToMsec converts a duration to a millisecond specified string
@@ -151,6 +168,11 @@ func (r *request) setWriteOptions(q *WriteOptions) {
 	}
 	if q.Datacenter != "" {
 		r.params.Set("dc", q.Datacenter)
+	}
+	if q.Token != "" {
+		r.params.Set("token", q.Token)
+	} else if r.config.Token != "" {
+		r.params.Set("token", r.config.Token)
 	}
 }
 

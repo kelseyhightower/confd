@@ -40,6 +40,7 @@ func TestSetQueryOptions(t *testing.T) {
 		RequireConsistent: true,
 		WaitIndex:         1000,
 		WaitTime:          100 * time.Second,
+		Token:             "12345",
 	}
 	r.setQueryOptions(q)
 
@@ -58,6 +59,9 @@ func TestSetQueryOptions(t *testing.T) {
 	if r.params.Get("wait") != "100000ms" {
 		t.Fatalf("bad: %v", r.params)
 	}
+	if r.params.Get("token") != "12345" {
+		t.Fatalf("bad: %v", r.params)
+	}
 }
 
 func TestSetWriteOptions(t *testing.T) {
@@ -65,10 +69,14 @@ func TestSetWriteOptions(t *testing.T) {
 	r := c.newRequest("GET", "/v1/kv/foo")
 	q := &WriteOptions{
 		Datacenter: "foo",
+		Token:      "23456",
 	}
 	r.setWriteOptions(q)
 
 	if r.params.Get("dc") != "foo" {
+		t.Fatalf("bad: %v", r.params)
+	}
+	if r.params.Get("token") != "23456" {
 		t.Fatalf("bad: %v", r.params)
 	}
 }

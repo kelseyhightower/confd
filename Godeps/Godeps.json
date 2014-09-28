@@ -8,7 +8,7 @@
 		},
 		{
 			"ImportPath": "github.com/armon/consul-api",
-			"Rev": "3f6088258421750d48dfdbdbf19660ad57bd38c7"
+			"Rev": "f79efe463cdbb62f6d5a55f879a63ec554eb13e5"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
@@ -17,7 +17,7 @@
 		},
 		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
-			"Rev": "1204f2b3fda3ac05014e637a7ad78e9049a691fa"
+			"Rev": "69b0a1f1ed167c58525f35129cca822767096ae5"
 		}
 	]
 }
