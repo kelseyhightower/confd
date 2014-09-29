@@ -66,7 +66,6 @@ Wrapper for [strings.Split](http://golang.org/pkg/strings/#Split). Splits the in
 {{ $url := split (getv "/deis/service") ":" }}
     host: {{index $url 0}}
     port: {{index $url 1}}
-{{end}}
 ```
 
 ### json
@@ -101,6 +100,16 @@ keys = [
 {{end}}
 ```
 
+### jsonArray
+
+Returns a []interface{} from a json array such as `["a", "b", "c"]`.
+
+```
+{{range jsonArray (getv "/services/data/")}
+val: {{.}}
+{{end}}
+```
+
 ### ls
 
 Returns all subkeys, []string, where path matches its argument. Returns an empty list if path is not found.
@@ -118,6 +127,25 @@ Returns all subkeys, []string, where path matches its argument. It only returns 
 ```
 {{range lsdir "/deis/services"}}
    value: {{.}}
+{{end}}
+```
+
+### sibling
+
+Returns the sibling element following the same base path but with the second argument as key.
+```
+{{with sibling "/services/data/url" "user"}}
+   key: {{.Key}}
+   value: {{.Value}}
+{{end}}
+```
+
+### parent
+
+Returns the parent directory of a given key.
+```
+{{with parent "/services/data/url"}}
+parent: {{.}}
 {{end}}
 ```
 
