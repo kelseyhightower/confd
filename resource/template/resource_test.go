@@ -36,6 +36,16 @@ func (m *MockStore) GetValues(keys []string) (map[string]interface{}, error) {
 	return vals, nil
 }
 
+func (m *MockStore) WatchValues(keys []string, varChan chan map[string]interface{}) error {
+	vals, err := m.GetValues(keys)
+	if err != nil {
+		return err
+	}
+	varChan <- vals
+	close(varChan)
+	return nil
+}
+
 func (m *MockStore) AddKey(key string, value string) {
 	m.Keys = append(m.Keys, &MockKey{key, value})
 }
@@ -208,12 +218,86 @@ func TestProcessTemplateResourcesWithPrefix(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 	config.SetPrefix("")
+
 	// Use the temporary tempConfDir from above.
 	config.SetConfDir(tempConfDir)
 
 	// Create the stub etcd client.
 	c := &MockStore{}
 	c.AddKey("/template_prefix/foo", "bar")
+
+	// Process the test template resource.
+	runErrors := ProcessTemplateResources(c)
+	if len(runErrors) > 0 {
+		for _, e := range runErrors {
+			t.Errorf(e.Error())
+		}
+	}
+	// Verify the results.
+	expected := "foo = bar"
+	results, err := ioutil.ReadFile(destFile.Name())
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if string(results) != expected {
+		t.Errorf("Expected contents of dest == '%s', got %s", expected, string(results))
+	}
+}
+
+func TestProcessTemplateResourcesWatch(t *testing.T) {
+	log.SetQuiet(true)
+	// Setup temporary conf, config, and template directories.
+	tempConfDir, err := createTempDirs()
+	if err != nil {
+		t.Errorf("Failed to create temp dirs: %s", err.Error())
+	}
+	defer os.RemoveAll(tempConfDir)
+
+	// Create the src template.
+	srcTemplateFile := filepath.Join(tempConfDir, "templates", "foo.tmpl")
+	err = ioutil.WriteFile(srcTemplateFile, []byte("foo = {{ .foo }}"), 0644)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	// Create the dest.
+	destFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Errorf("Failed to create destFile: %s", err.Error())
+	}
+	defer os.Remove(destFile.Name())
+
+	// Create the template resource configuration file.
+	templateResourcePath := filepath.Join(tempConfDir, "conf.d", "foo.toml")
+	templateResourceFile, err := os.Create(templateResourcePath)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	tmpl, err := template.New("templateResourceConfig").Parse(templateResourceConfigTmpl)
+	if err != nil {
+		t.Errorf("Unable to parse template resource template: %s", err.Error())
+	}
+	data := make(map[string]string)
+	data["src"] = "foo.tmpl"
+	data["dest"] = destFile.Name()
+	err = tmpl.Execute(templateResourceFile, data)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	// Load the confd configuration settings.
+	if err := config.LoadConfig(""); err != nil {
+		t.Errorf(err.Error())
+	}
+	config.SetPrefix("")
+	// set watch mode
+	config.SetWatch(true)
+	// Use the temporary tempConfDir from above.
+	config.SetConfDir(tempConfDir)
+
+	// Create the stub etcd client.
+	c := &MockStore{}
+	c.AddKey("/foo", "bar")
 
 	// Process the test template resource.
 	runErrors := ProcessTemplateResources(c)

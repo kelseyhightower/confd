@@ -41,6 +41,7 @@ type TemplateResource struct {
 	Prefix      string
 	StageFile   *os.File
 	Src         string
+	SrcPath     string
 	Vars        map[string]interface{}
 	Dirs        node.Directory
 	storeClient backends.StoreClient
@@ -64,17 +65,34 @@ func NewTemplateResourceFromPath(path string, s backends.StoreClient) (*Template
 }
 
 // setVars sets the Vars for template resource.
-func (t *TemplateResource) setVars() error {
-	var err error
+func (t *TemplateResource) setVars(continueChan chan bool) error {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.prefix())
-	vars, err := t.storeClient.GetValues(appendPrefix(t.prefix(), t.Keys))
-	if err != nil {
-		return err
+	if continueChan == nil {
+		vars, err := t.storeClient.GetValues(appendPrefix(t.prefix(), t.Keys))
+		if err != nil {
+			return err
+		}
+		t.setDirs(vars)
+		t.Vars = cleanKeys(vars, t.prefix())
+		return nil
 	}
-	t.setDirs(vars)
-	t.Vars = cleanKeys(vars, t.prefix())
-	return nil
+
+	varChan := make(chan map[string]interface{})
+	defer close(continueChan)
+
+	go t.storeClient.WatchValues(appendPrefix(t.prefix(), t.Keys), varChan)
+	for {
+		select {
+		case vars, ok := <-varChan:
+			if !ok {
+				return nil
+			}
+			t.setDirs(vars)
+			t.Vars = cleanKeys(vars, t.prefix())
+			continueChan <- true
+		}
+	}
 }
 
 func (t *TemplateResource) prefix() string {
@@ -106,10 +124,10 @@ func (t *TemplateResource) setDirs(vars map[string]interface{}) {
 // StageFile for the template resource.
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
-	t.Src = filepath.Join(config.TemplateDir(), t.Src)
-	log.Debug("Using source template " + t.Src)
-	if !isFileExist(t.Src) {
-		return errors.New("Missing template: " + t.Src)
+	t.SrcPath = filepath.Join(config.TemplateDir(), t.Src)
+	log.Debug("Using source template " + t.SrcPath)
+	if !isFileExist(t.SrcPath) {
+		return errors.New("Missing template: " + t.SrcPath)
 	}
 	// create TempFile in Dest directory to avoid cross-filesystem issues
 	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
@@ -117,13 +135,13 @@ func (t *TemplateResource) createStageFile() error {
 		return err
 	}
 	defer temp.Close()
-	log.Debug("Compiling source template " + t.Src)
+	log.Debug("Compiling source template " + t.SrcPath)
 	tplFuncMap := make(template.FuncMap)
 	tplFuncMap["Base"] = path.Base
 
 	tplFuncMap["GetDir"] = t.Dirs.Get
 	tplFuncMap["MapDir"] = mapNodes
-	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
+	tmpl := template.Must(template.New(path.Base(t.SrcPath)).Funcs(tplFuncMap).ParseFiles(t.SrcPath))
 	if err = tmpl.Execute(temp, t.Vars); err != nil {
 		return err
 	}
@@ -242,16 +260,34 @@ func (t *TemplateResource) process() error {
 	if err := t.setFileMode(); err != nil {
 		return err
 	}
-	if err := t.setVars(); err != nil {
-		return err
+
+	if !config.Watch() {
+		if err := t.setVars(nil); err != nil {
+			return err
+		}
+		if err := t.createStageFile(); err != nil {
+			return err
+		}
+		if err := t.sync(); err != nil {
+			return err
+		}
+		return nil
 	}
-	if err := t.createStageFile(); err != nil {
-		return err
+
+	continueChannel := make(chan bool)
+	go t.setVars(continueChannel)
+	for {
+		_, ok := <-continueChannel
+		if !ok {
+			return nil
+		}
+		if err := t.createStageFile(); err != nil {
+			return err
+		}
+		if err := t.sync(); err != nil {
+			return err
+		}
 	}
-	if err := t.sync(); err != nil {
-		return err
-	}
-	return nil
 }
 
 // setFileMode sets the FileMode.

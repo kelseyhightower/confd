@@ -29,6 +29,7 @@ var (
 	etcdNodes    Nodes
 	etcdScheme   string
 	interval     int
+	watch	     bool
 	noop         bool
 	prefix       string
 	quiet        bool
@@ -54,6 +55,7 @@ type confd struct {
 	EtcdNodes    []string `toml:"etcd_nodes"`
 	EtcdScheme   string   `toml:"etcd_scheme"`
 	Interval     int      `toml:"interval"`
+	Watch        bool     `toml:"watch"`
 	Noop         bool     `toml:"noop"`
 	Prefix       string   `toml:"prefix"`
 	Quiet        bool     `toml:"quiet"`
@@ -73,6 +75,7 @@ func init() {
 	flag.Var(&etcdNodes, "node", "list of etcd nodes")
 	flag.StringVar(&etcdScheme, "etcd-scheme", "http", "the etcd URI scheme. (http or https)")
 	flag.IntVar(&interval, "interval", 600, "etcd polling interval")
+	flag.BoolVar(&watch, "watch", false, "watch backend for changes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes, don't sync configs.")
 	flag.StringVar(&prefix, "prefix", "/", "etcd key path prefix")
 	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging. Only error messages are printed.")
@@ -167,6 +170,11 @@ func Interval() int {
 	return config.Confd.Interval
 }
 
+// Watch reports whether watch mode is enabled.
+func Watch() bool {
+	return config.Confd.Watch
+}
+
 // Noop reports whether noop mode is enabled.
 func Noop() bool {
 	return config.Confd.Noop
@@ -190,6 +198,11 @@ func Verbose() bool {
 // SetConfDir sets the confd conf dir.
 func SetConfDir(path string) {
 	config.Confd.ConfDir = path
+}
+
+// SetWatch sets watch mode.
+func SetWatch(enabled bool) {
+	config.Confd.Watch = enabled
 }
 
 // SetNoop sets noop.
@@ -305,6 +318,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Confd.EtcdScheme = etcdScheme
 	case "interval":
 		config.Confd.Interval = interval
+	case "watch":
+		config.Confd.Watch = watch
 	case "noop":
 		config.Confd.Noop = noop
 	case "prefix":

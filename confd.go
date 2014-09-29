@@ -49,6 +49,10 @@ func main() {
 	if err := config.LoadConfig(configFile); err != nil {
 		log.Fatal(err.Error())
 	}
+	// a `onetime` flag should override `watch`
+	if onetime {
+		config.SetWatch(false)
+	}
 	// Configure logging. While you can enable debug and verbose logging, however
 	// if quiet is set to true then debug and verbose messages will not be printed.
 	log.SetQuiet(config.Quiet())

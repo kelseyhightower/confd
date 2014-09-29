@@ -24,6 +24,7 @@ Optional:
 * `interval` (int) - The number of seconds to wait between calls to etcd. The
   default is 600.
 * `noop` (bool) - Enable noop mode. Process all template resource, but don't update target config.
+* `watch` (bool) - Watch backend for changes.
 * `prefix` (string) - The prefix string to prefix to keys when making calls to
   etcd. The default is "/".
 * `quiet` (bool) - Enable quiet logging. Only error messages are printed.

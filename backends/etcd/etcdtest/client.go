@@ -17,6 +17,13 @@ func (c *Client) Get(key string, sort, recurse bool) (*etcd.Response, error) {
 	return c.Responses[key], nil
 }
 
+// Watch mimics the etcd.Client.Watch() method
+func (c *Client) Watch(key string, waitIndex uint64, recurse bool, receiver chan *etcd.Response, stop chan bool) (*etcd.Response, error) {
+	receiver <- c.Responses[key]
+	close(receiver)
+	return nil, nil
+}
+
 // AddResponses adds or updates the Client.Responses map.
 func (c *Client) AddResponse(key string, response *etcd.Response) {
 	c.Responses[key] = response

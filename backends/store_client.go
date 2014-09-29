@@ -15,6 +15,7 @@ import (
 // key/value pairs from a backend store.
 type StoreClient interface {
 	GetValues(keys []string) (map[string]interface{}, error)
+	WatchValues(keys []string, varChan chan map[string]interface{}) error
 }
 
 // New is used to create a storage client based on our configuration.
