@@ -4,7 +4,6 @@
 package template
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
