@@ -89,6 +89,7 @@ func (s Store) GetAllValues(pattern string) ([]string, error) {
 	for _, kv := range ks {
 		vs = append(vs, kv.Value)
 	}
+	sort.Strings(vs)
 	return vs, nil
 }
 
