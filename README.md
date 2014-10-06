@@ -8,11 +8,11 @@
   [Consul](http://consul.io) and processing [template resources](docs/template-resources.md).
 * reloading applications to pick up new config file changes
 
-# Current Stable Version: 0.6.0
+# Current Stable Version: 0.6.1
 
-The current stable version of confd is 0.6.0. The previous version is being maintained on the 0.5.x branch. The docs for the 0.5.x version can be found [here](https://github.com/kelseyhightower/confd/tree/0.5.x/docs).
+The current stable version of confd is 0.6.1. The previous version is being maintained on the 0.5.x branch. The docs for the 0.5.x version can be found [here](https://github.com/kelseyhightower/confd/tree/0.5.x/docs).
 
-confd 0.6.0 is a big change from 0.5.x, see the 0.6.0 [release notes](https://github.com/kelseyhightower/confd/releases/tag/v0.6.0) for more details.
+confd 0.6.1 is a big change from 0.5.x, see the 0.6.1 [release notes](https://github.com/kelseyhightower/confd/releases/tag/v0.6.1) for more details.
 
 ## Community
 
