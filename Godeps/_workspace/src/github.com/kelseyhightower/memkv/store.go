@@ -100,9 +100,10 @@ func (s Store) List(filePath string) []string {
 	for _, kv := range s.m {
 		if kv.Key == filePath {
 			m[path.Base(kv.Key)] = true
-		} else if strings.HasPrefix(kv.Key, filePath) {
-			strippedKey := strings.TrimPrefix(kv.Key, filePath)
-			m[strings.SplitN(strippedKey[1:], "/", 2)[0]] = true
+			continue
+		}
+		if strings.HasPrefix(kv.Key, filePath) {
+			m[strings.Split(stripKey(kv.Key, filePath), "/")[0]] = true
 		}
 	}
 	for k := range m {
@@ -119,8 +120,7 @@ func (s Store) ListDir(filePath string) []string {
 	defer s.RUnlock()
 	for _, kv := range s.m {
 		if strings.HasPrefix(kv.Key, filePath) {
-			strippedKey := strings.TrimPrefix(kv.Key, filePath)
-			items := strings.SplitN(strippedKey[1:], "/", 2)
+			items := strings.Split(stripKey(kv.Key, filePath), "/")
 			if len(items) < 2 {
 				continue
 			}
@@ -139,4 +139,8 @@ func (s Store) Set(key string, value string) {
 	s.Lock()
 	s.m[key] = KVPair{key, value}
 	s.Unlock()
+}
+
+func stripKey(key, prefix string) string {
+	return strings.TrimPrefix(strings.TrimPrefix(key, prefix), "/")
 }

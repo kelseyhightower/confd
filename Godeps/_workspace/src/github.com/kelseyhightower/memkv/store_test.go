@@ -111,9 +111,15 @@ func TestList(t *testing.T) {
 		s.Set(k, v)
 	}
 	want := []string{"key", "notaservice", "srv1", "srv2"}
-	got := s.List("/deis/services")
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
+	paths := []string{
+		"/deis/services",
+		"/deis/services/",
+	}
+	for _, filePath := range paths {
+		got := s.List(filePath)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("List(%s) = %v, want %v", filePath, got, want)
+		}
 	}
 }
 
@@ -135,8 +141,14 @@ func TestListDir(t *testing.T) {
 		s.Set(k, v)
 	}
 	want := []string{"notaservice", "srv1", "srv2"}
-	got := s.ListDir("/deis/services")
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("List(%s) = %v, want %v", "/deis/services", got, want)
+	paths := []string{
+		"/deis/services",
+		"/deis/services/",
+	}
+	for _, filePath := range paths {
+		got := s.ListDir(filePath)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("List(%s) = %v, want %v", filePath, got, want)
+		}
 	}
 }
