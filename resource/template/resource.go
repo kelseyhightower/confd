@@ -172,8 +172,26 @@ func (t *TemplateResource) sync() error {
 			}
 		}
 		log.Debug("Overwriting target config " + t.Dest)
-		if err := os.Rename(staged, t.Dest); err != nil {
-			return err
+		err := os.Rename(staged, t.Dest)
+		if err != nil {
+			if strings.Contains(err.Error(), "device or resource busy") {
+				log.Debug("Rename failed - target is likely a mount. Trying to write instead")
+				// try to open the file and write to it
+				var contents []byte
+				var rerr error
+				contents, rerr = ioutil.ReadFile(staged)
+				if rerr != nil {
+					return rerr
+				}
+				err := ioutil.WriteFile(t.Dest, contents, t.FileMode)
+				// make sure owner and group match the temp file, in case the file was created with WriteFile
+				os.Chown(t.Dest, t.Uid, t.Gid)
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
 		if t.ReloadCmd != "" {
 			if err := t.reload(); err != nil {
