@@ -2,6 +2,7 @@ package backends
 
 import (
 	"errors"
+	"net/url"
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
@@ -21,16 +22,42 @@ func New(config Config) (StoreClient, error) {
 	if config.Backend == "" {
 		config.Backend = "etcd"
 	}
-	log.Notice("Backend nodes set to " + strings.Join(config.BackendNodes, ", "))
+	var err error
+	backendNodes := config.BackendNodes
+	if config.Backend == "etcd" {
+		backendNodes, err = addScheme(config.Scheme, config.BackendNodes)
+		if err != nil {
+			return nil, err
+		}
+	}
+	log.Notice("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	switch config.Backend {
 	case "consul":
-		return consul.NewConsulClient(config.BackendNodes)
+		return consul.NewConsulClient(backendNodes)
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
-		return etcd.NewEtcdClient(config.BackendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
+		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
 	case "env":
 		return env.NewEnvClient()
 	}
 	return nil, errors.New("Invalid backend")
+}
+
+func addScheme(scheme string, nodes []string) ([]string, error) {
+	ns := make([]string, 0)
+	if scheme == "" {
+		scheme = "http"
+	}
+	for _, node := range nodes {
+		u, err := url.Parse(node)
+		if err != nil {
+			return nil, err
+		}
+		if u.Scheme == "" {
+			u.Scheme = scheme
+		}
+		ns = append(ns, u.String())
+	}
+	return ns, nil
 }
