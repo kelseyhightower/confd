@@ -27,3 +27,5 @@ Usage of confd:
   -verbose=false: enable verbose logging
   -version=false: print version and exit
 ```
+
+> The -scheme flag is only used to set the URL scheme for nodes retrieved from DNS SRV records.
