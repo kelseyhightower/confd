@@ -2,7 +2,6 @@ package backends
 
 import (
 	"errors"
-	"net/url"
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
@@ -22,14 +21,7 @@ func New(config Config) (StoreClient, error) {
 	if config.Backend == "" {
 		config.Backend = "etcd"
 	}
-	var err error
 	backendNodes := config.BackendNodes
-	if config.Backend == "etcd" {
-		backendNodes, err = addScheme(config.Scheme, config.BackendNodes)
-		if err != nil {
-			return nil, err
-		}
-	}
 	log.Notice("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	switch config.Backend {
 	case "consul":
@@ -42,22 +34,4 @@ func New(config Config) (StoreClient, error) {
 		return env.NewEnvClient()
 	}
 	return nil, errors.New("Invalid backend")
-}
-
-func addScheme(scheme string, nodes []string) ([]string, error) {
-	ns := make([]string, 0)
-	if scheme == "" {
-		scheme = "http"
-	}
-	for _, node := range nodes {
-		u, err := url.Parse(node)
-		if err != nil {
-			return nil, err
-		}
-		if u.Scheme == "" {
-			u.Scheme = scheme
-		}
-		ns = append(ns, u.String())
-	}
-	return ns, nil
 }

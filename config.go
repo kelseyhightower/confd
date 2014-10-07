@@ -6,6 +6,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
@@ -96,7 +97,7 @@ func initConfig() error {
 	// Set defaults.
 	config = Config{
 		Backend:      "etcd",
-		BackendNodes: []string{"127.0.0.1:4001"},
+		BackendNodes: []string{"http://127.0.0.1:4001"},
 		ConfDir:      "/etc/confd",
 		Interval:     600,
 		Prefix:       "/",
@@ -127,7 +128,7 @@ func initConfig() error {
 	// Update BackendNodes from SRV records.
 	if config.Backend != "env" && config.SRVDomain != "" {
 		log.Info("SRV domain set to " + config.SRVDomain)
-		srvNodes, err := getBackendNodesFromSRV(config.Backend, config.SRVDomain)
+		srvNodes, err := getBackendNodesFromSRV(config.Backend, config.SRVDomain, config.Scheme)
 		if err != nil {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
 		}
@@ -155,7 +156,7 @@ func initConfig() error {
 	return nil
 }
 
-func getBackendNodesFromSRV(backend, domain string) ([]string, error) {
+func getBackendNodesFromSRV(backend, domain, scheme string) ([]string, error) {
 	nodes := make([]string, 0)
 	// Ignore the CNAME as we don't need it.
 	_, addrs, err := net.LookupSRV(backend, "tcp", domain)
@@ -165,7 +166,7 @@ func getBackendNodesFromSRV(backend, domain string) ([]string, error) {
 	for _, srv := range addrs {
 		host := strings.TrimRight(srv.Target, ".")
 		port := strconv.FormatUint(uint64(srv.Port), 10)
-		nodes = append(nodes, net.JoinHostPort(host, port))
+		nodes = append(nodes, fmt.Sprintf("%s://%s", scheme, net.JoinHostPort(host, port)))
 	}
 	return nodes, nil
 }
