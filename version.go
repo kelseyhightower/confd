@@ -3,4 +3,4 @@
 // that can be found in the LICENSE file.
 package main
 
-const Version = "0.6.1"
+const Version = "0.6.2"
