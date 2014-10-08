@@ -17,12 +17,19 @@ func NewEnvClient() (*Client, error) {
 
 // GetValues queries the environment for keys
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	allEnvVars := os.Environ()
+	envMap := make(map[string]string)
+	for _, e := range allEnvVars {
+		index := strings.Index(e, "=")
+		envMap[e[:index]] = e[index+1:]
+	}
 	vars := make(map[string]string)
 	for _, key := range keys {
 		k := transform(key)
-		value := os.Getenv(k)
-		if value != "" {
-			vars[key] = value
+		for envKey, envValue := range envMap {
+			if strings.HasPrefix(envKey, k) {
+				vars[clean(envKey)] = envValue
+			}
 		}
 	}
 	return vars, nil
@@ -31,4 +38,11 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 func transform(key string) string {
 	k := strings.TrimPrefix(key, "/")
 	return strings.ToUpper(replacer.Replace(k))
+}
+
+var cleanReplacer = strings.NewReplacer("_", "/")
+
+func clean(key string) string {
+	newKey := "/" + key
+	return cleanReplacer.Replace(strings.ToLower(newKey))
 }
