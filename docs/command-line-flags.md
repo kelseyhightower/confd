@@ -26,6 +26,7 @@ Usage of confd:
   -srv-domain="": the name of the resource record
   -verbose=false: enable verbose logging
   -version=false: print version and exit
+  -watch=false: enable watch support
 ```
 
 > The -scheme flag is only used to set the URL scheme for nodes retrieved from DNS SRV records.

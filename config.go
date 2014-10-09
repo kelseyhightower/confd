@@ -1,6 +1,3 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
 package main
 
 import (
@@ -43,6 +40,7 @@ var (
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	verbose           bool
+	watch             bool
 )
 
 // A Config structure is used to configure confd.
@@ -61,6 +59,7 @@ type Config struct {
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
 	Verbose      bool     `toml:"verbose"`
+	Watch        bool     `toml:"watch"`
 }
 
 func init() {
@@ -82,6 +81,7 @@ func init() {
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
+	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -96,12 +96,11 @@ func initConfig() error {
 	}
 	// Set defaults.
 	config = Config{
-		Backend:      "etcd",
-		BackendNodes: []string{"http://127.0.0.1:4001"},
-		ConfDir:      "/etc/confd",
-		Interval:     600,
-		Prefix:       "/",
-		Scheme:       "http",
+		Backend:  "etcd",
+		ConfDir:  "/etc/confd",
+		Interval: 600,
+		Prefix:   "/",
+		Scheme:   "http",
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
@@ -133,6 +132,14 @@ func initConfig() error {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
 		}
 		config.BackendNodes = srvNodes
+	}
+	if len(config.BackendNodes) == 0 {
+		switch config.Backend {
+		case "consul":
+			config.BackendNodes = []string{"127.0.0.1:8500"}
+		case "etcd":
+			config.BackendNodes = []string{"http://127.0.0.1:4001"}
+		}
 	}
 	// Initialize the storage client
 	log.Notice("Backend set to " + config.Backend)
@@ -207,5 +214,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SRVDomain = srvDomain
 	case "verbose":
 		config.Verbose = verbose
+	case "watch":
+		config.Watch = watch
 	}
 }

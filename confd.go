@@ -1,6 +1,3 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
 package main
 
 import (
@@ -9,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
@@ -31,22 +27,34 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	templateConfig.StoreClient = storeClient
+	if onetime {
+		if err := template.Process(templateConfig); err != nil {
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	stopChan := make(chan bool)
+	doneChan := make(chan bool)
+	errChan := make(chan error, 10)
+	var processor template.Processor
+	switch {
+	case watch:
+		processor = template.WatchProcessor(templateConfig, stopChan, doneChan, errChan)
+	default:
+		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
+	}
+	go processor.Process()
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	for {
-		runErrors := template.ProcessTemplateResources(templateConfig)
-		if onetime {
-			if len(runErrors) > 0 {
-				os.Exit(1)
-			}
-			os.Exit(0)
-		}
 		select {
-		case c := <-signalChan:
-			log.Info(fmt.Sprintf("captured %v exiting...", c))
+		case err := <-errChan:
+			log.Error(err.Error())
+		case s := <-signalChan:
+			log.Info(fmt.Sprintf("captured %v exiting...", s))
+			close(doneChan)
+		case <-doneChan:
 			os.Exit(0)
-		case <-time.After(time.Duration(config.Interval) * time.Second):
-			// Continue processing templates.
 		}
 	}
 }

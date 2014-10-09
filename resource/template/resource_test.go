@@ -1,6 +1,3 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
 package template
 
 import (
@@ -96,11 +93,9 @@ func TestProcessTemplateResources(t *testing.T) {
 		TemplateDir: filepath.Join(tempConfDir, "templates"),
 	}
 	// Process the test template resource.
-	runErrors := ProcessTemplateResources(c)
-	if len(runErrors) > 0 {
-		for _, e := range runErrors {
-			t.Errorf(e.Error())
-		}
+	err = Process(c)
+	if err != nil {
+		t.Error(err.Error())
 	}
 	// Verify the results.
 	expected := "foo = bar"

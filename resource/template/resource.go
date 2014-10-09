@@ -1,11 +1,7 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
 package template
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -51,6 +47,8 @@ type TemplateResource struct {
 	Src           string
 	StageFile     *os.File
 	Uid           int
+	funcMap       map[string]interface{}
+	lastIndex     uint64
 	keepStageFile bool
 	noop          bool
 	prefix        string
@@ -60,8 +58,8 @@ type TemplateResource struct {
 
 var ErrEmptySrc = errors.New("empty src template")
 
-// New creates a TemplateResource.
-func New(path string, config Config) (*TemplateResource, error) {
+// NewTemplateResource creates a TemplateResource.
+func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
@@ -75,7 +73,9 @@ func New(path string, config Config) (*TemplateResource, error) {
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
 	tr.storeClient = config.StoreClient
+	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
+	addFuncs(tr.funcMap, tr.store.FuncMap)
 	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -115,23 +115,7 @@ func (t *TemplateResource) createStageFile() error {
 	}
 	defer temp.Close()
 	log.Debug("Compiling source template " + t.Src)
-
-	// Add template functions
-	tplFuncMap := make(template.FuncMap)
-	tplFuncMap["base"] = path.Base
-	tplFuncMap["ls"] = t.store.List
-	tplFuncMap["lsdir"] = t.store.ListDir
-	tplFuncMap["get"] = t.store.Get
-	tplFuncMap["gets"] = t.store.GetAll
-	tplFuncMap["getv"] = t.store.GetValue
-	tplFuncMap["getvs"] = t.store.GetAllValues
-	tplFuncMap["split"] = strings.Split
-	tplFuncMap["json"] = t.UnmarshalJsonObject
-	tplFuncMap["jsonArray"] = t.UnmarshalJsonArray
-	tplFuncMap["sibling"] = t.GetSibling
-	tplFuncMap["parent"] = path.Dir
-
-	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(tplFuncMap).ParseFiles(t.Src))
+	tmpl := template.Must(template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src))
 	if err = tmpl.Execute(temp, nil); err != nil {
 		return err
 	}
@@ -286,58 +270,4 @@ func (t *TemplateResource) setFileMode() error {
 		t.FileMode = os.FileMode(mode)
 	}
 	return nil
-}
-
-func (t *TemplateResource) UnmarshalJsonObject(data string) (map[string]interface{}, error) {
-	var ret map[string]interface{}
-	err := json.Unmarshal([]byte(data), &ret)
-	return ret, err
-}
-
-func (t *TemplateResource) UnmarshalJsonArray(data string) ([]interface{}, error) {
-	var ret []interface{}
-	err := json.Unmarshal([]byte(data), &ret)
-	return ret, err
-}
-
-func (t *TemplateResource) GetSibling(origin string, newKey string) (memkv.KVPair, error) {
-	return t.store.Get(path.Join("/", path.Dir(origin), newKey))
-}
-
-// ProcessTemplateResources is a convenience function that loads all the
-// template resources and processes them serially. Called from main.
-// It returns a list of errors if any.
-func ProcessTemplateResources(config Config) []error {
-	runErrors := make([]error, 0)
-	var err error
-	if config.StoreClient == nil {
-		runErrors = append(runErrors, errors.New("A StoreClient client is required"))
-		return runErrors
-	}
-	log.Debug("Loading template resources from confdir " + config.ConfDir)
-	if !isFileExist(config.ConfDir) {
-		log.Warning(fmt.Sprintf("Cannot load template resources confdir '%s' does not exist", config.ConfDir))
-		return runErrors
-	}
-	paths, err := filepath.Glob(filepath.Join(config.ConfigDir, "*toml"))
-	if err != nil {
-		runErrors = append(runErrors, err)
-		return runErrors
-	}
-	for _, p := range paths {
-		log.Debug("Processing template resource " + p)
-		t, err := New(p, config)
-		if err != nil {
-			runErrors = append(runErrors, err)
-			log.Error(err.Error())
-			continue
-		}
-		if err := t.process(); err != nil {
-			runErrors = append(runErrors, err)
-			log.Error(err.Error())
-			continue
-		}
-		log.Debug("Processing of template resource " + p + " complete")
-	}
-	return runErrors
 }

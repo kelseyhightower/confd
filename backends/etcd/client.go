@@ -1,6 +1,3 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
 package etcd
 
 import (
@@ -67,4 +64,16 @@ func nodeWalk(node *goetcd.Node, vars map[string]string) error {
 		}
 	}
 	return nil
+}
+
+func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+	if waitIndex == 0 {
+		resp, err := c.client.Get(prefix, false, true)
+		if err != nil {
+			return 0, err
+		}
+		return resp.EtcdIndex, nil
+	}
+	resp, err := c.client.Watch(prefix, waitIndex+1, true, nil, stopChan)
+	return resp.Node.ModifiedIndex, err
 }
