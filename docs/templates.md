@@ -130,22 +130,12 @@ Returns all subkeys, []string, where path matches its argument. It only returns 
 {{end}}
 ```
 
-### sibling
-
-Returns the sibling element following the same base path but with the second argument as key.
-```
-{{with sibling "/services/data/url" "user"}}
-   key: {{.Key}}
-   value: {{.Value}}
-{{end}}
-```
-
-### parent
+### dir
 
 Returns the parent directory of a given key.
 ```
-{{with parent "/services/data/url"}}
-parent: {{.}}
+{{with dir "/services/data/url"}}
+dir: {{.}}
 {{end}}
 ```
 
