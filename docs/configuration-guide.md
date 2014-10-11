@@ -21,6 +21,7 @@ Optional:
 * `scheme` (string) - The backend URI scheme. ("http" or "https")
 * `srv_domain` (string) - The name of the resource record.
 * `verbose` (bool) - Enable verbose logging.
+* `watch` (bool) - Enable watch support.
 
 Example:
 

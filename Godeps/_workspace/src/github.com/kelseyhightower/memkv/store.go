@@ -20,13 +20,23 @@ var ErrNoMatch = errors.New("no keys match")
 // A Store represents an in-memory key-value store safe for
 // concurrent access.
 type Store struct {
+	FuncMap map[string]interface{}
 	sync.RWMutex
 	m map[string]KVPair
 }
 
 // New creates and initializes a new Store.
 func New() Store {
-	return Store{m: make(map[string]KVPair)}
+	s := Store{m: make(map[string]KVPair)}
+	s.FuncMap = map[string]interface{}{
+		"ls":    s.List,
+		"lsdir": s.ListDir,
+		"get":   s.Get,
+		"gets":  s.GetAll,
+		"getv":  s.GetValue,
+		"getvs": s.GetAllValues,
+	}
+	return s
 }
 
 // Delete deletes the KVPair associated with key.

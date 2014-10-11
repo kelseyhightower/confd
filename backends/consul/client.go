@@ -40,3 +40,27 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 	return vars, nil
 }
+
+type watchResponse struct {
+	waitIndex uint64
+	err       error
+}
+
+func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+	respChan := make(chan watchResponse)
+	go func() {
+		opts := consulapi.QueryOptions{
+			WaitIndex: waitIndex,
+		}
+		_, meta, err := c.client.List(prefix, &opts)
+		respChan <- watchResponse{meta.LastIndex, err}
+	}()
+	for {
+		select {
+		case <-stopChan:
+			return waitIndex, nil
+		case r := <-respChan:
+			return r.waitIndex, r.err
+		}
+	}
+}

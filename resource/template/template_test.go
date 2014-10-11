@@ -1,6 +1,3 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
-// Use of this source code is governed by the Apache License, Version 2.0
-// that can be found in the LICENSE file.
 package template
 
 import (
@@ -300,38 +297,8 @@ value: jkl
 			tr.store.Set("/test/data/jkl/mno", "789")
 		},
 	},
-
 	templateTest{
-		desc: "sibling test",
-		toml: `
-[template]
-src = "test.conf.tmpl"
-dest = "./tmp/test.conf"
-keys = [
-    "/test/data/abc",
-    "/test/data/def",
-]
-`,
-		tmpl: `
-{{with sibling "/test/data/abc" "def"}}
-key: {{.Key}}
-value: {{.Value}}
-{{end}}
-`,
-		expected: `
-
-key: /test/data/def
-value: 456
-
-`,
-		updateStore: func(tr *TemplateResource) {
-			tr.store.Set("/test/data/abc", "123")
-			tr.store.Set("/test/data/def", "456")
-		},
-	},
-
-	templateTest{
-		desc: "parent test",
+		desc: "dir test",
 		toml: `
 [template]
 src = "test.conf.tmpl"
@@ -342,13 +309,13 @@ keys = [
 ]
 `,
 		tmpl: `
-{{with parent "/test/data/abc"}}
-parent: {{.}}
+{{with dir "/test/data/abc"}}
+dir: {{.}}
 {{end}}
 `,
 		expected: `
 
-parent: /test/data
+dir: /test/data
 
 `,
 		updateStore: func(tr *TemplateResource) {
@@ -429,7 +396,7 @@ func templateResource() (*TemplateResource, error) {
 		TemplateDir: "./test/templates",
 	}
 
-	tr, err := New(tomlFilePath, config)
+	tr, err := NewTemplateResource(tomlFilePath, config)
 	if err != nil {
 		return nil, err
 	}
