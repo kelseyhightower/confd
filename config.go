@@ -138,7 +138,12 @@ func initConfig() error {
 		case "consul":
 			config.BackendNodes = []string{"127.0.0.1:8500"}
 		case "etcd":
-			config.BackendNodes = []string{"http://127.0.0.1:4001"}
+			peerstr := os.Getenv("ETCDCTL_PEERS")
+			if len(peerstr) > 0 {
+				config.BackendNodes = strings.Split(peerstr, ",")
+			} else {
+				config.BackendNodes = []string{"http://127.0.0.1:4001"}
+			}
 		}
 	}
 	// Initialize the storage client
