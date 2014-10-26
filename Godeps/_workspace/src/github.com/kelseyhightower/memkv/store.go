@@ -29,12 +29,13 @@ type Store struct {
 func New() Store {
 	s := Store{m: make(map[string]KVPair)}
 	s.FuncMap = map[string]interface{}{
-		"ls":    s.List,
-		"lsdir": s.ListDir,
-		"get":   s.Get,
-		"gets":  s.GetAll,
-		"getv":  s.GetValue,
-		"getvs": s.GetAllValues,
+		"exists": s.Exists,
+		"ls":     s.List,
+		"lsdir":  s.ListDir,
+		"get":    s.Get,
+		"gets":   s.GetAll,
+		"getv":   s.GetValue,
+		"getvs":  s.GetAllValues,
 	}
 	return s
 }
@@ -44,6 +45,15 @@ func (s Store) Del(key string) {
 	s.Lock()
 	delete(s.m, key)
 	s.Unlock()
+}
+
+// Exists checks for the existence of key in the store.
+func (s Store) Exists(key string) bool {
+	_, err := s.Get(key)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 // Get gets the KVPair associated with key. If there is no KVPair
