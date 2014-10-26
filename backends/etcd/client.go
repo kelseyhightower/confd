@@ -75,5 +75,8 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 		return resp.EtcdIndex, nil
 	}
 	resp, err := c.client.Watch(prefix, waitIndex+1, true, nil, stopChan)
+	if err != nil {
+		return waitIndex, err
+	}
 	return resp.Node.ModifiedIndex, err
 }
