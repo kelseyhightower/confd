@@ -18,6 +18,16 @@ Alias for the path.Base function.
 {{end}}
 ```
 
+### exists
+
+Checks if the key exists. Return false if key is not found.
+
+```
+{{if exists "/key"}}
+    value: {{getv "/key"}}
+{{end}}
+```
+
 ### get
 
 Returns the KVPair where key matches its argument. Returns an error if key is not found.

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+curl -L -X PUT http://127.0.0.1:4001/v2/keys/key -d value=foobar
 curl -L -X PUT http://127.0.0.1:4001/v2/keys/database/host -d value=127.0.0.1
 curl -L -X PUT http://127.0.0.1:4001/v2/keys/database/password -d value=p@sSw0rd
 curl -L -X PUT http://127.0.0.1:4001/v2/keys/database/port -d value=3306

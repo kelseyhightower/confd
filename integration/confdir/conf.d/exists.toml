@@ -1,0 +1,7 @@
+[template]
+mode = "0644"
+src = "exists-test.conf.tmpl"
+dest = "/tmp/confd-exists-test.conf"
+keys = [
+  "/key",
+]
