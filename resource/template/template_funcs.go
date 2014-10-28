@@ -2,6 +2,7 @@ package template
 
 import (
 	"encoding/json"
+	"os"
 	"path"
 	"strings"
 )
@@ -13,6 +14,7 @@ func newFuncMap() map[string]interface{} {
 	m["json"] = UnmarshalJsonObject
 	m["jsonArray"] = UnmarshalJsonArray
 	m["dir"] = path.Dir
+	m["getenv"] = os.Getenv
 	return m
 }
 
