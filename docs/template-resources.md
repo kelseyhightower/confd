@@ -11,9 +11,9 @@ Template resources are stored under the `/etc/confd/conf.d` directory by default
 
 ### Optional
 
-* `group` (string) - The group name that should own the file.
+* `gid` (int) - The gid that should own the file.
 * `mode` (string) - The permission mode of the file.
-* `owner` (string) - The username that should own the file.
+* `uid` (int) - The uid that should own the file.
 * `reload_cmd` (string) - The command to reload config.
 * `check_cmd` (string) - The command to check config. Use `{{.src}}` to reference the rendered source template.
 * `prefix` (string) - The string to prefix to keys.
@@ -24,8 +24,8 @@ Template resources are stored under the `/etc/confd/conf.d` directory by default
 [template]
 src = "nginx.conf.tmpl"
 dest = "/etc/nginx/nginx.conf"
-owner = "root"
-group = "root"
+uid = 0
+gid = 0
 mode = "0644"
 keys = [
   "/nginx",
