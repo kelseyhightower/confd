@@ -2,10 +2,13 @@ package template
 
 import (
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/log"
@@ -40,6 +43,27 @@ keys = [
 ]
 `
 
+// getRandomGroup randomly selects a gid from the Groups the current user is in
+func getRandomGroup() (gid int, err error) {
+	ogid := os.Getgid()
+	gid = ogid
+
+	// pick a random group and set the file to that group
+	groups, err := os.Getgroups()
+	if err != nil {
+		return
+	}
+
+	// It is possible this never terminates assert the length is greater than 1
+	if len(groups) > 1 {
+		rand.Seed(time.Now().UnixNano())
+		for gid == ogid {
+			gid = groups[rand.Intn(len(groups))]
+		}
+	}
+	return
+}
+
 func TestProcessTemplateResources(t *testing.T) {
 	log.SetQuiet(true)
 	// Setup temporary conf, config, and template directories.
@@ -62,6 +86,12 @@ func TestProcessTemplateResources(t *testing.T) {
 		t.Errorf("Failed to create destFile: %s", err.Error())
 	}
 	defer os.Remove(destFile.Name())
+
+	gid, err := getRandomGroup()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	destFile.Chown(os.Getuid(), gid)
 
 	// Create the template resource configuration file.
 	templateResourcePath := filepath.Join(tempConfDir, "conf.d", "foo.toml")
@@ -105,6 +135,23 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 	if string(results) != expected {
 		t.Errorf("Expected contents of dest == '%s', got %s", expected, string(results))
+	}
+
+	// test the gid/uid
+	destFi, err := destFile.Stat()
+	if err != nil {
+		t.Errorf("Issue running stat on file after create: %s", err.Error())
+	} else {
+		// this set of tests only works on unix like systems atm
+		unixStat, ok := destFi.Sys().(*syscall.Stat_t)
+		if ok {
+			if int(unixStat.Uid) != os.Getuid() {
+				t.Errorf("Expected template uid to be: 0 Got: %d", unixStat.Uid)
+			}
+			if int(unixStat.Gid) != gid {
+				t.Errorf("Expected template gid to be: 100 Got: %d", unixStat.Gid)
+			}
+		}
 	}
 }
 
