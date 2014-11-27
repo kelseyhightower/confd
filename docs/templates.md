@@ -127,7 +127,7 @@ keys = [
 Returns a []interface{} from a json array such as `["a", "b", "c"]`.
 
 ```
-{{range jsonArray (getv "/services/data/")}
+{{range jsonArray (getv "/services/data/")}}
 val: {{.}}
 {{end}}
 ```
