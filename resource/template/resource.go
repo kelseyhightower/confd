@@ -93,6 +93,7 @@ func (t *TemplateResource) setVars() error {
 	if err != nil {
 		return err
 	}
+	t.store.Purge()
 	for k, v := range result {
 		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.prefix)), v)
 	}

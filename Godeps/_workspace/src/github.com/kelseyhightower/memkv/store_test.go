@@ -93,6 +93,28 @@ func TestDel(t *testing.T) {
 	s.Del("/app/port")
 }
 
+func TestPurge(t *testing.T) {
+	s := New()
+	s.Set("/app/port", "8080")
+	want := KVPair{"/app/port", "8080"}
+	got, err := s.Get("/app/port")
+	if err != nil || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
+	}
+	s.Purge()
+	want = KVPair{}
+	got, err = s.Get("/app/port")
+	if err != ErrNotExist || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, false)
+	}
+	s.Set("/app/port", "8080")
+	want = KVPair{"/app/port", "8080"}
+	got, err = s.Get("/app/port")
+	if err != nil || got != want {
+		t.Errorf("Get(%q) = %v, %v, want %v, %v", "/app/port", got, err, want, true)
+	}
+}
+
 var listTestMap = map[string]string{
 	"/deis/database/user":            "user",
 	"/deis/database/pass":            "pass",

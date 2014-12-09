@@ -162,6 +162,14 @@ func (s Store) Set(key string, value string) {
 	s.Unlock()
 }
 
+func (s Store) Purge() {
+	s.Lock()
+	for k := range s.m {
+		delete(s.m, k)
+	}
+	s.Unlock()
+}
+
 func stripKey(key, prefix string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(key, prefix), "/")
 }
