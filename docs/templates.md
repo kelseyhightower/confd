@@ -161,6 +161,15 @@ dir: {{.}}
 {{end}}
 ```
 
+### join
+
+Alias for the strings.Join function.
+
+```
+{{$services := getvs "/services/elasticsearch/*"}}
+services: {{join $services ","}}
+```
+
 ## Example Usage  
 
 ```Bash

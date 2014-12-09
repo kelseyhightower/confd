@@ -15,6 +15,7 @@ func newFuncMap() map[string]interface{} {
 	m["jsonArray"] = UnmarshalJsonArray
 	m["dir"] = path.Dir
 	m["getenv"] = os.Getenv
+	m["join"] = strings.Join
 	return m
 }
 
