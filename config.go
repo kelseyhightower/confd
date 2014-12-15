@@ -148,6 +148,10 @@ func initConfig() error {
 	}
 	// Initialize the storage client
 	log.Notice("Backend set to " + config.Backend)
+        if config.Backend == "zookeeper" && config.Watch == true {
+             log.Notice("Watch is not supported for backend " + config.Backend + "exiting...")
+             os.Exit(1);
+        }
 	backendsConfig = backends.Config{
 		Backend:      config.Backend,
 		ClientCaKeys: config.ClientCaKeys,

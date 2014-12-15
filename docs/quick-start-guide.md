@@ -35,6 +35,19 @@ export MYAPP_DATABASE_URL=db.example.com
 export MYAPP_DATABASE_USER=rob
 ```
 
+#### zookeeper
+Use zkCli.sh to add keys
+
+```
+[zk: localhost:2181(CONNECTED) 1] create /my_app "" 
+[zk: localhost:2181(CONNECTED) 2] create /my_app/database ""
+[zk: localhost:2181(CONNECTED) 3] create /my_app/database/url "db.example.com"
+[zk: localhost:2181(CONNECTED) 4] create /my_app/database/user "rob"           
+
+```
+
+Please note that zookeeper backend doesn't support watch and values from znodes with children won't be retrieved.
+
 ### Create the confdir
 
 The confdir is where template resource configs and source templates are stored.
