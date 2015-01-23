@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 )
 
 func newFuncMap() map[string]interface{} {
@@ -16,6 +17,7 @@ func newFuncMap() map[string]interface{} {
 	m["dir"] = path.Dir
 	m["getenv"] = os.Getenv
 	m["join"] = strings.Join
+	m["datetime"] = time.Now
 	return m
 }
 
