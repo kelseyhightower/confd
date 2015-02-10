@@ -16,11 +16,11 @@ wget https://github.com/kelseyhightower/confd/releases/download/v0.7.1/confd-0.7
 wget https://github.com/kelseyhightower/confd/releases/download/v0.7.1/confd-0.7.1-linux-amd64
 ```
 
-Copy the confd binary to a bin directory in your path.
+#### Building from Source
 
 ```
-sudo mv confd /usr/local/bin/confd
-sudo chmod +x /usr/local/bin/confd
+$ make
+$ sudo make install
 ```
 
 ### Next Steps
