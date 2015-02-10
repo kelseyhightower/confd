@@ -3,6 +3,7 @@ package etcd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -179,6 +180,7 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 	// we connect to a leader
 	sleep := 25 * time.Millisecond
 	maxSleep := time.Second
+
 	for attempt := 0; ; attempt++ {
 		if attempt > 0 {
 			select {
@@ -192,7 +194,7 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 			}
 		}
 
-		logger.Debug("Connecting to etcd: attempt", attempt+1, "for", rr.RelativePath)
+		logger.Debug("Connecting to etcd: attempt ", attempt+1, " for ", rr.RelativePath)
 
 		if rr.Method == "GET" && c.config.Consistency == WEAK_CONSISTENCY {
 			// If it's a GET and consistency level is set to WEAK,
@@ -214,21 +216,29 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 
 		logger.Debug("send.request.to ", httpPath, " | method ", rr.Method)
 
-		reqLock.Lock()
-		if rr.Values == nil {
-			if req, err = http.NewRequest(rr.Method, httpPath, nil); err != nil {
-				return nil, err
-			}
-		} else {
-			body := strings.NewReader(rr.Values.Encode())
-			if req, err = http.NewRequest(rr.Method, httpPath, body); err != nil {
-				return nil, err
-			}
+		req, err := func() (*http.Request, error) {
+			reqLock.Lock()
+			defer reqLock.Unlock()
 
-			req.Header.Set("Content-Type",
-				"application/x-www-form-urlencoded; param=value")
+			if rr.Values == nil {
+				if req, err = http.NewRequest(rr.Method, httpPath, nil); err != nil {
+					return nil, err
+				}
+			} else {
+				body := strings.NewReader(rr.Values.Encode())
+				if req, err = http.NewRequest(rr.Method, httpPath, body); err != nil {
+					return nil, err
+				}
+
+				req.Header.Set("Content-Type",
+					"application/x-www-form-urlencoded; param=value")
+			}
+			return req, nil
+		}()
+
+		if err != nil {
+			return nil, err
 		}
-		reqLock.Unlock()
 
 		resp, err = c.httpClient.Do(req)
 		defer func() {
@@ -248,7 +258,7 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 
 		// network error, change a machine!
 		if err != nil {
-			logger.Debug("network error:", err.Error())
+			logger.Debug("network error: ", err.Error())
 			lastResp := http.Response{}
 			if checkErr := checkRetry(c.cluster, numReqs, lastResp, err); checkErr != nil {
 				return nil, checkErr
@@ -259,13 +269,13 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 		}
 
 		// if there is no error, it should receive response
-		logger.Debug("recv.response.from", httpPath)
+		logger.Debug("recv.response.from ", httpPath)
 
 		if validHttpStatusCode[resp.StatusCode] {
 			// try to read byte code and break the loop
 			respBody, err = ioutil.ReadAll(resp.Body)
 			if err == nil {
-				logger.Debug("recv.success.", httpPath)
+				logger.Debug("recv.success ", httpPath)
 				break
 			}
 			// ReadAll error may be caused due to cancel request
@@ -273,6 +283,15 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 			case <-cancelled:
 				return nil, ErrRequestCancelled
 			default:
+			}
+
+			if err == io.ErrUnexpectedEOF {
+				// underlying connection was closed prematurely, probably by timeout
+				// TODO: empty body or unexpectedEOF can cause http.Transport to get hosed;
+				// this allows the client to detect that and take evasive action. Need
+				// to revisit once code.google.com/p/go/issues/detail?id=8648 gets fixed.
+				respBody = []byte{}
+				break
 			}
 		}
 
@@ -286,7 +305,7 @@ func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 				// Update cluster leader based on redirect location
 				// because it should point to the leader address
 				c.cluster.updateLeaderFromURL(u)
-				logger.Debug("recv.response.relocate", u.String())
+				logger.Debug("recv.response.relocate ", u.String())
 			}
 			resp.Body.Close()
 			continue
@@ -360,11 +379,13 @@ func buildValues(value string, ttl uint64) url.Values {
 	return v
 }
 
-// convert key string to http path exclude version
+// convert key string to http path exclude version, including URL escaping
 // for example: key[foo] -> path[keys/foo]
+// key[/%z] -> path[keys/%25z]
 // key[/] -> path[keys/]
 func keyToPath(key string) string {
-	p := path.Join("keys", key)
+	// URL-escape our key, except for slashes
+	p := strings.Replace(url.QueryEscape(path.Join("keys", key)), "%2F", "/", -1)
 
 	// corner case: if key is "/" or "//" ect
 	// path join will clear the tailing "/"
