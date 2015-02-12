@@ -40,24 +40,28 @@ var (
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	watch             bool
+	fsRootPath        string
+	fsMaxFileSize     int
 )
 
 // A Config structure is used to configure confd.
 type Config struct {
-	Backend      string   `toml:"backend"`
-	BackendNodes []string `toml:"nodes"`
-	ClientCaKeys string   `toml:"client_cakeys"`
-	ClientCert   string   `toml:"client_cert"`
-	ClientKey    string   `toml:"client_key"`
-	ConfDir      string   `toml:"confdir"`
-	Interval     int      `toml:"interval"`
-	Noop         bool     `toml:"noop"`
-	Prefix       string   `toml:"prefix"`
-	SRVDomain    string   `toml:"srv_domain"`
-	Scheme       string   `toml:"scheme"`
-	Table        string   `toml:"table"`
-	LogLevel     string   `toml:"log-level"`
-	Watch        bool     `toml:"watch"`
+	Backend       string   `toml:"backend"`
+	BackendNodes  []string `toml:"nodes"`
+	ClientCaKeys  string   `toml:"client_cakeys"`
+	ClientCert    string   `toml:"client_cert"`
+	ClientKey     string   `toml:"client_key"`
+	ConfDir       string   `toml:"confdir"`
+	Interval      int      `toml:"interval"`
+	Noop          bool     `toml:"noop"`
+	Prefix        string   `toml:"prefix"`
+	SRVDomain     string   `toml:"srv_domain"`
+	Scheme        string   `toml:"scheme"`
+	Table         string   `toml:"table"`
+	LogLevel      string   `toml:"log-level"`
+	Watch         bool     `toml:"watch"`
+	FsRootPath    string   `toml:"fs_rootpath"`
+	FsMaxFileSize int      `toml:"fs_maxfilesize"`
 }
 
 func init() {
@@ -79,6 +83,8 @@ func init() {
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&fsRootPath, "fs-rootpath", "/", "fs root path")
+	flag.IntVar(&fsMaxFileSize, "fs-maxfilesize", 1048576, "fs max file size")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -94,11 +100,14 @@ func initConfig() error {
 	}
 	// Set defaults.
 	config = Config{
-		Backend:  "etcd",
-		ConfDir:  "/etc/confd",
-		Interval: 600,
-		Prefix:   "/",
-		Scheme:   "http",
+		Backend:       "etcd",
+		ConfDir:       "/etc/confd",
+		Interval:      600,
+		Prefix:        "/",
+		Scheme:        "http",
+		FsRootPath:    "/",
+ 		FsMaxFileSize: 1048576,
+
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
@@ -157,6 +166,7 @@ func initConfig() error {
 			"zookeeper": true,
 			"redis":     true,
 			"dynamodb":  true,
+			"fs":        true,
 		}
 
 		if unsupportedBackends[config.Backend] {
@@ -164,19 +174,21 @@ func initConfig() error {
 			os.Exit(1)
 		}
 	}
-
+ 
 	if config.Backend == "dynamodb" && config.Table == "" {
 		return errors.New("No DynamoDB table configured")
 	}
 
 	backendsConfig = backends.Config{
-		Backend:      config.Backend,
-		ClientCaKeys: config.ClientCaKeys,
-		ClientCert:   config.ClientCert,
-		ClientKey:    config.ClientKey,
-		BackendNodes: config.BackendNodes,
-		Scheme:       config.Scheme,
-		Table:        config.Table,
+		Backend:       config.Backend,
+		ClientCaKeys:  config.ClientCaKeys,
+		ClientCert:    config.ClientCert,
+		ClientKey:     config.ClientKey,
+		BackendNodes:  config.BackendNodes,
+		Scheme:        config.Scheme,
+		Table:         config.Table,
+		FsRootPath:    config.FsRootPath,
+		FsMaxFileSize: config.FsMaxFileSize,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -258,5 +270,9 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.LogLevel = logLevel
 	case "watch":
 		config.Watch = watch
+	case "fs-rootpath":
+		config.FsRootPath = fsRootPath
+	case "fs-maxfilesize":
+		config.FsMaxFileSize = fsMaxFileSize
 	}
 }
