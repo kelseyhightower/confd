@@ -10,6 +10,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
+	"github.com/kelseyhightower/confd/backends/fs"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
 )
@@ -49,6 +50,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "stackengine":
 		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
+	case "fs":
+		return fs.NewFsClient(config.FsRootPath, config.FsMaxFileSize)
 	}
 	return nil, errors.New("Invalid backend")
 }

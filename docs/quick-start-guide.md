@@ -12,6 +12,7 @@ confd supports the following backends:
 * redis
 * zookeeper
 * dynamodb
+* filesystem
 
 ### Add keys
 
@@ -74,6 +75,18 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
 aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
     --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
+
+Please note that zookeeper backend doesn't support watch and values from znodes with children won't be retrieved.
+
+#### filesystem
+
+```
+mkdir -p /folder/my_app/database
+printf "db.example.com" > /folder/my_app/database/url
+printf "rob"            > /folder/my_app/database/user
+```
+
+`-fs-rootpath` is available to provide a custom root path, in the example above it would be used like this `-fs-rootpath="/folder"`.
 
 ### Create the confdir
 
