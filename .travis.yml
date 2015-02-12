@@ -29,4 +29,5 @@ script:
   - ./test
   - bash integration/consul/test.sh
   - bash integration/etcd/test.sh
+  - bash integration/fs/test.sh
   - bash integration/redis/test.sh
