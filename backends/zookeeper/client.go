@@ -20,7 +20,7 @@ func NewZookeeperClient(machines []string) (*Client, error) {
 	return &Client{c}, nil
 }
 
-func node_walk(prefix string, c *Client, vars map[string]string) error {
+func nodeWalk(prefix string, c *Client, vars map[string]string) error {
 	l, stat, err := c.client.Children(prefix)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func node_walk(prefix string, c *Client, vars map[string]string) error {
 				}
 				vars[s] = string(b)
 			} else {
-				node_walk(s, c, vars)
+				nodeWalk(s, c, vars)
 			}
 		}
 	}
@@ -65,7 +65,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		if v == "/" {
 			v = ""
 		}
-		err = node_walk(v, c, vars)
+		err = nodeWalk(v, c, vars)
 		if err != nil {
 			return vars, err
 		}
