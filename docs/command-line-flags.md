@@ -21,6 +21,7 @@ Usage of confd:
   -noop=false: only show pending changes
   -onetime=false: run once and exit
   -prefix="/": key path prefix
+  -secret-keyring="" path to armored PGP secret keyring
   -scheme="http": the backend URI scheme (http or https)
   -srv-domain="": the name of the resource record
   -version=false: print version and exit

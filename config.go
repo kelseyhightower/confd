@@ -34,6 +34,7 @@ var (
 	onetime           bool
 	prefix            string
 	printVersion      bool
+	secretKeyring     string
 	scheme            string
 	srvDomain         string
 	templateConfig    template.Config
@@ -43,19 +44,21 @@ var (
 
 // A Config structure is used to configure confd.
 type Config struct {
-	Backend      string   `toml:"backend"`
-	BackendNodes []string `toml:"nodes"`
-	ClientCaKeys string   `toml:"client_cakeys"`
-	ClientCert   string   `toml:"client_cert"`
-	ClientKey    string   `toml:"client_key"`
-	ConfDir      string   `toml:"confdir"`
-	Interval     int      `toml:"interval"`
-	Noop         bool     `toml:"noop"`
-	Prefix       string   `toml:"prefix"`
-	SRVDomain    string   `toml:"srv_domain"`
-	Scheme       string   `toml:"scheme"`
-	LogLevel     string   `toml:"log-level"`
-	Watch        bool     `toml:"watch"`
+	Backend       string   `toml:"backend"`
+	BackendNodes  []string `toml:"nodes"`
+	ClientCaKeys  string   `toml:"client_cakeys"`
+	ClientCert    string   `toml:"client_cert"`
+	ClientKey     string   `toml:"client_key"`
+	ConfDir       string   `toml:"confdir"`
+	Interval      int      `toml:"interval"`
+	SecretKeyring string   `toml:"secret_keyring"`
+	Noop          bool     `toml:"noop"`
+	Prefix        string   `toml:"prefix"`
+	SRVDomain     string   `toml:"srv_domain"`
+	Scheme        string   `toml:"scheme"`
+	LogLevel      string   `toml:"log-level"`
+	Watch         bool     `toml:"watch"`
+	PGPPrivateKey []byte
 }
 
 func init() {
@@ -73,6 +76,7 @@ func init() {
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
+	flag.StringVar(&secretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
@@ -112,6 +116,17 @@ func initConfig() error {
 	}
 	// Update config from commandline flags.
 	processFlags()
+	if config.SecretKeyring != "" {
+		kr, err := os.Open(config.SecretKeyring)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer kr.Close()
+		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
 
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
@@ -172,6 +187,7 @@ func initConfig() error {
 		Noop:          config.Noop,
 		Prefix:        config.Prefix,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
+		PGPPrivateKey: config.PGPPrivateKey,
 	}
 	return nil
 }
@@ -219,6 +235,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Prefix = prefix
 	case "scheme":
 		config.Scheme = scheme
+	case "secret-keyring":
+		config.SecretKeyring = secretKeyring
 	case "srv-domain":
 		config.SRVDomain = srvDomain
 	case "log-level":

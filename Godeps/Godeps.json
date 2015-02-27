@@ -35,6 +35,19 @@
 		{
 			"ImportPath": "github.com/samuel/go-zookeeper/zk",
 			"Rev": "fa6674abf3f4580b946a01bf7a1ce4ba8766205b"
+		},
+		{
+			"ImportPath": "github.com/xordataexchange/crypt/encoding/secconf",
+			"Comment": "v0.0.2-15-g93de656",
+			"Rev": "93de65664ef094aa5acff4f5201ac17580370af7"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/cast5",
+			"Rev": "c57d4a71915a248dbad846d60825145062b4c18e"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp",
+			"Rev": "c57d4a71915a248dbad846d60825145062b4c18e"
 		}
 	]
 }
