@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/kelseyhightower/confd",
-	"GoVersion": "go1.3",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -18,6 +18,10 @@
 		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
 			"Rev": "7f9c7f36f45ba80c62fe22779ee78d9b4ca36580"
+		},
+		{
+			"ImportPath": "github.com/samuel/go-zookeeper/zk",
+			"Rev": "fa6674abf3f4580b946a01bf7a1ce4ba8766205b"
 		}
 	]
 }
