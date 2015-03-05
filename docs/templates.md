@@ -308,5 +308,33 @@ server {
 {{end}}
 ```
 
+Output:`/tmp/services.conf`
+
+```Text
+upstream cust1 {
+    server 10.0.0.1:80;
+    server 10.0.0.2:80;
+}
+
+server {
+    server_name cust1.example.com;
+    location / {
+        proxy_pass cust1;
+    }
+}
+
+upstream cust2 {
+    server 10.0.0.3:80;
+    server 10.0.0.4:80;
+}
+
+server {
+    server_name cust2.example.com;
+    location / {
+        proxy_pass cust2;
+    }
+}
+```
+
 Go's [`text/template`](http://golang.org/pkg/text/template/) package is very powerful. For more details on it's capabilities see its [documentation.](http://golang.org/pkg/text/template/)
 
