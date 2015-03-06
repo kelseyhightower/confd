@@ -22,6 +22,10 @@
 		{
 			"ImportPath": "github.com/samuel/go-zookeeper/zk",
 			"Rev": "fa6674abf3f4580b946a01bf7a1ce4ba8766205b"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redis",
+			"Rev": "2668ae2944701f73206a228638407926dea859b1"
 		}
 	]
 }
