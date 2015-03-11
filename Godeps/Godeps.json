@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/kelseyhightower/confd",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.4.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.2.0-rc1-120-g23142f6",
-			"Rev": "23142f6773a676cc2cae8dd0cb90b2ea761c853f"
+			"Comment": "v0.4.6",
+			"Rev": "6aa2da5a7a905609c93036b9307185a04a5a84a5"
 		},
 		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
