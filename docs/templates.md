@@ -158,6 +158,20 @@ val: {{.}}
 {{end}}
 ```
 
+### jsonGet
+
+Returns an interface{} from a property within a json object such as `{"animals": [{"type": "dog", "name": "Fido"}, {"type: "cat:, "name": "Misse"}]}`.
+
+```
+{{jsonGet (getv "/test/data/") "animals.0.name"}}
+{{ $animal := jsonGet (getv "/test/data/") "animals.1"}}
+type: {{ $animal.type }}
+name: {{ $animal.name }}
+{{range jsonGet (getv "/test/data/") "animals.*.name"}}
+{{.}}
+{{end}}
+```
+
 ### ls
 
 Returns all subkeys, []string, where path matches its argument. Returns an empty list if path is not found.
