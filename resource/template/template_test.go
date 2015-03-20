@@ -206,6 +206,41 @@ ip: 192.168.10.12
 	},
 
 	templateTest{
+		desc: "jsonGet test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data/",
+]
+`,
+		tmpl: `
+{{jsonGet (getv "/test/data/") "animals.0.name"}}
+{{ $animal := jsonGet (getv "/test/data/") "animals.1"}}
+type: {{ $animal.type }}
+name: {{ $animal.name }}
+{{range jsonGet (getv "/test/data/") "animals.*.name"}}
+{{.}}
+{{end}}
+`,
+		expected: `
+Fido
+
+type: cat
+name: Misse
+
+Fido
+
+Misse
+
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data/", `{"animals": [{"type": "dog", "name": "Fido"}, {"type": "cat", "name": "Misse"}]}`)
+		},
+	},
+
+	templateTest{
 		desc: "jsonArray test",
 		toml: `
 [template]
