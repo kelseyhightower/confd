@@ -148,6 +148,22 @@ keys = [
 {{end}}
 ```
 
+#### Traversing the Map created from json
+
+Once you have parsed the JSON, it is possible to traverse it with normal Go
+template functions such as `index`.
+
+The structure {"animals": [{"type": "dog", "name": "Fido"}, {"type": "cat", "name": "Misse"}]}` can be traversed like this:
+
+```
+{{$data := json (getv "/test/data/")}}
+type: {{ (index $data.animals 1).type }}
+name: {{ (index $data.animals 1).name }}
+{{range $data.animals}}
+{{.name}}
+{{end}}
+```
+
 ### jsonArray
 
 Returns a []interface{} from a json array such as `["a", "b", "c"]`.
