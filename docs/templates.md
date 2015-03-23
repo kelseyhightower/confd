@@ -3,7 +3,7 @@
 Templates define a single application configration template.
 Templates are stored under the `/etc/confd/templates` directory by default.
 
-Templates are written in Go's [`text/template`](http://golang.org/pkg/text/template/). 
+Templates are written in Go's [`text/template`](http://golang.org/pkg/text/template/).
 
 ## Template Functions
 
@@ -148,6 +148,33 @@ keys = [
 {{end}}
 ```
 
+#### Advanced Map Traversals
+
+Once you have parsed the JSON, it is possible to traverse it with normal Go
+template functions such as `index`.
+
+A more advanced structure, like this:
+
+```
+{
+  "animals": [
+    {"type": "dog", "name": "Fido"},
+    {"type": "cat", "name": "Misse"}
+  ]
+}
+```
+
+It can be traversed like this:
+
+```
+{{$data := json (getv "/test/data/")}}
+type: {{ (index $data.animals 1).type }}
+name: {{ (index $data.animals 1).name }}
+{{range $data.animals}}
+{{.name}}
+{{end}}
+```
+
 ### jsonArray
 
 Returns a []interface{} from a json array such as `["a", "b", "c"]`.
@@ -196,7 +223,7 @@ Alias for the strings.Join function.
 services: {{join $services ","}}
 ```
 
-## Example Usage  
+## Example Usage
 
 ```Bash
 etcdctl set /nginx/domain 'example.com'
