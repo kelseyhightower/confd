@@ -4,13 +4,10 @@
 export ZK_PATH="`dirname \"$0\"`"
 sh -c "cd $ZK_PATH ; go run main.go"
 
-# Run confd
-./confd -verbose -debug -watch -confdir ./integration/confdir -backend zookeeper -node 127.0.0.1:2181
-if [ $? -eq 1 ]
+# Run confd with --watch, expecting it to fail
+confd -onetime -verbose -debug -confdir ./integration/confdir -interval 5 -backend zookeeper -node 127.0.0.1:2181 -watch
+if [ $? -eq 0 ]
 then
-   echo good
-else
-   echo "watch blackhole spotted. Did you fix it ?"
+        exit 1
 fi
-./confd -verbose -debug -confdir ./integration/confdir -interval 5 -backend zookeeper -node 127.0.0.1:2181
-
+confd -onetime -verbose -debug -confdir ./integration/confdir -interval 5 -backend zookeeper -node 127.0.0.1:2181
