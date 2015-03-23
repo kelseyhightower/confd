@@ -144,14 +144,25 @@ func initConfig() error {
 			} else {
 				config.BackendNodes = []string{"http://127.0.0.1:4001"}
 			}
+		case "redis":
+			config.BackendNodes = []string{"127.0.0.1:6379"}
 		}
 	}
 	// Initialize the storage client
 	log.Notice("Backend set to " + config.Backend)
-        if config.Backend == "zookeeper" && config.Watch == true {
-             log.Notice("Watch is not supported for backend " + config.Backend + "exiting...")
-             os.Exit(1);
-        }
+
+	if config.Watch {
+		unsupportedBackends := map[string]bool{
+			"zookeeper": true,
+			"redis":     true,
+		}
+
+		if unsupportedBackends[config.Backend] {
+			log.Notice("Watch is not supported for backend " + config.Backend + " exiting...")
+			os.Exit(1)
+		}
+	}
+
 	backendsConfig = backends.Config{
 		Backend:      config.Backend,
 		ClientCaKeys: config.ClientCaKeys,

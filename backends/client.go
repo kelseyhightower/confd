@@ -7,6 +7,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
+	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
 )
@@ -34,6 +35,8 @@ func New(config Config) (StoreClient, error) {
 		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
 	case "zookeeper":
 		return zookeeper.NewZookeeperClient(backendNodes)
+	case "redis":
+		return redis.NewRedisClient(backendNodes)
 	case "env":
 		return env.NewEnvClient()
 	}
