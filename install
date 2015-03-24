@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-BIN_DIR=/usr/local/bin
+BIN_DIR=${BIN_DIR:-/usr/local/bin}
 INSTALL=install
 
 echo "Installing confd to $BIN_DIR/confd..."
