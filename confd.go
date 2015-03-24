@@ -51,7 +51,7 @@ func main() {
 		case err := <-errChan:
 			log.Error(err.Error())
 		case s := <-signalChan:
-			log.Info(fmt.Sprintf("captured %v exiting...", s))
+			log.Info(fmt.Sprintf("Captured %v. Exiting...", s))
 			close(doneChan)
 		case <-doneChan:
 			os.Exit(0)

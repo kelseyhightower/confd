@@ -110,7 +110,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	templates := make([]*TemplateResource, 0)
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
 	if !isFileExist(config.ConfDir) {
-		log.Warning(fmt.Sprintf("Cannot load template resources confdir '%s' does not exist", config.ConfDir))
+		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
 		return nil, nil
 	}
 	paths, err := filepath.Glob(filepath.Join(config.ConfigDir, "*toml"))

@@ -158,7 +158,7 @@ func initConfig() error {
 		}
 
 		if unsupportedBackends[config.Backend] {
-			log.Notice("Watch is not supported for backend " + config.Backend + " exiting...")
+			log.Notice(fmt.Sprintf("Watch is not supported for backend %s. Exiting...", config.Backend))
 			os.Exit(1)
 		}
 	}
