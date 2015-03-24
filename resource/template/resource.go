@@ -146,7 +146,7 @@ func (t *TemplateResource) sync() error {
 		log.Error(err.Error())
 	}
 	if t.noop {
-		log.Warning("Noop mode enabled " + t.Dest + " will not be modified")
+		log.Warning("Noop mode enabled. " + t.Dest + " will not be modified")
 		return nil
 	}
 	if !ok {
