@@ -1,4 +1,4 @@
-package consulapi
+package api
 
 import (
 	"fmt"
@@ -22,6 +22,7 @@ type AgentService struct {
 	Service string
 	Tags    []string
 	Port    int
+	Address string
 }
 
 // AgentMember represents a cluster member known to the agent
@@ -41,18 +42,21 @@ type AgentMember struct {
 
 // AgentServiceRegistration is used to register a new service
 type AgentServiceRegistration struct {
-	ID    string   `json:",omitempty"`
-	Name  string   `json:",omitempty"`
-	Tags  []string `json:",omitempty"`
-	Port  int      `json:",omitempty"`
-	Check *AgentServiceCheck
+	ID      string   `json:",omitempty"`
+	Name    string   `json:",omitempty"`
+	Tags    []string `json:",omitempty"`
+	Port    int      `json:",omitempty"`
+	Address string   `json:",omitempty"`
+	Check   *AgentServiceCheck
+	Checks  AgentServiceChecks
 }
 
 // AgentCheckRegistration is used to register a new check
 type AgentCheckRegistration struct {
-	ID    string `json:",omitempty"`
-	Name  string `json:",omitempty"`
-	Notes string `json:",omitempty"`
+	ID        string `json:",omitempty"`
+	Name      string `json:",omitempty"`
+	Notes     string `json:",omitempty"`
+	ServiceID string `json:",omitempty"`
 	AgentServiceCheck
 }
 
@@ -61,8 +65,11 @@ type AgentCheckRegistration struct {
 type AgentServiceCheck struct {
 	Script   string `json:",omitempty"`
 	Interval string `json:",omitempty"`
+	Timeout  string `json:",omitempty"`
 	TTL      string `json:",omitempty"`
+	HTTP     string `json:",omitempty"`
 }
+type AgentServiceChecks []*AgentServiceCheck
 
 // Agent can be used to query the Agent endpoints
 type Agent struct {
@@ -263,6 +270,60 @@ func (a *Agent) Join(addr string, wan bool) error {
 // ForceLeave is used to have the agent eject a failed node
 func (a *Agent) ForceLeave(node string) error {
 	r := a.c.newRequest("PUT", "/v1/agent/force-leave/"+node)
+	_, resp, err := requireOK(a.c.doRequest(r))
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
+}
+
+// EnableServiceMaintenance toggles service maintenance mode on
+// for the given service ID.
+func (a *Agent) EnableServiceMaintenance(serviceID, reason string) error {
+	r := a.c.newRequest("PUT", "/v1/agent/service/maintenance/"+serviceID)
+	r.params.Set("enable", "true")
+	r.params.Set("reason", reason)
+	_, resp, err := requireOK(a.c.doRequest(r))
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
+}
+
+// DisableServiceMaintenance toggles service maintenance mode off
+// for the given service ID.
+func (a *Agent) DisableServiceMaintenance(serviceID string) error {
+	r := a.c.newRequest("PUT", "/v1/agent/service/maintenance/"+serviceID)
+	r.params.Set("enable", "false")
+	_, resp, err := requireOK(a.c.doRequest(r))
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
+}
+
+// EnableNodeMaintenance toggles node maintenance mode on for the
+// agent we are connected to.
+func (a *Agent) EnableNodeMaintenance(reason string) error {
+	r := a.c.newRequest("PUT", "/v1/agent/maintenance")
+	r.params.Set("enable", "true")
+	r.params.Set("reason", reason)
+	_, resp, err := requireOK(a.c.doRequest(r))
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
+}
+
+// DisableNodeMaintenance toggles node maintenance mode off for the
+// agent we are connected to.
+func (a *Agent) DisableNodeMaintenance() error {
+	r := a.c.newRequest("PUT", "/v1/agent/maintenance")
+	r.params.Set("enable", "false")
 	_, resp, err := requireOK(a.c.doRequest(r))
 	if err != nil {
 		return err

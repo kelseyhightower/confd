@@ -29,6 +29,11 @@
 			"Rev": "2668ae2944701f73206a228638407926dea859b1"
 		},
 		{
+			"ImportPath": "github.com/hashicorp/consul/api",
+			"Comment": "v0.5.0-78-gbbd253e",
+			"Rev": "bbd253e2e543498f9e1a4c6867588779be412175"
+		},
+		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
 			"Rev": "7f9c7f36f45ba80c62fe22779ee78d9b4ca36580"
 		},

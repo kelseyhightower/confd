@@ -205,7 +205,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.ClientCert = clientCert
 	case "client-key":
 		config.ClientKey = clientKey
-	case "client-cakeys":
+	case "client-ca-keys":
 		config.ClientCaKeys = clientCaKeys
 	case "confdir":
 		config.ConfDir = confdir

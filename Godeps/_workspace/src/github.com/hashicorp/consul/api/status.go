@@ -1,4 +1,4 @@
-package consulapi
+package api
 
 // Status can be used to query the Status endpoints
 type Status struct {
