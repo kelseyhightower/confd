@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -113,7 +112,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
 		return nil, nil
 	}
-	paths, err := filepath.Glob(filepath.Join(config.ConfigDir, "*toml"))
+	paths, err := recursiveFindFiles(config.ConfigDir, "*toml")
 	if err != nil {
 		return nil, err
 	}
