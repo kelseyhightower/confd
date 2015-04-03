@@ -41,7 +41,7 @@ keys = [
 `
 
 func TestProcessTemplateResources(t *testing.T) {
-	log.SetQuiet(true)
+	log.SetLevel("warn")
 	// Setup temporary conf, config, and template directories.
 	tempConfDir, err := createTempDirs()
 	if err != nil {
@@ -109,7 +109,7 @@ func TestProcessTemplateResources(t *testing.T) {
 }
 
 func TestSameConfigTrue(t *testing.T) {
-	log.SetQuiet(true)
+	log.SetLevel("warn")
 	src, err := ioutil.TempFile("", "src")
 	defer os.Remove(src.Name())
 	if err != nil {
@@ -138,7 +138,7 @@ func TestSameConfigTrue(t *testing.T) {
 }
 
 func TestSameConfigFalse(t *testing.T) {
-	log.SetQuiet(true)
+	log.SetLevel("warn")
 	src, err := ioutil.TempFile("", "src")
 	defer os.Remove(src.Name())
 	if err != nil {

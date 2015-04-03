@@ -16,4 +16,4 @@ curl -L -X PUT http://127.0.0.1:4001/v2/keys/prefix/upstream/app2 -d value=10.0.
 
 
 # Run confd
-confd -onetime -verbose -debug -confdir ./integration/confdir -backend etcd -node 127.0.0.1:4001 -watch
+confd --onetime --log-level debug --confdir ./integration/confdir --backend etcd --node 127.0.0.1:4001 --watch
