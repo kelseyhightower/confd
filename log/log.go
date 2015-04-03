@@ -40,16 +40,22 @@ func SetTag(t string) {
 }
 
 // SetQuiet sets quiet mode.
+//
+// TODO (bacongobbler): remove entirely once v0.9.0 lands
 func SetQuiet() {
 	Fatal("--quiet has been deprecated in favour of --log-level")
 }
 
 // SetDebug sets debug mode.
+//
+// TODO (bacongobbler): remove entirely once v0.9.0 lands
 func SetDebug() {
 	Fatal("--debug has been deprecated in favour of --log-level")
 }
 
 // SetVerbose sets verbose mode.
+//
+// TODO (bacongobbler): remove entirely once v0.9.0 lands
 func SetVerbose() {
 	Fatal("--verbose has been deprecated in favour of --log-level")
 }
