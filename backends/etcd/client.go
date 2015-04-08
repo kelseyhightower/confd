@@ -84,7 +84,6 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 				return 0, nil
 			}
 		}
-		return waitIndex, err
 	}
 	return resp.Node.ModifiedIndex, err
 }
