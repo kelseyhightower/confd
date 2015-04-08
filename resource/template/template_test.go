@@ -172,6 +172,52 @@ bz: baz
 	},
 
 	templateTest{
+		desc: "toUpper test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data/",
+]
+`,
+		tmpl: `
+{{$data := toUpper (getv "/test/data") }}
+key: {{$data}}
+`,
+		expected: `
+
+key: VALUE
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", `Value`)
+		},
+	},
+
+	templateTest{
+		desc: "toLower test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data/",
+]
+`,
+		tmpl: `
+{{$data := toLower (getv "/test/data") }}
+key: {{$data}}
+`,
+		expected: `
+
+key: value
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", `Value`)
+		},
+	},
+
+	templateTest{
 		desc: "json test",
 		toml: `
 [template]
