@@ -97,7 +97,7 @@ func createRecursiveDirs() (rootDir string, err error) {
 }
 
 func TestRecursiveFindFiles(t *testing.T) {
-	log.SetQuiet(true)
+	log.SetLevel("warn")
 	// Setup temporary directories
 	rootDir, err := createRecursiveDirs()
 	if err != nil {
