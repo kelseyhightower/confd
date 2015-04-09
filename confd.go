@@ -38,7 +38,7 @@ func main() {
 	errChan := make(chan error, 10)
 	var processor template.Processor
 	switch {
-	case watch:
+	case config.Watch:
 		processor = template.WatchProcessor(templateConfig, stopChan, doneChan, errChan)
 	default:
 		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
