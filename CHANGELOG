@@ -1,4 +1,25 @@
-# Change Log
+### v0.9.0
 
-All notable changes to this project will be documented in this file.
-This project adheres to [Semantic Versioning](http://semver.org/).
+f782957 bump etcd to v2.0.9 for integration tests
+1b2d669 *feature) add recursive get toml files.
+94fc0a6 allow override of BIN_DIR
+7cce514 log that we're skipping config file to debug
+6e0cbfc Enable watch from the config file
+0410cbd bump version to 0.8.0
+c7f53e1 add go 1.4 to travis.ci version matrix
+7a2e2f4 Add toUpper, toLower support
+4a8e079 Fix "The event in requested index is outdated and cleared" error
+211a5cb add --log-level flag
+0a0858c fix godeps
+821cd61 properly format error messages
+2ad79d6 general integration test nitpicks
+913eb2e hook up etcd integration tests
+2ad2fd4 Improved docs for how to use go templates to traverse json
+7b4f06a hook up consul integration tests to travis
+ae640bf hook up redis integration tests
+828d568 remove unused service templates
+7d374e6 remove unused log_test
+68eb9ad Add simple redis support
+b4c103c Revert "Added jsonGet support to template_funcs"
+1e08562 Added jsonGet support to template_funcs
+f84b57d add scripts for building, installing and testing confd
