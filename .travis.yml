@@ -13,9 +13,9 @@ before_install:
   - sudo mv consul /bin/
   - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul &
   # install etcd
-  - wget https://github.com/coreos/etcd/releases/download/v0.4.6/etcd-v0.4.6-linux-amd64.tar.gz
-  - tar xzf etcd-v0.4.6-linux-amd64.tar.gz
-  - sudo mv etcd-v0.4.6-linux-amd64/etcd /bin/
+  - wget https://github.com/coreos/etcd/releases/download/v2.0.9/etcd-v2.0.9-linux-amd64.tar.gz
+  - tar xzf etcd-v2.0.9-linux-amd64.tar.gz
+  - sudo mv etcd-v2.0.9-linux-amd64/etcd /bin/
   - etcd &
 install:
   - go get github.com/tools/godep
