@@ -25,7 +25,7 @@ func New(config Config) (StoreClient, error) {
 		config.Backend = "etcd"
 	}
 	backendNodes := config.BackendNodes
-	log.Notice("Backend nodes set to " + strings.Join(backendNodes, ", "))
+	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	switch config.Backend {
 	case "consul":
 		return consul.NewConsulClient(backendNodes)

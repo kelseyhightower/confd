@@ -8,7 +8,7 @@ import (
 )
 
 func TestInitConfigDefaultConfig(t *testing.T) {
-	log.SetQuiet(true)
+	log.SetLevel("warn")
 	want := Config{
 		Backend:      "etcd",
 		BackendNodes: []string{"http://127.0.0.1:4001"},

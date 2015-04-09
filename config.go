@@ -29,6 +29,7 @@ var (
 	debug             bool
 	interval          int
 	keepStageFile     bool
+	logLevel          string
 	nodes             Nodes
 	noop              bool
 	onetime           bool
@@ -59,6 +60,7 @@ type Config struct {
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
 	Verbose      bool     `toml:"verbose"`
+	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
 }
 
@@ -72,6 +74,7 @@ func init() {
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
+	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
 	flag.Var(&nodes, "node", "list of backend nodes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
@@ -120,9 +123,18 @@ func initConfig() error {
 	processFlags()
 
 	// Configure logging.
-	log.SetQuiet(config.Quiet)
-	log.SetVerbose(config.Verbose)
-	log.SetDebug(config.Debug)
+	if config.Quiet {
+		log.SetQuiet()
+	}
+	if config.Verbose {
+		log.SetVerbose()
+	}
+	if config.Debug {
+		log.SetDebug()
+	}
+	if config.LogLevel != "" {
+		log.SetLevel(config.LogLevel)
+	}
 
 	// Update BackendNodes from SRV records.
 	if config.Backend != "env" && config.SRVDomain != "" {
@@ -149,7 +161,7 @@ func initConfig() error {
 		}
 	}
 	// Initialize the storage client
-	log.Notice("Backend set to " + config.Backend)
+	log.Info("Backend set to " + config.Backend)
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
@@ -158,7 +170,7 @@ func initConfig() error {
 		}
 
 		if unsupportedBackends[config.Backend] {
-			log.Notice(fmt.Sprintf("Watch is not supported for backend %s. Exiting...", config.Backend))
+			log.Info(fmt.Sprintf("Watch is not supported for backend %s. Exiting...", config.Backend))
 			os.Exit(1)
 		}
 	}
@@ -234,6 +246,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SRVDomain = srvDomain
 	case "verbose":
 		config.Verbose = verbose
+	case "log-level":
+		config.LogLevel = logLevel
 	case "watch":
 		config.Watch = watch
 	}

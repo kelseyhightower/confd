@@ -21,7 +21,7 @@ func main() {
 	if err := initConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Notice("Starting confd")
+	log.Info("Starting confd")
 	storeClient, err := backends.New(backendsConfig)
 	if err != nil {
 		log.Fatal(err.Error())
