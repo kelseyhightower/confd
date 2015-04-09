@@ -18,6 +18,8 @@ func newFuncMap() map[string]interface{} {
 	m["getenv"] = os.Getenv
 	m["join"] = strings.Join
 	m["datetime"] = time.Now
+	m["toUpper"] = strings.ToUpper
+	m["toLower"] = strings.ToLower
 	return m
 }
 

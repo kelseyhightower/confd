@@ -116,6 +116,22 @@ Wrapper for [strings.Split](http://golang.org/pkg/strings/#Split). Splits the in
     port: {{index $url 1}}
 ```
 
+### toUpper
+
+Alias for [strings.ToUpper](http://golang.org/pkg/strings/#ToUpper) Returns uppercased string.
+
+```
+key: {{toUpper "value"}}
+```
+
+### toLower
+
+Alias for [strings.ToLower](http://golang.org/pkg/strings/#ToLower). Returns lowercased string.
+
+```
+key: {{toLower "Value"}}
+```
+
 ### json
 
 Returns an map[string]interface{} of the json value.
