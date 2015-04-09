@@ -76,6 +76,12 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 	}
 	resp, err := c.client.Watch(prefix, waitIndex+1, true, nil, stopChan)
 	if err != nil {
+		switch e := err.(type) {
+		case *goetcd.EtcdError:
+			if e.ErrorCode == 401 {
+				return 0, nil
+			}
+		}
 		return waitIndex, err
 	}
 	return resp.Node.ModifiedIndex, err
