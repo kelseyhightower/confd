@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Before we begin be sure to [download and install confd](installation.md). 
+Before we begin be sure to [download and install confd](installation.md).
 
 ## Select a backend
 
@@ -9,6 +9,8 @@ confd supports the following backends:
 * etcd
 * consul
 * environment variables
+* redis
+* zookeeper
 
 ### Add keys
 
@@ -35,18 +37,21 @@ export MYAPP_DATABASE_URL=db.example.com
 export MYAPP_DATABASE_USER=rob
 ```
 
-#### zookeeper
-Use zkCli.sh to add keys
+#### redis
 
 ```
-[zk: localhost:2181(CONNECTED) 1] create /my_app "" 
+redis-cli set /myapp/database/url db.example.com
+redis-cli set /myapp/database/user rob
+```
+
+#### zookeeper
+
+```
+[zk: localhost:2181(CONNECTED) 1] create /my_app ""
 [zk: localhost:2181(CONNECTED) 2] create /my_app/database ""
 [zk: localhost:2181(CONNECTED) 3] create /my_app/database/url "db.example.com"
-[zk: localhost:2181(CONNECTED) 4] create /my_app/database/user "rob"           
-
+[zk: localhost:2181(CONNECTED) 4] create /my_app/database/user "rob"
 ```
-
-Please note that zookeeper backend doesn't support watch and values from znodes with children won't be retrieved.
 
 ### Create the confdir
 
@@ -106,7 +111,6 @@ confd -onetime -backend env
 
 Output:
 ```
-2014-07-08T20:38:36-07:00 confd[16252]: WARNING Skipping confd config file.
 2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf out of sync
 2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf has been updated
 ```
@@ -118,7 +122,7 @@ cat /tmp/myconfig.conf
 ```
 
 Output:
-``` 
+```
 # This a comment
 [myconfig]
 database_url = db.example.com
@@ -127,7 +131,7 @@ database_user = rob
 
 ## Advanced Example
 
-In this example we will use confd to manage two nginx config files using a single template. 
+In this example we will use confd to manage two nginx config files using a single template.
 
 ### Add keys
 
