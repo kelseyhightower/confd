@@ -1,8 +1,8 @@
 # DNS SRV Records
 
-SRV records can be used to declare the backend nodes; just use the `-srv-domain` flag. 
+SRV records can be used to declare the backend nodes; just use the `-srv-domain` flag.
 
-## Examples 
+## Examples
 
 ### etcd
 
