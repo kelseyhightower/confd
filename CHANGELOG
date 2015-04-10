@@ -1,5 +1,7 @@
 ### v0.9.0
 
+8888b7a Add maintainers file
+431e31b add release checklist document
 f782957 bump etcd to v2.0.9 for integration tests
 1b2d669 *feature) add recursive get toml files.
 94fc0a6 allow override of BIN_DIR
