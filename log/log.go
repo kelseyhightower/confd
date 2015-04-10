@@ -39,27 +39,7 @@ func SetTag(t string) {
 	tag = t
 }
 
-// SetQuiet sets quiet mode.
-//
-// TODO (bacongobbler): remove entirely once v0.9.0 lands
-func SetQuiet() {
-	Fatal("--quiet has been deprecated in favour of --log-level")
-}
-
-// SetDebug sets debug mode.
-//
-// TODO (bacongobbler): remove entirely once v0.9.0 lands
-func SetDebug() {
-	Fatal("--debug has been deprecated in favour of --log-level")
-}
-
-// SetVerbose sets verbose mode.
-//
-// TODO (bacongobbler): remove entirely once v0.9.0 lands
-func SetVerbose() {
-	Fatal("--verbose has been deprecated in favour of --log-level")
-}
-
+// SetLevel sets the log level. Valid levels are panic, fatal, error, warn, info and debug.
 func SetLevel(level string) {
 	lvl, err := log.ParseLevel(level)
 	if err != nil {

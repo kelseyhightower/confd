@@ -26,7 +26,6 @@ var (
 	clientKey         string
 	confdir           string
 	config            Config // holds the global confd config.
-	debug             bool
 	interval          int
 	keepStageFile     bool
 	logLevel          string
@@ -35,12 +34,10 @@ var (
 	onetime           bool
 	prefix            string
 	printVersion      bool
-	quiet             bool
 	scheme            string
 	srvDomain         string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
-	verbose           bool
 	watch             bool
 )
 
@@ -52,14 +49,11 @@ type Config struct {
 	ClientCert   string   `toml:"client_cert"`
 	ClientKey    string   `toml:"client_key"`
 	ConfDir      string   `toml:"confdir"`
-	Debug        bool     `toml:"debug"`
 	Interval     int      `toml:"interval"`
 	Noop         bool     `toml:"noop"`
 	Prefix       string   `toml:"prefix"`
-	Quiet        bool     `toml:"quiet"`
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
-	Verbose      bool     `toml:"verbose"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
 }
@@ -71,7 +65,6 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -80,10 +73,8 @@ func init() {
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
-	flag.BoolVar(&quiet, "quiet", false, "enable quiet logging")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
-	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
 
@@ -122,16 +113,6 @@ func initConfig() error {
 	// Update config from commandline flags.
 	processFlags()
 
-	// Configure logging.
-	if config.Quiet {
-		log.SetQuiet()
-	}
-	if config.Verbose {
-		log.SetVerbose()
-	}
-	if config.Debug {
-		log.SetDebug()
-	}
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
 	}
@@ -220,8 +201,6 @@ func setConfigFromFlag(f *flag.Flag) {
 	switch f.Name {
 	case "backend":
 		config.Backend = backend
-	case "debug":
-		config.Debug = debug
 	case "client-cert":
 		config.ClientCert = clientCert
 	case "client-key":
@@ -238,14 +217,10 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Noop = noop
 	case "prefix":
 		config.Prefix = prefix
-	case "quiet":
-		config.Quiet = quiet
 	case "scheme":
 		config.Scheme = scheme
 	case "srv-domain":
 		config.SRVDomain = srvDomain
-	case "verbose":
-		config.Verbose = verbose
 	case "log-level":
 		config.LogLevel = logLevel
 	case "watch":

@@ -16,14 +16,11 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		ClientCert:   "",
 		ClientKey:    "",
 		ConfDir:      "/etc/confd",
-		Debug:        false,
 		Interval:     600,
 		Noop:         false,
 		Prefix:       "/",
-		Quiet:        false,
 		SRVDomain:    "",
 		Scheme:       "http",
-		Verbose:      false,
 	}
 	if err := initConfig(); err != nil {
 		t.Errorf(err.Error())
