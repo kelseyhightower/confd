@@ -3,7 +3,7 @@
 In order to cut a new release, a few things must be done:
 
 1. auto-generate the CHANGELOG using the provided script
-2. bump version.go to the new release
+2. bump version.go and docs/installation.md to the new release
 
 For the former, you can use the following script:
 
