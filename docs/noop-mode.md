@@ -19,7 +19,7 @@ noop = true
 ### Example
 
 ```
-confd -onetime -noop -verbose
+confd -onetime -noop
 ```
 
 -

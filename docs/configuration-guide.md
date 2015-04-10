@@ -12,15 +12,13 @@ Optional:
 * `client_cert` (string) - The client cert file.
 * `client_key` (string) - The client key file.
 * `confdir` (string) - The path to confd configs. ("/etc/confd")
-* `debug` (bool) - Enable debug logging.
 * `interval` (int) - The backend polling interval in seconds. (600)
+* `log-level` (string) - level which confd should log messages ("info")
 * `nodes` (array of strings) - List of backend nodes. (["http://127.0.0.1:4001"])
 * `noop` (bool) - Enable noop mode. Process all template resources; skip target update.
 * `prefix` (string) - The string to prefix to keys. ("/")
-* `quiet` (bool) - Enable quiet logging.
 * `scheme` (string) - The backend URI scheme. ("http" or "https")
 * `srv_domain` (string) - The name of the resource record.
-* `verbose` (bool) - Enable verbose logging.
 * `watch` (bool) - Enable watch support.
 
 Example:
@@ -30,15 +28,13 @@ backend = "etcd"
 client_cert = "/etc/confd/ssl/client.crt"
 client_key = "/etc/confd/ssl/client.key"
 confdir = "/etc/confd"
-debug = false
+log-level = "debug"
 interval = 600
 nodes = [
   "http://127.0.0.1:4001",
 ]
 noop = false
 prefix = "/production"
-quiet = false
 scheme = "https"
 srv_domain = "etcd.example.com"
-verbose = false
 ```
