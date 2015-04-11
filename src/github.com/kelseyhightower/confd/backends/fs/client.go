@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -15,8 +17,8 @@ type Client struct {
 	maxFileSize int64
 }
 
-func NewFsClient(rootPath string, maxFileSize int) (*Client, error) {
-	return &Client{rootPath, int64(maxFileSize)}, nil
+func NewFsClient(fc *config.FsBackendConfig) (*Client, error) {
+	return &Client{fc.RootPath, int64(fc.MaxFileSize)}, nil
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {

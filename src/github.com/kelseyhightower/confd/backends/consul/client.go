@@ -9,34 +9,35 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/util"
 )
 
 // Client provides a wrapper around the consulkv client
-type ConsulClient struct {
+type Client struct {
 	client *api.KV
 }
 
 // NewConsulClient returns a new client to Consul for the given address
-func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error) {
+func NewConsulClient(cc *config.ConsulBackendConfig) (*Client, error) {
+	nodes := util.GetBackendNodesFromSRVOrElse(cc.Type(), cc.Srv, func()[]string { return cc.Nodes })
 	conf := api.DefaultConfig()
-
-	conf.Scheme = scheme
-
+	conf.Scheme = cc.Scheme
 	if len(nodes) > 0 {
 		conf.Address = nodes[0]
 	}
 
 	tlsConfig := &tls.Config{}
-	if cert != "" && key != "" {
-		clientCert, err := tls.LoadX509KeyPair(cert, key)
+	if cc.Cert != "" && cc.CertKey != "" {
+		clientCert, err := tls.LoadX509KeyPair(cc.Cert, cc.CertKey)
 		if err != nil {
 			return nil, err
 		}
 		tlsConfig.Certificates = []tls.Certificate{clientCert}
 		tlsConfig.BuildNameToCertificate()
 	}
-	if caCert != "" {
-		ca, err := ioutil.ReadFile(caCert)
+	if cc.CAKeys != "" {
+		ca, err := ioutil.ReadFile(cc.CAKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -52,11 +53,11 @@ func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error
 	if err != nil {
 		return nil, err
 	}
-	return &ConsulClient{client.KV()}, nil
+	return &Client{client.KV()}, nil
 }
 
 // GetValues queries Consul for keys
-func (c *ConsulClient) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		key := strings.TrimPrefix(key, "/")
@@ -76,7 +77,7 @@ type watchResponse struct {
 	err       error
 }
 
-func (c *ConsulClient) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	respChan := make(chan watchResponse)
 	go func() {
 		opts := api.QueryOptions{

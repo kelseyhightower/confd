@@ -3,6 +3,8 @@ package env
 import (
 	"os"
 	"strings"
+
+	"github.com/kelseyhightower/confd/config"
 )
 
 var replacer = strings.NewReplacer("/", "_")
@@ -11,7 +13,7 @@ var replacer = strings.NewReplacer("/", "_")
 type Client struct{}
 
 // NewEnvClient returns a new client
-func NewEnvClient() (*Client, error) {
+func NewEnvClient(ec *config.EnvBackendConfig) (*Client, error) {
 	return &Client{}, nil
 }
 

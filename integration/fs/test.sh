@@ -25,9 +25,9 @@ printf "10.0.1.10:8080" > $ROOTPATH/prefix/upstream/app1
 printf "10.0.1.11:8080" > $ROOTPATH/prefix/upstream/app2
 
 # Run confd with --watch, expecting it to fail
-confd --onetime --log-level debug --confdir ./integration/confdir --backend fs --fs-rootpath $ROOTPATH --watch
+confd --onetime --log-level debug --confdir ./integration/confdir --watch fs --root-path $ROOTPATH
 if [ $? -eq 0 ]
 then
 	exit 1
 fi
-confd --onetime --log-level debug --confdir ./integration/confdir --backend fs --fs-rootpath $ROOTPATH
+confd --onetime --log-level debug --confdir ./integration/confdir fs --root-path $ROOTPATH

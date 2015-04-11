@@ -2,10 +2,13 @@ package redis
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/util"
+	"github.com/garyburd/redigo/redis"
 )
 
 // Client is a wrapper around the redis client
@@ -15,7 +18,8 @@ type Client struct {
 
 // NewRedisClient returns an *redis.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewRedisClient(machines []string) (*Client, error) {
+func NewRedisClient(rc *config.RedisBackendConfig) (*Client, error) {
+	machines := util.GetBackendNodesFromSRVOrElse(rc.Type(), rc.Srv, func()[]string { return rc.Nodes })
 	var err error
 	for _, address := range machines {
 		var conn redis.Conn

@@ -1,4 +1,4 @@
-package template
+package util
 
 import (
 	"io/ioutil"
@@ -104,9 +104,9 @@ func TestRecursiveFindFiles(t *testing.T) {
 		t.Errorf("Failed to create temp dirs: %s", err.Error())
 	}
 	defer os.RemoveAll(rootDir)
-	files, err := recursiveFindFiles(rootDir, "*toml")
+	files, err := RecursiveFindFiles(rootDir, "*toml")
 	if err != nil {
-		t.Errorf("Failed to run recursiveFindFiles, got error: " + err.Error())
+		t.Errorf("Failed to run util.RecursiveFindFiles, got error: " + err.Error())
 	}
 	sort.Strings(files)
 	exceptedFiles := []string{

@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/util"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
 
@@ -12,7 +14,8 @@ type Client struct {
 	client *zk.Conn
 }
 
-func NewZookeeperClient(machines []string) (*Client, error) {
+func NewZookeeperClient(zc *config.ZookeeperBackendConfig) (*Client, error) {
+	machines := util.GetBackendNodesFromSRVOrElse(zc.Type(), zc.Srv, func()[]string { return zc.Nodes })
 	c, _, err := zk.Connect(machines, time.Second) //*10)
 	if err != nil {
 		panic(err)

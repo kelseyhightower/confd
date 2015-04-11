@@ -2,7 +2,6 @@ package backends
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
@@ -11,8 +10,9 @@ import (
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
 	"github.com/kelseyhightower/confd/backends/fs"
+	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/config"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve
@@ -23,35 +23,26 @@ type StoreClient interface {
 }
 
 // New is used to create a storage client based on our configuration.
-func New(config Config) (StoreClient, error) {
-	if config.Backend == "" {
-		config.Backend = "etcd"
-	}
-	backendNodes := config.BackendNodes
-	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
-	switch config.Backend {
+func New(bc config.BackendConfig) (StoreClient, error) {
+	switch bc.Type() {
 	case "consul":
-		return consul.New(config.BackendNodes, config.Scheme,
-			config.ClientCert, config.ClientKey,
-			config.ClientCaKeys)
+		return consul.NewConsulClient(bc.(*config.ConsulBackendConfig))
+	case "env":
+		return env.NewEnvClient(bc.(*config.EnvBackendConfig))
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
-		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
-	case "zookeeper":
-		return zookeeper.NewZookeeperClient(backendNodes)
+		return etcd.NewEtcdClient(bc.(*config.EtcdBackendConfig))
 	case "redis":
-		return redis.NewRedisClient(backendNodes)
-	case "env":
-		return env.NewEnvClient()
+		return redis.NewRedisClient(bc.(*config.RedisBackendConfig))
+	case "zookeeper":
+		return zookeeper.NewZookeeperClient(bc.(*config.ZookeeperBackendConfig))
 	case "dynamodb":
-		table := config.Table
-		log.Info("DynamoDB table set to " + table)
-		return dynamodb.NewDynamoDBClient(table)
+		return dynamodb.NewDynamoDBClient(bc.(*config.DynamoDBBackendConfig))
 	case "stackengine":
 		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
 	case "fs":
-		return fs.NewFsClient(config.FsRootPath, config.FsMaxFileSize)
+		return fs.NewFsClient(bc.(*config.FsBackendConfig))
 	}
 	return nil, errors.New("Invalid backend")
 }

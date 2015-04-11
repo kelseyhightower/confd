@@ -1,12 +1,14 @@
 package dynamodb
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/awslabs/aws-sdk-go/aws"
 	"github.com/awslabs/aws-sdk-go/aws/credentials"
 	"github.com/awslabs/aws-sdk-go/service/dynamodb"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/config"
 )
 
 // Client is a wrapper around the DynamoDB client
@@ -19,7 +21,7 @@ type Client struct {
 // NewDynamoDBClient returns an *dynamodb.Client with a connection to the region
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
-func NewDynamoDBClient(table string) (*Client, error) {
+func NewDynamoDBClient(ddbc *config.DynamoDBBackendConfig) (*Client, error) {
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
 			&credentials.EnvProvider{},
@@ -29,6 +31,7 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var c *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
@@ -38,11 +41,11 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	}
 	d := dynamodb.New(c)
 	// Check if the table exists
-	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
+	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &ddbc.Table})
 	if err != nil {
 		return nil, err
 	}
-	return &Client{d, table}, nil
+	return &Client{d, ddbc.Table}, nil
 }
 
 // GetValues retrieves the values for the given keys from DynamoDB
