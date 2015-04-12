@@ -79,7 +79,8 @@ func init() {
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
-// then overriding setting from the confd config file, and finally overriding
+// then overriding settings from the confd config file, then overriding
+// settings from environment variables, and finally overriding
 // settings from flags set on the command line.
 // It returns an error if any.
 func initConfig() error {
@@ -110,6 +111,10 @@ func initConfig() error {
 			return err
 		}
 	}
+
+	// Update config from environment variables.
+	processEnv()
+
 	// Update config from commandline flags.
 	processFlags()
 
@@ -195,6 +200,23 @@ func getBackendNodesFromSRV(backend, domain, scheme string) ([]string, error) {
 // overrides corresponding configuration settings.
 func processFlags() {
 	flag.Visit(setConfigFromFlag)
+}
+
+func processEnv() {
+	cakeys := os.Getenv("CONFD_CLIENT_CAKEYS")
+	if len(cakeys) > 0 {
+		config.ClientCaKeys = cakeys
+	}
+
+	cert := os.Getenv("CONFD_CLIENT_CERT")
+	if len(cert) > 0 {
+		config.ClientCert = cert
+	}
+
+	key := os.Getenv("CONFD_CLIENT_KEY")
+	if len(key) > 0 {
+		config.ClientKey = key
+	}
 }
 
 func setConfigFromFlag(f *flag.Flag) {
