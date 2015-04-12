@@ -1,4 +1,4 @@
-package consulapi
+package api
 
 import (
 	"bytes"
@@ -56,7 +56,7 @@ func (k *KV) Get(key string, q *QueryOptions) (*KVPair, *QueryMeta, error) {
 
 // List is used to lookup all keys under a prefix
 func (k *KV) List(prefix string, q *QueryOptions) (KVPairs, *QueryMeta, error) {
-	resp, qm, err := k.getInternal(prefix, []string{"recurse"}, q)
+	resp, qm, err := k.getInternal(prefix, map[string]string{"recurse": ""}, q)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -75,9 +75,9 @@ func (k *KV) List(prefix string, q *QueryOptions) (KVPairs, *QueryMeta, error) {
 // Keys is used to list all the keys under a prefix. Optionally,
 // a separator can be used to limit the responses.
 func (k *KV) Keys(prefix, separator string, q *QueryOptions) ([]string, *QueryMeta, error) {
-	params := []string{"keys"}
+	params := map[string]string{"keys": ""}
 	if separator != "" {
-		params = append(params, separator)
+		params["separator"] = separator
 	}
 	resp, qm, err := k.getInternal(prefix, params, q)
 	if err != nil {
@@ -95,11 +95,11 @@ func (k *KV) Keys(prefix, separator string, q *QueryOptions) ([]string, *QueryMe
 	return entries, qm, nil
 }
 
-func (k *KV) getInternal(key string, params []string, q *QueryOptions) (*http.Response, *QueryMeta, error) {
+func (k *KV) getInternal(key string, params map[string]string, q *QueryOptions) (*http.Response, *QueryMeta, error) {
 	r := k.c.newRequest("GET", "/v1/kv/"+key)
 	r.setQueryOptions(q)
-	for _, param := range params {
-		r.params.Set(param, "")
+	for param, val := range params {
+		r.params.Set(param, val)
 	}
 	rtt, resp, err := k.c.doRequest(r)
 	if err != nil {
@@ -193,27 +193,44 @@ func (k *KV) put(key string, params map[string]string, body []byte, q *WriteOpti
 
 // Delete is used to delete a single key
 func (k *KV) Delete(key string, w *WriteOptions) (*WriteMeta, error) {
-	return k.deleteInternal(key, nil, w)
+	_, qm, err := k.deleteInternal(key, nil, w)
+	return qm, err
+}
+
+// DeleteCAS is used for a Delete Check-And-Set operation. The Key
+// and ModifyIndex are respected. Returns true on success or false on failures.
+func (k *KV) DeleteCAS(p *KVPair, q *WriteOptions) (bool, *WriteMeta, error) {
+	params := map[string]string{
+		"cas": strconv.FormatUint(p.ModifyIndex, 10),
+	}
+	return k.deleteInternal(p.Key, params, q)
 }
 
 // DeleteTree is used to delete all keys under a prefix
 func (k *KV) DeleteTree(prefix string, w *WriteOptions) (*WriteMeta, error) {
-	return k.deleteInternal(prefix, []string{"recurse"}, w)
+	_, qm, err := k.deleteInternal(prefix, map[string]string{"recurse": ""}, w)
+	return qm, err
 }
 
-func (k *KV) deleteInternal(key string, params []string, q *WriteOptions) (*WriteMeta, error) {
+func (k *KV) deleteInternal(key string, params map[string]string, q *WriteOptions) (bool, *WriteMeta, error) {
 	r := k.c.newRequest("DELETE", "/v1/kv/"+key)
 	r.setWriteOptions(q)
-	for _, param := range params {
-		r.params.Set(param, "")
+	for param, val := range params {
+		r.params.Set(param, val)
 	}
 	rtt, resp, err := requireOK(k.c.doRequest(r))
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
 
 	qm := &WriteMeta{}
 	qm.RequestTime = rtt
-	return qm, nil
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, resp.Body); err != nil {
+		return false, nil, fmt.Errorf("Failed to read response: %v", err)
+	}
+	res := strings.Contains(string(buf.Bytes()), "true")
+	return res, qm, nil
 }

@@ -1,4 +1,4 @@
-package consulapi
+package api
 
 import (
 	"fmt"

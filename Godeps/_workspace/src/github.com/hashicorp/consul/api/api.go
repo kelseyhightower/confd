@@ -1,13 +1,16 @@
-package consulapi
+package api
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -73,10 +76,22 @@ type WriteMeta struct {
 	RequestTime time.Duration
 }
 
+// HttpBasicAuth is used to authenticate http client with HTTP Basic Authentication
+type HttpBasicAuth struct {
+	// Username to use for HTTP Basic Authentication
+	Username string
+
+	// Password to use for HTTP Basic Authentication
+	Password string
+}
+
 // Config is used to configure the creation of a client
 type Config struct {
 	// Address is the address of the Consul server
 	Address string
+
+	// Scheme is the URI scheme for the Consul server
+	Scheme string
 
 	// Datacenter to use. If not provided, the default agent datacenter is used.
 	Datacenter string
@@ -84,6 +99,9 @@ type Config struct {
 	// HttpClient is the client to use. Default will be
 	// used if not provided.
 	HttpClient *http.Client
+
+	// HttpAuth is the auth info to use for http access.
+	HttpAuth *HttpBasicAuth
 
 	// WaitTime limits how long a Watch will block. If not provided,
 	// the agent default values will be used.
@@ -96,10 +114,17 @@ type Config struct {
 
 // DefaultConfig returns a default configuration for the client
 func DefaultConfig() *Config {
-	return &Config{
+	config := &Config{
 		Address:    "127.0.0.1:8500",
+		Scheme:     "http",
 		HttpClient: http.DefaultClient,
 	}
+
+	if addr := os.Getenv("CONSUL_HTTP_ADDR"); addr != "" {
+		config.Address = addr
+	}
+
+	return config
 }
 
 // Client provides a client to the Consul API
@@ -109,6 +134,32 @@ type Client struct {
 
 // NewClient returns a new client
 func NewClient(config *Config) (*Client, error) {
+	// bootstrap the config
+	defConfig := DefaultConfig()
+
+	if len(config.Address) == 0 {
+		config.Address = defConfig.Address
+	}
+
+	if len(config.Scheme) == 0 {
+		config.Scheme = defConfig.Scheme
+	}
+
+	if config.HttpClient == nil {
+		config.HttpClient = defConfig.HttpClient
+	}
+
+	if parts := strings.SplitN(config.Address, "unix://", 2); len(parts) == 2 {
+		config.HttpClient = &http.Client{
+			Transport: &http.Transport{
+				Dial: func(_, _ string) (net.Conn, error) {
+					return net.Dial("unix", parts[1])
+				},
+			},
+		}
+		config.Address = parts[1]
+	}
+
 	client := &Client{
 		config: *config,
 	}
@@ -145,13 +196,9 @@ func (r *request) setQueryOptions(q *QueryOptions) {
 	}
 	if q.WaitTime != 0 {
 		r.params.Set("wait", durToMsec(q.WaitTime))
-	} else if r.config.WaitTime != 0 {
-		r.params.Set("wait", durToMsec(r.config.WaitTime))
 	}
 	if q.Token != "" {
 		r.params.Set("token", q.Token)
-	} else if r.config.Token != "" {
-		r.params.Set("token", r.config.Token)
 	}
 }
 
@@ -171,8 +218,6 @@ func (r *request) setWriteOptions(q *WriteOptions) {
 	}
 	if q.Token != "" {
 		r.params.Set("token", q.Token)
-	} else if r.config.Token != "" {
-		r.params.Set("token", r.config.Token)
 	}
 }
 
@@ -180,9 +225,6 @@ func (r *request) setWriteOptions(q *WriteOptions) {
 func (r *request) toHTTP() (*http.Request, error) {
 	// Encode the query parameters
 	r.url.RawQuery = r.params.Encode()
-
-	// Get the url sring
-	urlRaw := r.url.String()
 
 	// Check if we should encode the body
 	if r.body == nil && r.obj != nil {
@@ -194,7 +236,21 @@ func (r *request) toHTTP() (*http.Request, error) {
 	}
 
 	// Create the HTTP request
-	return http.NewRequest(r.method, urlRaw, r.body)
+	req, err := http.NewRequest(r.method, r.url.RequestURI(), r.body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.URL.Host = r.url.Host
+	req.URL.Scheme = r.url.Scheme
+	req.Host = r.url.Host
+
+	// Setup auth
+	if r.config.HttpAuth != nil {
+		req.SetBasicAuth(r.config.HttpAuth.Username, r.config.HttpAuth.Password)
+	}
+
+	return req, nil
 }
 
 // newRequest is used to create a new request
@@ -203,7 +259,7 @@ func (c *Client) newRequest(method, path string) *request {
 		config: &c.config,
 		method: method,
 		url: &url.URL{
-			Scheme: "http",
+			Scheme: c.config.Scheme,
 			Host:   c.config.Address,
 			Path:   path,
 		},
@@ -211,6 +267,12 @@ func (c *Client) newRequest(method, path string) *request {
 	}
 	if c.config.Datacenter != "" {
 		r.params.Set("dc", c.config.Datacenter)
+	}
+	if c.config.WaitTime != 0 {
+		r.params.Set("wait", durToMsec(r.config.WaitTime))
+	}
+	if c.config.Token != "" {
+		r.params.Set("token", r.config.Token)
 	}
 	return r
 }
@@ -225,6 +287,49 @@ func (c *Client) doRequest(r *request) (time.Duration, *http.Response, error) {
 	resp, err := c.config.HttpClient.Do(req)
 	diff := time.Now().Sub(start)
 	return diff, resp, err
+}
+
+// Query is used to do a GET request against an endpoint
+// and deserialize the response into an interface using
+// standard Consul conventions.
+func (c *Client) query(endpoint string, out interface{}, q *QueryOptions) (*QueryMeta, error) {
+	r := c.newRequest("GET", endpoint)
+	r.setQueryOptions(q)
+	rtt, resp, err := requireOK(c.doRequest(r))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	qm := &QueryMeta{}
+	parseQueryMeta(resp, qm)
+	qm.RequestTime = rtt
+
+	if err := decodeBody(resp, out); err != nil {
+		return nil, err
+	}
+	return qm, nil
+}
+
+// write is used to do a PUT request against an endpoint
+// and serialize/deserialized using the standard Consul conventions.
+func (c *Client) write(endpoint string, in, out interface{}, q *WriteOptions) (*WriteMeta, error) {
+	r := c.newRequest("PUT", endpoint)
+	r.setWriteOptions(q)
+	r.obj = in
+	rtt, resp, err := requireOK(c.doRequest(r))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	wm := &WriteMeta{RequestTime: rtt}
+	if out != nil {
+		if err := decodeBody(resp, &out); err != nil {
+			return nil, err
+		}
+	}
+	return wm, nil
 }
 
 // parseQueryMeta is used to help parse query meta-data
@@ -257,7 +362,6 @@ func parseQueryMeta(resp *http.Response, q *QueryMeta) error {
 
 // decodeBody is used to JSON decode a body
 func decodeBody(resp *http.Response, out interface{}) error {
-	defer resp.Body.Close()
 	dec := json.NewDecoder(resp.Body)
 	return dec.Decode(out)
 }
@@ -275,12 +379,16 @@ func encodeBody(obj interface{}) (io.Reader, error) {
 // requireOK is used to wrap doRequest and check for a 200
 func requireOK(d time.Duration, resp *http.Response, e error) (time.Duration, *http.Response, error) {
 	if e != nil {
-		return d, resp, e
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return d, nil, e
 	}
 	if resp.StatusCode != 200 {
 		var buf bytes.Buffer
 		io.Copy(&buf, resp.Body)
-		return d, resp, fmt.Errorf("Unexpected response code: %d (%s)", resp.StatusCode, buf.Bytes())
+		resp.Body.Close()
+		return d, nil, fmt.Errorf("Unexpected response code: %d (%s)", resp.StatusCode, buf.Bytes())
 	}
-	return d, resp, e
+	return d, resp, nil
 }

@@ -28,7 +28,9 @@ func New(config Config) (StoreClient, error) {
 	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	switch config.Backend {
 	case "consul":
-		return consul.NewConsulClient(backendNodes)
+		return consul.New(config.BackendNodes, config.Scheme,
+			config.ClientCert, config.ClientKey,
+			config.ClientCaKeys)
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
