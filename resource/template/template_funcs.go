@@ -2,11 +2,20 @@ package template
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/resource/template/extensions"
 )
+
+// RegisterPlugin register a new function to be used inside a template
+func RegisterPlugin(name string, plugin interface{}) []string {
+	return extensions.RegisterExtension(plugin, name)
+}
 
 func newFuncMap() map[string]interface{} {
 	m := make(map[string]interface{})
@@ -21,6 +30,13 @@ func newFuncMap() map[string]interface{} {
 	m["toUpper"] = strings.ToUpper
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
+
+	// register additional template functions (from plugins)
+	for name, plugin := range extensions.TemplatePlugins.All() {
+		log.Debug(fmt.Sprintf("adding plugin %v -> %v", name, plugin.Function))
+		m[name] = plugin.Function()
+	}
+
 	return m
 }
 
