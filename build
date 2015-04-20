@@ -4,9 +4,8 @@ set -e
 
 GO="godep go"
 
-ORG_PATH="github.com/kelseyhightower"
-REPO_PATH="${ORG_PATH}/confd"
-
 echo "Building confd..."
+CONFD_ROOT=$(cd $(dirname $0); pwd)
+cd ${CONFD_ROOT}/confd
 # Static compilation is useful when confd is run in a container
-CGO_ENABLED=0 $GO build -a -installsuffix cgo -ldflags '-s' -o bin/confd ${REPO_PATH}
+CGO_ENABLED=0 $GO build -a -installsuffix cgo -ldflags '-s' -o ${CONFD_ROOT}/bin/confd

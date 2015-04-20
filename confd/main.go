@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/kelseyhightower/confd"
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
@@ -14,21 +15,21 @@ import (
 
 func main() {
 	flag.Parse()
-	if printVersion {
-		fmt.Printf("confd %s\n", Version)
+	if confd.PrintVersion {
+		fmt.Printf("confd %s\n", confd.Version)
 		os.Exit(0)
 	}
-	if err := initConfig(); err != nil {
+	if err := confd.InitConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
 	log.Info("Starting confd")
-	storeClient, err := backends.New(backendsConfig)
+	storeClient, err := backends.New(confd.BackendsConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	templateConfig.StoreClient = storeClient
-	if onetime {
-		if err := template.Process(templateConfig); err != nil {
+	confd.TemplateConfig.StoreClient = storeClient
+	if confd.Onetime {
+		if err := template.Process(confd.TemplateConfig); err != nil {
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -38,10 +39,10 @@ func main() {
 	errChan := make(chan error, 10)
 	var processor template.Processor
 	switch {
-	case config.Watch:
-		processor = template.WatchProcessor(templateConfig, stopChan, doneChan, errChan)
+	case confd.Cfg.Watch:
+		processor = template.WatchProcessor(confd.TemplateConfig, stopChan, doneChan, errChan)
 	default:
-		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
+		processor = template.IntervalProcessor(confd.TemplateConfig, stopChan, doneChan, errChan, confd.Cfg.Interval)
 	}
 	go processor.Process()
 	signalChan := make(chan os.Signal, 1)

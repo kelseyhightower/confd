@@ -1,4 +1,4 @@
-package main
+package confd
 
 import (
 	"reflect"
@@ -22,10 +22,10 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		SRVDomain:    "",
 		Scheme:       "http",
 	}
-	if err := initConfig(); err != nil {
+	if err := InitConfig(); err != nil {
 		t.Errorf(err.Error())
 	}
-	if !reflect.DeepEqual(want, config) {
-		t.Errorf("initConfig() = %v, want %v", config, want)
+	if !reflect.DeepEqual(want, Cfg) {
+		t.Errorf("initConfig() = %v, want %v", Cfg, want)
 	}
 }
