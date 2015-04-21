@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
+	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/redis"
@@ -41,6 +42,10 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes)
 	case "env":
 		return env.NewEnvClient()
+	case "dynamodb":
+		table := config.Table
+		log.Info("DynamoDB table set to " + table)
+		return dynamodb.NewDynamoDBClient(table)
 	}
 	return nil, errors.New("Invalid backend")
 }
