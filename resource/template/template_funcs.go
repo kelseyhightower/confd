@@ -20,6 +20,7 @@ func newFuncMap() map[string]interface{} {
 	m["datetime"] = time.Now
 	m["toUpper"] = strings.ToUpper
 	m["toLower"] = strings.ToLower
+	m["contains"] = strings.Contains
 	return m
 }
 
