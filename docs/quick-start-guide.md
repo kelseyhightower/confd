@@ -47,10 +47,10 @@ redis-cli set /myapp/database/user rob
 #### zookeeper
 
 ```
-[zk: localhost:2181(CONNECTED) 1] create /my_app ""
-[zk: localhost:2181(CONNECTED) 2] create /my_app/database ""
-[zk: localhost:2181(CONNECTED) 3] create /my_app/database/url "db.example.com"
-[zk: localhost:2181(CONNECTED) 4] create /my_app/database/user "rob"
+[zk: localhost:2181(CONNECTED) 1] create /myapp ""
+[zk: localhost:2181(CONNECTED) 2] create /myapp/database ""
+[zk: localhost:2181(CONNECTED) 3] create /myapp/database/url "db.example.com"
+[zk: localhost:2181(CONNECTED) 4] create /myapp/database/user "rob"
 ```
 
 ### Create the confdir
