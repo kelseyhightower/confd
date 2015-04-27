@@ -7,7 +7,10 @@ GO="godep go"
 ORG_PATH="github.com/kelseyhightower"
 REPO_PATH="${ORG_PATH}/confd"
 
-export GOPATH=${PWD}/gopath
+SCRIPT=realpath $0
+SCRIPTPATH=dirname $SCRIPT
+
+export GOPATH=$SCRIPTPATH/gopath
 
 rm -f $GOPATH/src/${REPO_PATH}
 mkdir -p $GOPATH/src/${ORG_PATH}
