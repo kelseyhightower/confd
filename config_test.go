@@ -21,6 +21,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		Prefix:       "/",
 		SRVDomain:    "",
 		Scheme:       "http",
+		Table:        "",
 	}
 	if err := initConfig(); err != nil {
 		t.Errorf(err.Error())

@@ -7,4 +7,5 @@ type Config struct {
 	ClientKey    string
 	BackendNodes []string
 	Scheme       string
+	Table        string
 }

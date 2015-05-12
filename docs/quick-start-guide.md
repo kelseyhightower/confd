@@ -11,6 +11,7 @@ confd supports the following backends:
 * environment variables
 * redis
 * zookeeper
+* dynamodb
 
 ### Add keys
 
@@ -51,6 +52,27 @@ redis-cli set /myapp/database/user rob
 [zk: localhost:2181(CONNECTED) 2] create /myapp/database ""
 [zk: localhost:2181(CONNECTED) 3] create /myapp/database/url "db.example.com"
 [zk: localhost:2181(CONNECTED) 4] create /myapp/database/user "rob"
+```
+
+#### dynamodb
+
+First create a table with the following schema:
+
+```
+aws dynamodb create-table \
+    --region <YOUR_REGION> --table-name <YOUR_TABLE> \
+    --attribute-definitions AttributeName=key,AttributeType=S \
+    --key-schema AttributeName=key,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1
+```
+
+Now create the items:
+
+```
+aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
+    --item '{ "key": { "S": "/myapp/database/url" }, "value": {"S": "db.example.com"}}'
+aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
+    --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
 
 ### Create the confdir
@@ -101,6 +123,12 @@ confd -onetime -backend etcd -node 127.0.0.1:4001
 
 ```
 confd -onetime -backend consul -node 127.0.0.1:8500
+```
+
+#### dynamodb
+
+```
+confd -onetime -backend dynamodb -table <YOUR_TABLE>
 ```
 
 #### env

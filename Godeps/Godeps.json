@@ -12,8 +12,28 @@
 			"Rev": "cdd90c38c6e3718c731b555b9c3ed1becebec3ba"
 		},
 		{
-			"ImportPath": "github.com/armon/consul-api",
-			"Rev": "f79efe463cdbb62f6d5a55f879a63ec554eb13e5"
+			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
+			"Rev": "d67a47db2971c58a865e3ed3d5d4ee317477ac10"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
+			"Rev": "d67a47db2971c58a865e3ed3d5d4ee317477ac10"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/json/jsonutil",
+			"Rev": "d67a47db2971c58a865e3ed3d5d4ee317477ac10"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/jsonrpc",
+			"Rev": "d67a47db2971c58a865e3ed3d5d4ee317477ac10"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
+			"Rev": "d67a47db2971c58a865e3ed3d5d4ee317477ac10"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/service/dynamodb",
+			"Rev": "d67a47db2971c58a865e3ed3d5d4ee317477ac10"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
@@ -40,6 +60,10 @@
 		{
 			"ImportPath": "github.com/samuel/go-zookeeper/zk",
 			"Rev": "fa6674abf3f4580b946a01bf7a1ce4ba8766205b"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		}
 	]
 }

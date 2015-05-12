@@ -36,6 +36,7 @@ var (
 	printVersion      bool
 	scheme            string
 	srvDomain         string
+	table             string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	watch             bool
@@ -54,6 +55,7 @@ type Config struct {
 	Prefix       string   `toml:"prefix"`
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
+	Table        string   `toml:"table"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
 }
@@ -75,6 +77,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
+	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
 
@@ -153,12 +156,17 @@ func initConfig() error {
 		unsupportedBackends := map[string]bool{
 			"zookeeper": true,
 			"redis":     true,
+			"dynamodb":  true,
 		}
 
 		if unsupportedBackends[config.Backend] {
 			log.Info(fmt.Sprintf("Watch is not supported for backend %s. Exiting...", config.Backend))
 			os.Exit(1)
 		}
+	}
+
+	if config.Backend == "dynamodb" && config.Table == "" {
+		return errors.New("No DynamoDB table configured")
 	}
 
 	backendsConfig = backends.Config{
@@ -168,6 +176,7 @@ func initConfig() error {
 		ClientKey:    config.ClientKey,
 		BackendNodes: config.BackendNodes,
 		Scheme:       config.Scheme,
+		Table:        config.Table,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -243,6 +252,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Scheme = scheme
 	case "srv-domain":
 		config.SRVDomain = srvDomain
+	case "table":
+		config.Table = table
 	case "log-level":
 		config.LogLevel = logLevel
 	case "watch":
