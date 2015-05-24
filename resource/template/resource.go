@@ -211,6 +211,7 @@ func (t *TemplateResource) check() error {
 	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
 	output, err := c.CombinedOutput()
 	if err != nil {
+		log.Error(fmt.Sprintf("%q", string(output)))
 		return err
 	}
 	log.Debug(fmt.Sprintf("%q", string(output)))
@@ -224,6 +225,7 @@ func (t *TemplateResource) reload() error {
 	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
 	output, err := c.CombinedOutput()
 	if err != nil {
+		log.Error(fmt.Sprintf("%q", string(output)))
 		return err
 	}
 	log.Debug(fmt.Sprintf("%q", string(output)))
