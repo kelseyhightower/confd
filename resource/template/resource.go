@@ -106,24 +106,30 @@ func (t *TemplateResource) setVars() error {
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
 	log.Debug("Using source template " + t.Src)
+
 	if !isFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
-	// create TempFile in Dest directory to avoid cross-filesystem issues
-	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
-	if err != nil {
-		return err
-	}
-	defer temp.Close()
+
 	log.Debug("Compiling source template " + t.Src)
 	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}
 
-	if err = tmpl.Execute(temp, nil); err != nil {
+	// create TempFile in Dest directory to avoid cross-filesystem issues
+	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
+	if err != nil {
 		return err
 	}
+
+	if err = tmpl.Execute(temp, nil); err != nil {
+		temp.Close()
+		os.Remove(temp.Name())
+		return err
+	}
+	defer temp.Close()
+
 	// Set the owner, group, and mode on the stage file now to make it easier to
 	// compare against the destination configuration file later.
 	os.Chmod(temp.Name(), t.FileMode)
@@ -144,6 +150,7 @@ func (t *TemplateResource) sync() error {
 	} else {
 		defer os.Remove(staged)
 	}
+
 	log.Debug("Comparing candidate config to " + t.Dest)
 	ok, err := sameConfig(staged, t.Dest)
 	if err != nil {
