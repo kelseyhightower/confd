@@ -47,6 +47,7 @@ func (p *intervalProcessor) Process() {
 	defer close(p.doneChan)
 	ts, err := getTemplateResources(p.config)
 	if err != nil {
+		log.Fatal(err.Error())
 		return
 	}
 	for {
@@ -77,6 +78,7 @@ func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
 	ts, err := getTemplateResources(p.config)
 	if err != nil {
+		log.Fatal(err.Error())
 		return
 	}
 	for _, t := range ts {

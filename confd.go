@@ -21,21 +21,27 @@ func main() {
 	if err := initConfig(); err != nil {
 		log.Fatal(err.Error())
 	}
+
 	log.Info("Starting confd")
+
 	storeClient, err := backends.New(backendsConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
 	templateConfig.StoreClient = storeClient
 	if onetime {
 		if err := template.Process(templateConfig); err != nil {
+			log.Error(err.Error())
 			os.Exit(1)
 		}
 		os.Exit(0)
 	}
+
 	stopChan := make(chan bool)
 	doneChan := make(chan bool)
 	errChan := make(chan error, 10)
+
 	var processor template.Processor
 	switch {
 	case config.Watch:
@@ -43,7 +49,9 @@ func main() {
 	default:
 		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
 	}
+
 	go processor.Process()
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	for {
