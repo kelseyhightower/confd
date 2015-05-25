@@ -22,7 +22,7 @@ before_install:
   - java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
 install:
   - sudo pip install awscli
-  - go get github.com/tools/godep
+  - go get github.com/constabulary/gb/...
   - go get golang.org/x/tools/cmd/cover
   - ./build
   - sudo ./install
