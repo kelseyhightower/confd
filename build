@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
 
-set -e
-
 echo "Building confd..."
-# Static compilation is useful when confd is run in a container
-CGO_ENABLED=0 gb build all
+gb build all
