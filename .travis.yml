@@ -31,4 +31,3 @@ script:
   - bash integration/consul/test.sh
   - bash integration/etcd/test.sh
   - bash integration/redis/test.sh
-  - bash integration/dynamodb/test.sh
