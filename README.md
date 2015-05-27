@@ -5,7 +5,7 @@
 `confd` is a lightweight configuration management tool focused on:
 
 * keeping local configuration files up-to-date using data stored in [etcd](https://github.com/coreos/etcd),
-  [consul](http://consul.io), or env vars and processing [template resources](docs/template-resources.md).
+  [consul](http://consul.io), [dynamodb](http://aws.amazon.com/dynamodb/), [redis](http://redis.io), [zookeeper](https://zookeeper.apache.org) or env vars and processing [template resources](docs/template-resources.md).
 * reloading applications to pick up new config file changes
 
 ## Community
