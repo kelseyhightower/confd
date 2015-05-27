@@ -38,7 +38,7 @@ func (this *BucketListener) Deleted(bucketName string) {
 }
 
 func (this *BucketListener) Updated(oldBucket *cfgsvc.Bucket, newBucket *cfgsvc.Bucket) {
-	this.watchResp <- &watchResponse{waitIndex:this.currentIndex+1, err: nil}
+	this.watchResp <- &watchResponse{waitIndex:uint64(newBucket.GetVersion()+1), err: nil}
 }
 
 
@@ -79,7 +79,7 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 
 	if waitIndex == 0 {
 		dynamicBucket.AddListeners(c.bucketListener)
-		return 1, nil
+		return uint64(dynamicBucket.GetVersion() +1), nil
 	}  else {
 		select {
 			case watchResp := <- c.bucketListener.watchResp:
