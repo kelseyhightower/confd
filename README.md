@@ -48,6 +48,13 @@ $ cd src/github.com/kelseyhightower/confd/
 $ GOPATH=/Users/kelseyhightower/confd/vendor:/Users/kelseyhightower/confd go build .
 ```
 
+You can also produce a static binary too:
+
+```
+GOPATH=/Users/kelseyhightower/confd/vendor:/Users/kelseyhightower/confd go build \ 
+  -a -installsuffix cgo -ldflags '-extld ld -extldflags -static' -a -x .
+```
+
 ## Getting Started
 
 Before we begin be sure to [download and install confd](docs/installation.md).
