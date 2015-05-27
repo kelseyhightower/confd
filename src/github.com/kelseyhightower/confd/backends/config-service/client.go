@@ -37,7 +37,7 @@ func (this *BucketListener) Deleted(bucketName string) {
 }
 
 func (this *BucketListener) Updated(oldBucket *cfgsvc.Bucket, newBucket *cfgsvc.Bucket) {
-	this.watchResp <- &watchResponse{waitIndex:uint64(newBucket.GetVersion()+1), err: nil}
+	this.watchResp <- &watchResponse{waitIndex:this.currentIndex+1, err: nil}
 }
 
 
@@ -54,39 +54,69 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, v := range keys {
 		bucketKeys := strings.Split(v[1:], "/")
-		bucket, err := c.client.GetDynamicBucket(bucketKeys[0])
+
+		dynamicBuckets, err := c.getDynamicBuckets(strings.Split(bucketKeys[0], ","))
 		if err != nil {
 			return vars, err
 		}
 
-		val := bucket.GetKeys()[bucketKeys[1]]
-		if val != nil {
-			value := val.(string)
-			vars[v] = value
+		for _, dynamicBucket := range dynamicBuckets {
+			val := dynamicBucket.GetKeys()[bucketKeys[1]]
+			if val != nil {
+				value := val.(string)
+				vars[v] = value
+			}
 		}
 
 	}
 	return vars, nil
 }
 
+func (c *Client) getDynamicBuckets(buckets []string) ([]*cfgsvc.DynamicBucket, error) {
+	var dynamicBuckets []*cfgsvc.DynamicBucket
+	for _, bucket := range buckets {
+		bucketName := strings.TrimSpace(bucket)
+		dynamicBucket, err := c.client.GetDynamicBucket(bucketName)
+		if err != nil {
+			return dynamicBuckets, err
+		}
+		dynamicBuckets = append(dynamicBuckets, dynamicBucket)
+	}
+	return dynamicBuckets, nil
+}
+
+func setupDynamicBucketListeners(dynamicBuckets []*cfgsvc.DynamicBucket, bucketListener *BucketListener) {
+	for _, dynamicBucket := range dynamicBuckets {
+		dynamicBucket.AddListeners(bucketListener)
+	}
+}
+
+func removeDynamicBucketListeners(dynamicBuckets []*cfgsvc.DynamicBucket, bucketListener *BucketListener) {
+	for _, dynamicBucket := range dynamicBuckets {
+		dynamicBucket.RemoveListeners(bucketListener)
+	}
+}
 
 func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	dynamicBucket, err := c.client.GetDynamicBucket(strings.TrimPrefix(prefix, "/"))
+	prefix = strings.TrimPrefix(prefix, "/")
+	prefixes := strings.Split(prefix, ",")
+	dynamicBuckets, err := c.getDynamicBuckets(prefixes)
 	if err != nil {
 		return waitIndex, err
 	}
 
 	if waitIndex == 0 {
-		return uint64(dynamicBucket.GetVersion() +1), nil
+		return waitIndex+1, nil
 	}  else {
-		bucketListener := &BucketListener{watchResp: make(chan *watchResponse), currentIndex: waitIndex}
-		dynamicBucket.AddListeners(bucketListener)
+		watchResp := make(chan *watchResponse)
+		bucketListener := &BucketListener{watchResp: watchResp, currentIndex: waitIndex}
+		setupDynamicBucketListeners(dynamicBuckets, bucketListener)
 		select {
-			case watchResp := <- bucketListener.watchResp:
-			    dynamicBucket.RemoveListeners(bucketListener)
+			case watchResp := <- watchResp:
+				removeDynamicBucketListeners(dynamicBuckets, bucketListener)
 		 		return watchResp.waitIndex, watchResp.err
 		    case <-stopChan:
-				dynamicBucket.RemoveListeners(bucketListener)
+				removeDynamicBucketListeners(dynamicBuckets, bucketListener)
 				return 0, nil
 		}
 	}
