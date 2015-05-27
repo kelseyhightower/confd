@@ -10,7 +10,6 @@ import (
 // Client provides a wrapper around the zookeeper client
 type Client struct {
 	client *cfgsvc.ConfigServiceClient
-	bucketListener *BucketListener
 }
 
 type BucketListener struct{
@@ -47,7 +46,7 @@ func NewConfigClient(machines []string) (*Client, error) {
 	if err != nil {
 		panic(err)
 	}
-	return &Client{client:c, bucketListener: &BucketListener{watchResp: make(chan *watchResponse), currentIndex: 1}}, nil
+	return &Client{c}, nil
 }
 
 
@@ -78,13 +77,16 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 	}
 
 	if waitIndex == 0 {
-		dynamicBucket.AddListeners(c.bucketListener)
 		return uint64(dynamicBucket.GetVersion() +1), nil
 	}  else {
+		bucketListener := &BucketListener{watchResp: make(chan *watchResponse), currentIndex: waitIndex}
+		dynamicBucket.AddListeners(bucketListener)
 		select {
-			case watchResp := <- c.bucketListener.watchResp:
+			case watchResp := <- bucketListener.watchResp:
+			    dynamicBucket.RemoveListeners(bucketListener)
 		 		return watchResp.waitIndex, watchResp.err
 		    case <-stopChan:
+				dynamicBucket.RemoveListeners(bucketListener)
 				return 0, nil
 		}
 	}
