@@ -92,7 +92,7 @@ func (p *watchProcessor) Process() {
 func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 	defer p.wg.Done()
 	for {
-		index, err := t.storeClient.WatchPrefix(t.Prefix, t.lastIndex, p.stopChan)
+		index, err := t.storeClient.WatchPrefix(t.prefix, t.lastIndex, p.stopChan)
 		if err != nil {
 			p.errChan <- err
 			// Prevent backend errors from consuming all resources.
