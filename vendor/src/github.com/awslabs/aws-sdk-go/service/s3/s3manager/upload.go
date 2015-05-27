@@ -83,7 +83,6 @@ func (m *multiUploadError) UploadID() string {
 	return m.uploadID
 }
 
-
 // UploadInput contains all input for upload requests to Amazon S3.
 type UploadInput struct {
 	// The canned ACL to apply to the object.

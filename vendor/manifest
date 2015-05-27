@@ -1,1 +1,96 @@
-{"version":0,"dependencies":[{"importpath":"github.com/BurntSushi/toml","repository":"https://github.com/BurntSushi/toml/","revision":"056c9bc7be7190eaa7715723883caffa5f8fa3e4","branch":"master","path":""},{"importpath":"github.com/hashicorp/consul","repository":"https://github.com/hashicorp/consul/","revision":"0949790a2fef577e2468a8542137b1102de87d55","branch":"master","path":""},{"importpath":"github.com/awslabs/aws-sdk-go","repository":"https://github.com/awslabs/aws-sdk-go/","revision":"29717a72a2fc649e790ce97dc2c4d96e32950844","branch":"master","path":""},{"importpath":"github.com/vaughan0/go-ini","repository":"https://github.com/vaughan0/go-ini/","revision":"a98ad7ee00ec53921f08832bc06ecf7fd600e6a1","branch":"master","path":""},{"importpath":"github.com/Sirupsen/logrus","repository":"https://github.com/Sirupsen/logrus/","revision":"092eda23b5d2ccf95fe7dfc70354493eb273487a","branch":"master","path":""},{"importpath":"github.com/coreos/go-etcd","repository":"https://github.com/coreos/go-etcd/","revision":"73a8ef737e8ea002281a28b4cb92a1de121ad4c6","branch":"master","path":""},{"importpath":"github.com/garyburd/redigo","repository":"https://github.com/garyburd/redigo/","revision":"3e4727f0ef5938d3a846cdb57e560dba4419e854","branch":"master","path":""},{"importpath":"github.com/samuel/go-zookeeper","repository":"https://github.com/samuel/go-zookeeper/","revision":"d0e0d8e11f318e000a8cc434616d69e329edc374","branch":"master","path":""},{"importpath":"github.com/kelseyhightower/memkv","repository":"https://github.com/kelseyhightower/memkv/","revision":"32a4556de2a1aab8ea4c8600f5ea24db3fbd8908","branch":"master","path":""}]}
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/BurntSushi/toml",
+			"repository": "https://github.com/BurntSushi/toml/",
+			"revision": "056c9bc7be7190eaa7715723883caffa5f8fa3e4",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/hashicorp/consul",
+			"repository": "https://github.com/hashicorp/consul/",
+			"revision": "0949790a2fef577e2468a8542137b1102de87d55",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/awslabs/aws-sdk-go",
+			"repository": "https://github.com/awslabs/aws-sdk-go/",
+			"revision": "29717a72a2fc649e790ce97dc2c4d96e32950844",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/vaughan0/go-ini",
+			"repository": "https://github.com/vaughan0/go-ini/",
+			"revision": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/Sirupsen/logrus",
+			"repository": "https://github.com/Sirupsen/logrus/",
+			"revision": "092eda23b5d2ccf95fe7dfc70354493eb273487a",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/coreos/go-etcd",
+			"repository": "https://github.com/coreos/go-etcd/",
+			"revision": "73a8ef737e8ea002281a28b4cb92a1de121ad4c6",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/garyburd/redigo",
+			"repository": "https://github.com/garyburd/redigo/",
+			"revision": "3e4727f0ef5938d3a846cdb57e560dba4419e854",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/samuel/go-zookeeper",
+			"repository": "https://github.com/samuel/go-zookeeper/",
+			"revision": "d0e0d8e11f318e000a8cc434616d69e329edc374",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/kelseyhightower/memkv",
+			"repository": "https://github.com/kelseyhightower/memkv/",
+			"revision": "32a4556de2a1aab8ea4c8600f5ea24db3fbd8908",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/Flipkart/config-service/client-go",
+			"repository": "https://github.com/Flipkart/config-service",
+			"revision": "ac4cfa11e11852d2c493e3f2975df51f186bf17f",
+			"branch": "master",
+			"path": "/client-go"
+		},
+		{
+			"importpath": "github.com/hashicorp/golang-lru",
+			"repository": "https://github.com/hashicorp/golang-lru",
+			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/pquerna/ffjson/ffjson",
+			"repository": "https://github.com/pquerna/ffjson",
+			"revision": "a92a0de889079f63cf471daa5cb150804f6bcd22",
+			"branch": "master",
+			"path": "/ffjson"
+		},
+		{
+			"importpath": "github.com/pquerna/ffjson",
+			"repository": "https://github.com/pquerna/ffjson",
+			"revision": "a92a0de889079f63cf471daa5cb150804f6bcd22",
+			"branch": "master",
+			"path": ""
+		}
+	]
+}

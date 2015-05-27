@@ -11,6 +11,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/backends/config-service"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve
@@ -42,6 +43,8 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes)
 	case "env":
 		return env.NewEnvClient()
+	case "config-service":
+		return config_service.NewConfigClient(backendNodes)
 	case "dynamodb":
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
