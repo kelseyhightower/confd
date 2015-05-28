@@ -78,6 +78,9 @@ func NewConfigClient(machines []string) (*Client, error) {
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
+	for k, v := range c.defaultConfig {
+		vars[k] = v
+	}
 	for _, v := range keys {
 		bucketKeys := strings.Split(v[1:], "/")
 
@@ -86,15 +89,12 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			return vars, err
 		}
 
-		for k, v := range c.defaultConfig {
-			vars[k] = v
-		}
 
 		for _, dynamicBucket := range dynamicBuckets {
 			val := dynamicBucket.GetKeys()[bucketKeys[1]]
 			if val != nil {
 				value := val.(string)
-				vars[v] = value
+				vars[bucketKeys[1]] = value
 			}
 		}
 
