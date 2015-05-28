@@ -40,6 +40,7 @@ var (
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	watch             bool
+	secKeyFile        string
 )
 
 // A Config structure is used to configure confd.
@@ -58,6 +59,7 @@ type Config struct {
 	Table        string   `toml:"table"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
+        SecKeyFile   string   `toml:"secret-keyfile"`
 }
 
 func init() {
@@ -79,6 +81,7 @@ func init() {
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&secKeyFile, "secret-keyfile", "", "the path to the file containing your secret keyring (for etcd-crypt backend)")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -177,6 +180,7 @@ func initConfig() error {
 		BackendNodes: config.BackendNodes,
 		Scheme:       config.Scheme,
 		Table:        config.Table,
+		SecKeyFile:   config.SecKeyFile,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -258,5 +262,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.LogLevel = logLevel
 	case "watch":
 		config.Watch = watch
+	case "secret-keyfile":
+		config.SecKeyFile = secKeyFile
 	}
 }
