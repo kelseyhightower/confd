@@ -5,37 +5,11 @@ import (
 	cfgsvc "github.com/Flipkart/config-service/client-go"
 	"github.com/kelseyhightower/confd/log"
 	"errors"
-	"os"
-	"io/ioutil"
-	"encoding/json"
 )
-func defaultConfig() map[string]string {
-	config := make(map[string]string)
-	defaultConfigFilename := os.Getenv("DEFAULT_CONFIG")
-	if _, err := os.Stat(defaultConfigFilename); os.IsNotExist(err) {
-		log.Error("File doesn't exist " + defaultConfigFilename)
-		return config
-	}
-
-	content, err := ioutil.ReadFile(defaultConfigFilename)
-	if err!=nil{
-		log.Error("Can't read file " + defaultConfigFilename)
-		return config
-	}
-
-	err=json.Unmarshal(content, &config)
-	if err!=nil{
-		log.Error("Error:" + err.Error())
-	}
-
-	return config
-
-}
 
 // Client provides a wrapper around the zookeeper client
 type Client struct {
 	client *cfgsvc.ConfigServiceClient
-	defaultConfig map[string]string
 }
 
 type BucketListener struct{
@@ -72,15 +46,12 @@ func NewConfigClient(machines []string) (*Client, error) {
 	if err != nil {
 		panic(err)
 	}
-	return &Client{client:c, defaultConfig: defaultConfig()}, nil
+	return &Client{c}, nil
 }
 
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
-	for k, v := range c.defaultConfig {
-		vars[k] = v
-	}
 	for _, v := range keys {
 		bucketKeys := strings.Split(v[1:], "/")
 
