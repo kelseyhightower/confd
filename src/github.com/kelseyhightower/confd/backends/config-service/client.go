@@ -5,6 +5,7 @@ import (
 	cfgsvc "github.com/Flipkart/config-service/client-go"
 	"github.com/kelseyhightower/confd/log"
 	"errors"
+	"fmt"
 )
 
 // Client provides a wrapper around the zookeeper client
@@ -64,8 +65,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		for _, dynamicBucket := range dynamicBuckets {
 			val := dynamicBucket.GetKeys()[bucketKeys[1]]
 			if val != nil {
-				value := val.(string)
-				vars[bucketKeys[1]] = value
+				vars[bucketKeys[1]] = fmt.Sprint(val)
 			}
 		}
 
