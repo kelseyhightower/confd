@@ -54,18 +54,20 @@ func NewConfigClient(machines []string) (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, v := range keys {
-		bucketKeys := strings.Split(v[1:], "/")
+		bucketsKey := strings.Split(strings.TrimPrefix("/", v), "/")
+		buckets := strings.Split(bucketsKey[0], ",")
+		key := bucketsKey[1]
 
-		dynamicBuckets, err := c.getDynamicBuckets(strings.Split(bucketKeys[0], ","))
+		dynamicBuckets, err := c.getDynamicBuckets(buckets)
 		if err != nil {
 			return vars, err
 		}
 
 
 		for _, dynamicBucket := range dynamicBuckets {
-			val := dynamicBucket.GetKeys()[bucketKeys[1]]
+			val := dynamicBucket.GetKeys()[key]
 			if val != nil {
-				vars[bucketKeys[1]] = fmt.Sprint(val)
+				vars[key] = fmt.Sprint(val)
 			}
 		}
 
