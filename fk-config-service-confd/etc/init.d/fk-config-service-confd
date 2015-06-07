@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PACKAGE="fk-config-service-sidekick"
+PACKAGE="fk-config-service-confd"
 SERVICE=/etc/service/$PACKAGE
 
 case $1 in
