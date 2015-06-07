@@ -1,24 +1,23 @@
 package cfgsvc
-
 import (
-	"errors"
-	"github.com/pquerna/ffjson/ffjson"
-	"log"
 	"strconv"
-	"sync"
 	"sync/atomic"
+	"github.com/pquerna/ffjson/ffjson"
+	"errors"
+	"sync"
+	"log"
 	"time"
 )
 
 //Dynamic bucket is a proxy to the immutable Bucket object.
 //It's used in case a bucket needs to be auto-updated.
 type DynamicBucket struct {
-	bucket      *Bucket
-	stopWatch   chan bool
+	bucket *Bucket
+	stopWatch chan bool
 	lastChecked int64
-	lock        sync.RWMutex
-	listeners   []BucketUpdatesListener
-	httpClient  *HttpClient
+	lock sync.RWMutex
+	listeners []BucketUpdatesListener
+	httpClient *HttpClient
 }
 
 /** lifecycle methods */
@@ -41,28 +40,25 @@ func (this *DynamicBucket) init(name string) error {
 
 //Shutdown the dynamic bucket by stopping the watch.
 func (this *DynamicBucket) shutdown() {
-	close(this.stopWatch)
+    close(this.stopWatch)
 }
 
 //Checks if dynamic bucket watch is running or not.
-func (this *DynamicBucket) isShutdown() chan bool {
-	return this.stopWatch
+func (this *DynamicBucket) isShutdown() (chan bool) {
+    return this.stopWatch
 }
 
 /** bucket operations */
 //Get the immutable bucket.
-func (this *DynamicBucket) getBucket() *Bucket {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	return this.bucket
+func (this *DynamicBucket) getBucket() (*Bucket) {
+    this.lock.RLock(); defer this.lock.RUnlock()
+    return this.bucket
 }
-
 //Update the static bucket.
 
 //Also, calls update callback on all listeners.
 func (this *DynamicBucket) updateBucket(newBucket *Bucket) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
+	this.lock.Lock(); defer this.lock.Unlock()
 	for _, listener := range this.listeners {
 		listener.Updated(this.bucket, newBucket)
 	}
@@ -71,8 +67,7 @@ func (this *DynamicBucket) updateBucket(newBucket *Bucket) {
 
 //Update the static bucket without callbacks.
 func (this *DynamicBucket) updateBucketWithoutCallbacks(newBucket *Bucket) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
+	this.lock.Lock(); defer this.lock.Unlock()
 	this.bucket = newBucket
 }
 
@@ -80,15 +75,13 @@ func (this *DynamicBucket) updateBucketWithoutCallbacks(newBucket *Bucket) {
 
 //Add a new listener.
 func (this *DynamicBucket) AddListeners(listener BucketUpdatesListener) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
+	this.lock.Lock(); defer this.lock.Unlock()
 	this.listeners = append(this.listeners, listener)
 }
 
 //Remove a listener.
 func (this *DynamicBucket) RemoveListeners(listener BucketUpdatesListener) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
+	this.lock.Lock(); defer this.lock.Unlock()
 	for i, item := range this.listeners {
 		if item == listener {
 			this.listeners = append(this.listeners[:i], this.listeners[i+1:]...)
@@ -99,8 +92,7 @@ func (this *DynamicBucket) RemoveListeners(listener BucketUpdatesListener) {
 
 //Delete the static bucket.
 func (this *DynamicBucket) DeleteBucket() {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
+	this.lock.RLock(); defer this.lock.RUnlock()
 	for _, listener := range this.listeners {
 		listener.Deleted(this.GetMeta().GetName())
 	}
@@ -108,7 +100,8 @@ func (this *DynamicBucket) DeleteBucket() {
 
 //Disconnected callback.
 func (this *DynamicBucket) Disconnected(err error) {
-	if this.isConnected() {
+	this.lock.RLock(); defer this.lock.RUnlock()
+	if (this.isConnected()) {
 		this.SetLastChecked(time.Now().Unix())
 		for _, listener := range this.listeners {
 			listener.Disconnected(this.GetMeta().GetName(), err)
@@ -118,7 +111,8 @@ func (this *DynamicBucket) Disconnected(err error) {
 
 //Connected callback.
 func (this *DynamicBucket) Connected() {
-	if !this.isConnected() {
+	this.lock.RLock(); defer this.lock.RUnlock()
+	if (!this.isConnected()) {
 		this.SetLastChecked(-1)
 		for _, listener := range this.listeners {
 			listener.Connected(this.GetMeta().GetName())
@@ -129,7 +123,7 @@ func (this *DynamicBucket) Connected() {
 
 //Checks if watch is connected or not
 func (this *DynamicBucket) isConnected() bool {
-	if this.GetLastChecked() == -1 {
+	if (this.GetLastChecked() == -1)  {
 		return true
 	}
 	return false
@@ -137,24 +131,24 @@ func (this *DynamicBucket) isConnected() bool {
 
 /** Utilities */
 
-func (this *DynamicBucket) GetLastChecked() int64 {
-	return atomic.LoadInt64(&this.lastChecked)
+func (this *DynamicBucket) GetLastChecked() (int64) {
+    return atomic.LoadInt64(&this.lastChecked)
 }
 func (this *DynamicBucket) SetLastChecked(timestamp int64) {
-	atomic.StoreInt64(&this.lastChecked, timestamp)
+    atomic.StoreInt64(&this.lastChecked, timestamp)
 }
 
 /** methods used in sidekick for etag generation */
 
 func (this *DynamicBucket) GetVersionAsString() string {
-	version := this.GetVersion()
-	versionStr := strconv.FormatUint(uint64(version), 10)
-	return versionStr
+    version := this.GetVersion()
+    versionStr := strconv.FormatUint(uint64(version), 10)
+    return versionStr
 }
 
 //Unique identification of dynamic bucket.
 func (this *DynamicBucket) GetId() string {
-	return this.GetMeta().GetName() + this.GetVersionAsString() + strconv.FormatUint(this.GetMeta().GetLastUpdated(), 10)
+    return this.GetMeta().GetName() + this.GetVersionAsString() + strconv.FormatUint(this.GetMeta().GetLastUpdated(), 10)
 }
 
 /** BucketInterface implementations */
@@ -163,10 +157,10 @@ func (this *DynamicBucket) GetMeta() *BucketMetaData {
 	return this.getBucket().Meta
 }
 func (this *DynamicBucket) GetKeys() map[string]interface{} {
-	return this.getBucket().Keys
+    return this.getBucket().Keys
 }
 func (this *DynamicBucket) GetName() string {
-	return this.GetMeta().GetName()
+    return this.GetMeta().GetName()
 }
 func (this *DynamicBucket) GetVersion() uint {
 	meta := this.GetMeta()
@@ -177,8 +171,9 @@ func (this *DynamicBucket) GetVersion() uint {
 	}
 }
 func (this *DynamicBucket) GetLastUpdated() uint64 {
-	return this.GetMeta().GetLastUpdated()
+    return this.GetMeta().GetLastUpdated()
 }
+
 
 /** Type specific getters */
 
@@ -189,7 +184,7 @@ func (this *DynamicBucket) GetBool(name string) (bool, error) {
 		return false, errors.New("Not a boolean value")
 	}
 }
-func (this *DynamicBucket) GetString(name string) (string, error) {
+func (this *DynamicBucket) GetString(name string) (string, error){
 	if val, ok := (this.GetKeys()[name]).(string); ok {
 		return val, nil
 	} else {
@@ -218,7 +213,7 @@ func (this *DynamicBucket) GetBoolArray(name string) ([]bool, error) {
 		return []bool{false}, errors.New("Not a boolean array")
 	}
 }
-func (this *DynamicBucket) GetStringArray(name string) ([]string, error) {
+func (this *DynamicBucket) GetStringArray(name string) ([]string, error){
 	if val, ok := (this.GetKeys()[name]).([]string); ok {
 		return val, nil
 	} else {
@@ -252,10 +247,11 @@ func (this *DynamicBucket) UnmarshalJSON(b []byte) error {
 /** stringer */
 
 func (this *DynamicBucket) String() string {
-	str, err := ffjson.Marshal(this)
+	str,err := ffjson.Marshal(this)
 	if err != nil {
 		return "Error encoding to JSON: " + err.Error()
 	} else {
 		return string(str)
 	}
 }
+

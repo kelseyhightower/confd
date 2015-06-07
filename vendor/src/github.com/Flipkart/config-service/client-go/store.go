@@ -2,20 +2,22 @@ package cfgsvc
 
 import (
 	"errors"
-	"github.com/hashicorp/golang-lru"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
+	"net/url"
+	"github.com/hashicorp/golang-lru"
+	"github.com/jpillora/backoff"
 	"time"
+	"github.com/pquerna/ffjson/ffjson"
 )
+
 
 // HttpClient is used to provide abstractions such as "bucket" and "keys" over
 // low-level HTTP API such as Get and Watch
 type HttpClient struct {
 	instance *http.Client
-	url      string
+	url string
 }
 
 // NewHttpClient is the constructor for the bucket API implementation of HttpClient.
@@ -23,10 +25,10 @@ func NewHttpClient(client *http.Client, url string) (*HttpClient, error) {
 	return &HttpClient{instance: client, url: url}, nil
 }
 
-const (
-	BUCKET_PATH     = "/v1/buckets/"
+const(
+	BUCKET_PATH  = "/v1/buckets/"
 	INITIAL_VERSION = "0"
-	DELETED         = "DELETED"
+	DELETED = "DELETED"
 )
 
 //getBucketURL builds URL to be used by the HTTP client
@@ -78,22 +80,17 @@ func (this *HttpClient) GetBucket(name string, version int) (*Bucket, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		data, err := ioutil.ReadAll(resp.Body)
+		errResp := &ErrorResp{}
+		err := ffjson.NewDecoder().DecodeReader(resp.Body, errResp)
 		if err != nil {
-			log.Println("Error reading the response Body", data)
+			log.Println("Error reading the response Body")
 		}
-		log.Println("Error fetching bucket: ", string(data))
-		return nil, errors.New(string(data))
-	}
-
-	// Read the response
-	data, err := this.readResponse(resp)
-	if err != nil {
-		return nil, err
+		log.Println("Error fetching bucket: ", errResp)
+		return nil, errors.New(errResp.Error())
 	}
 
 	// create and return bucket
-	bucket, err := this.newBucket(data)
+	bucket, err := this.newBucket(resp)
 	if err != nil {
 		log.Println("Error creating bucket ", err.Error())
 		return nil, err
@@ -102,25 +99,15 @@ func (this *HttpClient) GetBucket(name string, version int) (*Bucket, error) {
 	return bucket, nil
 }
 
-//Reads a response body and returns a byte array
-func (this *HttpClient) readResponse(resp *http.Response) ([]byte, error) {
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	} else {
-		return data, nil
-	}
-}
-
 // newBucket creates a bucket from JSON data
-func (this *HttpClient) newBucket(data []byte) (*Bucket, error) {
+func (this *HttpClient) newBucket(resp *http.Response) (*Bucket, error) {
 	log.Println("Extracting keys from the response body")
 
 	bucket := &Bucket{}
 
-	err := bucket.UnmarshalJSON(data)
+	err := ffjson.NewDecoder().DecodeReader(resp.Body, bucket)
 	if err != nil {
-		return nil, errors.New(string(data))
+		return nil, errors.New("Error decoding JSON")
 	}
 
 	log.Println("Fetched bucket ", bucket)
@@ -130,18 +117,22 @@ func (this *HttpClient) newBucket(data []byte) (*Bucket, error) {
 }
 
 // WatchBucket sets up a watch on a bucket and sends appropriate events to the listener
-func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket *DynamicBucket) {
+func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket *DynamicBucket){
+	backOff :=  &backoff.Backoff{
+		Min:    1 * time.Second,
+		Jitter: true,
+	}
 	for {
 		log.Println("Setting watch on bucket: ", name)
 		watchAsync := WatchAsync{
-			bucketName:    name,
+			bucketName: name,
 			dynamicBucket: dynamicBucket,
-			asyncResp:     make(chan *BucketResponse),
-			httpClient:    this,
+			asyncResp: make(chan *BucketResponse),
+			httpClient: this,
 		}
 
 		select {
-		case bucketResp := <-watchAsync.watch():
+		case bucketResp := <- watchAsync.watch():
 
 			if bucketResp.err != nil && bucketResp.statusCode == 404 {
 				log.Println("Stopping watch on bucket: ", name)
@@ -153,16 +144,18 @@ func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket
 			if bucketResp.err != nil {
 				log.Println("Error fetching bucket: ", bucketResp.err)
 				dynamicBucket.Disconnected(bucketResp.err)
-				time.Sleep(1 * time.Second)
-				continue
+				time.Sleep(backOff.Duration())
+				continue;
 			}
 
+		    backOff.Reset()
 			dynamicBucket.updateBucket(bucketResp.bucket)
 
-		case <-dynamicBucket.isShutdown():
+		case <- dynamicBucket.isShutdown():
 			log.Println("Stopping watch on bucket: ", name)
 			return
 
 		}
 	}
 }
+

@@ -1,93 +1,98 @@
 package cfgsvc
-
 import (
-	"github.com/pquerna/ffjson/ffjson"
+    "github.com/pquerna/ffjson/ffjson"
 )
+
 
 /** Bucket's metadata */
 type bucketMetaData struct {
-	Name        string `json:"name"`
-	Version     uint   `json:"version"`
-	LastUpdated uint64 `json:"lastUpdated"`
+    Name string         `json:"name"`
+    Version uint        `json:"version"`
+    LastUpdated uint64  `json:"lastUpdated"`
 }
 type BucketMetaData struct {
-	bucketMetaData
+    bucketMetaData
 }
-
 func (this *BucketMetaData) GetName() string {
-	return this.Name
+    return this.Name
 }
 func (this *BucketMetaData) GetVersion() uint {
-	return this.Version
+    return this.Version
 }
 func (this *BucketMetaData) GetLastUpdated() uint64 {
-	return this.LastUpdated
+    return this.LastUpdated
 }
+
 
 /** JSON conversion */
 func (this *BucketMetaData) MarshalJSON() ([]byte, error) {
-	return ffjson.Marshal(this.bucketMetaData)
+    return ffjson.Marshal(this.bucketMetaData)
 }
 func (this *BucketMetaData) UnmarshalJSON(b []byte) error {
-	return ffjson.Unmarshal(b, &this.bucketMetaData)
+    return ffjson.Unmarshal(b, &this.bucketMetaData)
 }
+
 
 /** stringer */
 func (this *BucketMetaData) String() string {
-	str, err := ffjson.Marshal(this)
-	if err != nil {
-		return "Error encoding to JSON: " + err.Error()
-	} else {
-		return string(str)
-	}
+    str,err := ffjson.Marshal(this)
+    if err != nil {
+        return "Error encoding to JSON: " + err.Error()
+    } else {
+        return string(str)
+    }
 }
+
+
 
 type BucketInterface interface {
 
-	/** getters */
+    /** getters */
 
-	GetMeta() *BucketMetaData
-	GetKeys() map[string]interface{}
-	GetName() string
-	GetVersion() uint
-	GetLastUpdated() uint64
+    GetMeta() *BucketMetaData
+    GetKeys() map[string]interface{}
+    GetName() string
+    GetVersion() uint
+    GetLastUpdated() uint64
 
-	/** used for etag calculation */
+    /** used for etag calculation */
 
-	GetId() string
+    GetId() string
 
-	/** type specific getters */
+    /** type specific getters */
 
-	GetBool(string) (bool, error)
-	GetString(name string) (string, error)
-	GetInt(name string) (int, error)
-	GetFloat(name string) (float64, error)
-	GetBoolArray(name string) ([]bool, error)
-	GetStringArray(name string) ([]string, error)
-	GetIntArray(name string) ([]int, error)
-	GetFloatArray(name string) ([]float64, error)
+    GetBool(string) (bool, error)
+    GetString(name string) (string, error)
+    GetInt(name string) (int, error)
+    GetFloat(name string) (float64, error)
+    GetBoolArray(name string) ([]bool, error)
+    GetStringArray(name string) ([]string, error)
+    GetIntArray(name string) ([]int, error)
+    GetFloatArray(name string) ([]float64, error)
+
 }
 
 /*
   BucketUpdatesListener is an interface to be implemented for
   capturing events related to bucket data changes and errors
-*/
+ */
 type BucketUpdatesListener interface {
-	//Callback made when a bucket is updated. Old and new
-	//versions of the bucket are provided for comparison purposes.
+    //Callback made when a bucket is updated. Old and new
+    //versions of the bucket are provided for comparison purposes.
 
-	//The provided instances of buckets are static in nature, ie,
-	//they are not auto-updated by next watch request.
-	Updated(oldBucket *Bucket, newBucket *Bucket)
+    //The provided instances of buckets are static in nature, ie,
+    //they are not auto-updated by next watch request.
+    Updated(oldBucket *Bucket, newBucket *Bucket)
 
-	//Callback made when bucket is deleted.
-	Deleted(bucketName string)
+    //Callback made when bucket is deleted.
+    Deleted(bucketName string)
 
-	//Callback made when watch is disconnected
-	//the service.
-	Disconnected(bucketName string, err error)
+    //Callback made when watch is disconnected
+    //the service.
+    Disconnected(bucketName string, err error)
 
-	//Callback made when watch is connected
-	//the service.
-	Connected(bucketName string)
+    //Callback made when watch is connected
+    //the service.
+    Connected(bucketName string)
 }
+

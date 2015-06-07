@@ -65,13 +65,6 @@
 			"path": ""
 		},
 		{
-			"importpath": "github.com/Flipkart/config-service/client-go",
-			"repository": "https://github.com/Flipkart/config-service",
-			"revision": "ac4cfa11e11852d2c493e3f2975df51f186bf17f",
-			"branch": "master",
-			"path": "/client-go"
-		},
-		{
 			"importpath": "github.com/hashicorp/golang-lru",
 			"repository": "https://github.com/hashicorp/golang-lru",
 			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
@@ -89,6 +82,20 @@
 			"importpath": "github.com/pquerna/ffjson",
 			"repository": "https://github.com/pquerna/ffjson",
 			"revision": "a92a0de889079f63cf471daa5cb150804f6bcd22",
+			"branch": "master",
+			"path": ""
+		},
+		{
+			"importpath": "github.com/Flipkart/config-service/client-go",
+			"repository": "https://github.com/Flipkart/config-service",
+			"revision": "cab71078c962bcf53cc1932ded071bb34070c09c",
+			"branch": "master",
+			"path": "/client-go"
+		},
+		{
+			"importpath": "github.com/jpillora/backoff",
+			"repository": "https://github.com/jpillora/backoff",
+			"revision": "2ff7c4694083b5dbd71b21fd7cb7577477a74b31",
 			"branch": "master",
 			"path": ""
 		}

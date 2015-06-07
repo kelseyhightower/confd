@@ -1,41 +1,38 @@
 package cfgsvc
-
 import (
-	"errors"
-	"github.com/pquerna/ffjson/ffjson"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"errors"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 const (
-	INTERNAL_ERROR   = 500
+	INTERNAL_ERROR = 500
 	BUCKET_NOT_FOUND = 404
 )
-
 type BucketResponse struct {
-	bucket     *Bucket
+	bucket *Bucket
 	statusCode int
-	err        error
+	err error
 }
 
-type ErrorResp struct {
+type ErrorResp struct{
 	ErrorType string `json:"type"`
-	Message   string `json:"message"`
+	Message string `json:"message"`
 }
 
-func (this *ErrorResp) Error() string {
+func (this *ErrorResp) Error() string{
 	return this.Message
 }
 
 type WatchAsync struct {
-	bucketName    string
-	httpClient    *HttpClient
+	bucketName string
+	httpClient *HttpClient
 	dynamicBucket *DynamicBucket
-	asyncResp     chan *BucketResponse
+	asyncResp chan *BucketResponse
 }
 
-func (this *WatchAsync) watch() <-chan *BucketResponse {
+func (this *WatchAsync) watch() (<-chan *BucketResponse) {
 	go func() {
 		resp, err := this.httpClient.get(this.bucketName, LATEST_VERSION, true, this.dynamicBucket.GetVersionAsString())
 		if err != nil {
@@ -50,51 +47,38 @@ func (this *WatchAsync) watch() <-chan *BucketResponse {
 }
 
 func (this *WatchAsync) handleResp(resp *http.Response) {
-	if isBucketDeleted(resp) {
+	if (isBucketDeleted(resp)) {
 		this.asyncResp <- &BucketResponse{bucket: nil, err: errors.New("Bucket is deleted"), statusCode: resp.StatusCode}
 	} else {
-		this.handleChunkedResp(resp)
+		this.createNewBucket(resp)
 	}
 }
 
-func (this *WatchAsync) handleChunkedResp(resp *http.Response) {
+func (this *WatchAsync) createNewBucket(resp *http.Response) {
 	httpClient := this.httpClient
 	asyncResp := this.asyncResp
 
-	this.dynamicBucket.Connected()
-	data, err := httpClient.readResponse(resp)
-	if err != nil {
-		asyncResp <- &BucketResponse{bucket: nil, err: err, statusCode: 500}
-	} else {
-		this.createNewBucket(data, resp.StatusCode)
-	}
-}
-
-func (this *WatchAsync) createNewBucket(data []byte, statusCode int) {
-	httpClient := this.httpClient
-	asyncResp := this.asyncResp
-
-	newBucket, err := httpClient.newBucket(data)
+	newBucket, err := httpClient.newBucket(resp)
 	if err != nil {
 		log.Println("Error while fetching bucket ", err)
-		asyncResp <- &BucketResponse{bucket: nil, err: err, statusCode: statusCode}
+		asyncResp <- &BucketResponse{bucket: nil, err: err, statusCode: resp.StatusCode}
 	} else {
-		if newBucket.isValid() {
-			asyncResp <- &BucketResponse{bucket: newBucket, err: err, statusCode: statusCode}
+		if (newBucket.isValid()) {
+			asyncResp <- &BucketResponse{bucket: newBucket, err: err, statusCode: resp.StatusCode}
 		} else {
-			this.handleInvalidBucket(data)
+			this.handleInvalidBucket(resp)
 		}
 	}
 
 }
 
-func (this *WatchAsync) handleInvalidBucket(data []byte) {
+func (this *WatchAsync) handleInvalidBucket(resp *http.Response) {
 	asyncResp := this.asyncResp
 
 	errResp := &ErrorResp{}
-	err := ffjson.Unmarshal(data, errResp)
+	err := ffjson.NewDecoder().DecodeReader(resp.Body, errResp)
 	if err != nil {
-		asyncResp <- &BucketResponse{bucket: nil, err: errors.New(string(data)), statusCode: INTERNAL_ERROR}
+		asyncResp <- &BucketResponse{bucket: nil, err: errors.New("Error decoding to JSON"), statusCode: INTERNAL_ERROR}
 	} else {
 		log.Println("Error parsing bucket from watch", errResp)
 		if errResp.ErrorType == DELETED {
@@ -106,13 +90,15 @@ func (this *WatchAsync) handleInvalidBucket(data []byte) {
 }
 
 func isBucketDeleted(resp *http.Response) bool {
+	errResp := &ErrorResp{}
 	if resp.StatusCode == 404 {
-		data, err := ioutil.ReadAll(resp.Body)
+		err := ffjson.NewDecoder().DecodeReader(resp.Body, errResp)
 		if err != nil {
 			log.Println("Error reading data", err)
 		}
-		log.Println("Error", string(data))
+		log.Println("Error", errResp)
 		return true
 	}
 	return false
 }
+
