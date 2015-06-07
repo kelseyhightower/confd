@@ -1,0 +1,6 @@
+backend = "config-service"
+confdir = "/etc/confd"
+interval = 600
+nodes = [
+    "https://config-service.nm.flipkart.com",
+]

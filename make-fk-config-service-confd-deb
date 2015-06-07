@@ -1,0 +1,52 @@
+#!/bin/bash -e
+
+function logmsg()
+{
+	echo "[`date`] $*"
+}
+
+function die()
+{
+	logmsg "*** ERROR: $*" >&2
+	exit 1
+}
+
+#[ -z "$LOCAL_DIR" ] && die "No base dir specified"
+#[ -z "$TARGET" ] && die "No package target specified"
+#[ -z "$PACKAGE" ] && die "No package name specified"
+#[ ! -d "$LOCAL_DIR" ] && die "$LOCAL_DIR does not exist"
+#[ -z "$TARGET" ] && die "Invalid target: $TARGET"
+
+# package name
+PACKAGE="fk-config-service-confd"
+
+pushd /tmp
+
+	rm -rf /tmp/go
+	wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+	tar xvf go1.4.2.linux-amd64.tar.gz 
+    export GOROOT=/tmp/go
+
+	rm -rf /tmp/gopath
+    mkdir -p /tmp/gopath
+    pushd /tmp/gopath; mkdir -p src pkg bin; popd
+    export GOPATH=/tmp/gopath
+    export PATH=$PATH:/tmp/go/bin/
+    go/bin/go get github.com/constabulary/gb/...
+    export PATH=$PATH:$GOPATH/bin
+
+popd
+
+cd "$LOCAL_DIR"
+# make deb dir
+mkdir -p deb && cp -a $PACKAGE/* deb
+
+# build
+logmsg "Building"
+mkdir -p $GOPATH/src/github.com/Flipkart/config-service/
+cp -r * $GOPATH/src/github.com/Flipkart/config-service/
+pushd confd
+    GOOS=linux GOARCH=amd64 GOROOT=/tmp/go ./build
+popd
+
+cp confd/confd deb/usr/share/$PACKAGE/bin/

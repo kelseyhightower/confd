@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+PACKAGE="fk-config-service-sidekick"
+SERVICE=/etc/service/$PACKAGE
+
+case $1 in
+  start)
+    svc -u $SERVICE
+    ;;
+  stop)
+    svc -d $SERVICE
+    ;;
+  status)
+    svstat $SERVICE
+    #healthcheck || (echo 'healthcheck failed' && false)
+    ;;
+  shell)
+	exec setuidgid $PACKAGE bash
+	;;
+  *)
+  echo "Usage $0 {start|stop|status}"
+    ;;
+esac

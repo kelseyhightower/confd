@@ -1,0 +1,6 @@
+backend = "config-service"
+confdir = "/etc/confd"
+interval = 600
+nodes = [
+    "http://config-service-sandbox.ch.flipkart.com:8080",
+]

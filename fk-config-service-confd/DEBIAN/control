@@ -1,0 +1,9 @@
+Package: _PACKAGE_
+Version: 1._VERSION_
+Architecture: all
+Section: flipkart/infra
+Priority: standard
+Maintainer: Pf Config Dev <pf-config-dev@flipkart.com>
+Depends: curl, fk-ops-servicebuilder
+Description: Configuration Service
+

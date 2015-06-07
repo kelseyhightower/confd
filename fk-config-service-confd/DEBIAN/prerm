@@ -1,0 +1,16 @@
+#!/bin/bash -e
+# set -x
+
+PAC="fk-config-service-confd"
+
+CMD="$1"
+
+if [ "$CMD" == "remove" -o "$CMD" == "upgrade" ]; then
+
+	if [ -x "/etc/init.d/$PAC" ]; then
+		#/etc/init.d/$PAC stop || true
+		echo "Do nothing!"
+	fi
+
+fi
+
