@@ -45,8 +45,6 @@ mkdir -p deb && cp -a $PACKAGE/* deb
 logmsg "Building"
 mkdir -p $GOPATH/src/github.com/Flipkart/config-service/
 cp -r * $GOPATH/src/github.com/Flipkart/config-service/
-pushd confd
-    GOOS=linux GOARCH=amd64 GOROOT=/tmp/go ./build
-popd
+GOOS=linux GOARCH=amd64 GOROOT=/tmp/go ./build
 
-cp confd/confd deb/usr/share/$PACKAGE/bin/
+cp bin/confd deb/usr/share/$PACKAGE/bin/
