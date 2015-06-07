@@ -54,7 +54,7 @@ func NewConfigClient(machines []string) (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, v := range keys {
-		bucketsKey := strings.Split(strings.TrimPrefix("/", v), "/")
+		bucketsKey := strings.Split(strings.TrimPrefix(v, "/"), "/")
 		buckets := strings.Split(bucketsKey[0], ",")
 		key := bucketsKey[1]
 
