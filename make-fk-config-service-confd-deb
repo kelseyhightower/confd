@@ -23,7 +23,7 @@ PACKAGE="fk-config-service-confd"
 pushd /tmp
 
 	rm -rf /tmp/go
-	wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+	wget http://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
 	tar xvf go1.4.2.linux-amd64.tar.gz 
     export GOROOT=/tmp/go
 
