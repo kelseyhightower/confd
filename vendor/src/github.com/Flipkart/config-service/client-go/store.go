@@ -120,6 +120,7 @@ func (this *HttpClient) newBucket(resp *http.Response) (*Bucket, error) {
 func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket *DynamicBucket){
 	backOff :=  &backoff.Backoff{
 		Min:    1 * time.Second,
+		Max: 300 * time.Second,
 		Jitter: true,
 	}
 	for {

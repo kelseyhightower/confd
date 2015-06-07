@@ -86,18 +86,18 @@
 			"path": ""
 		},
 		{
-			"importpath": "github.com/Flipkart/config-service/client-go",
-			"repository": "https://github.com/Flipkart/config-service",
-			"revision": "cab71078c962bcf53cc1932ded071bb34070c09c",
-			"branch": "master",
-			"path": "/client-go"
-		},
-		{
 			"importpath": "github.com/jpillora/backoff",
 			"repository": "https://github.com/jpillora/backoff",
 			"revision": "2ff7c4694083b5dbd71b21fd7cb7577477a74b31",
 			"branch": "master",
 			"path": ""
+		},
+		{
+			"importpath": "github.com/Flipkart/config-service/client-go",
+			"repository": "https://github.com/Flipkart/config-service",
+			"revision": "9bc8641e02163151b7de63cd9f79696b3fde5122",
+			"branch": "master",
+			"path": "/client-go"
 		}
 	]
 }
