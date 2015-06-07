@@ -1,6 +1,6 @@
 #! /bin/bash -e
 
-PAC="fk-config-service-sidekick"
+PAC="fk-config-service-confd"
 USER="cfgsvc"
 GROUP="cfgsvc"
 
