@@ -1,6 +1,6 @@
 backend = "config-service"
 confdir = "/etc/confd"
-interval = 600
+watch = true
 nodes = [
     "https://config-service.nm.flipkart.com",
 ]
