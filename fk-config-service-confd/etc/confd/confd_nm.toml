@@ -1,6 +1,0 @@
-backend = "config-service"
-confdir = "/etc/confd"
-watch = true
-nodes = [
-    "https://config-service.nm.flipkart.com",
-]
