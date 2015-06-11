@@ -147,6 +147,8 @@ func initConfig() error {
 			}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
+		case "zookeeper":
+			config.BackendNodes = []string{"127.0.0.1:2181"}
 		}
 	}
 	// Initialize the storage client
