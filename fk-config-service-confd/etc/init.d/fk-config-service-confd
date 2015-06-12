@@ -11,6 +11,10 @@ case $1 in
   stop)
     svc -d $SERVICE
     ;;
+  restart)
+    svc -d $SERVICE
+    svc -u $SERVICE
+    ;;
   status)
     svstat $SERVICE
     #healthcheck || (echo 'healthcheck failed' && false)
