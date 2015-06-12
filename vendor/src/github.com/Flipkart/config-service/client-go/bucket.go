@@ -3,6 +3,7 @@ import (
 	"errors"
 	"github.com/pquerna/ffjson/ffjson"
     "strconv"
+    "regexp"
 )
 
 /**
@@ -143,3 +144,14 @@ func (this *Bucket) isValid() bool {
     return this.GetMeta() != nil
 }
 
+func ValidateBucketName(bucketName string) error {
+    r, err := regexp.Compile(`^[a-zA-Z0-9._-]+$`)
+    if err != nil {
+        return err;
+    }
+    if bucketName == "" ||
+    !r.MatchString(bucketName) {
+        return errors.New("Bucket name is invalid")
+    }
+    return nil
+}

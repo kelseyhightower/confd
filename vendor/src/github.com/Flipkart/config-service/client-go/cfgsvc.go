@@ -98,7 +98,12 @@ func (this *ConfigServiceClient) initDynamicBucket(name string) (*DynamicBucket,
 
     dynamicBucket := &DynamicBucket{ httpClient: this.httpClient }
 
-    err := dynamicBucket.init(name)
+    err := ValidateBucketName(name)
+    if err != nil {
+        return nil, err
+    }
+
+    err = dynamicBucket.init(name)
 
     if err != nil {
         log.Println("Error fetching bucket: ", err)
@@ -135,6 +140,10 @@ func (this *ConfigServiceClient) GetBucket(name string, version int) (*Bucket, e
 func (this *ConfigServiceClient) initStaticBucket(name string, version int) (*Bucket, error) {
     log.Println("Initializing Config bucket: " + name)
 
+    err := ValidateBucketName(name)
+    if err != nil {
+        return nil, err
+    }
     bucket, err := this.httpClient.GetBucket(name, version)
     if err != nil {
         log.Println("Error fetching bucket: ", err)

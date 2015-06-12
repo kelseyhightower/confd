@@ -104,3 +104,16 @@ func Test_Entities_DynamicBucket(t *testing.T) {
     assert.Equal(t, intVal, []int {1, 2, 3})
 }
 
+func Test_Entities_ValidateBucketName(t *testing.T) {
+    err := ValidateBucketName("TestNowBucket")
+    assert.Nil(t, err)
+
+    err = ValidateBucketName("")
+    assert.NotNil(t, err)
+    assert.Equal(t, err.Error(), "Bucket name is invalid")
+
+    err = ValidateBucketName("/aa/v")
+    assert.NotNil(t, err)
+    assert.Equal(t, err.Error(), "Bucket name is invalid")
+}
+
