@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "confd-template-generator"
   spec.version       = Confd::TemplateGenerator::VERSION
   spec.authors       = ["Smit Shah"]
-  spec.email         = ["config-service@flipkart.com"]
+  spec.email         = ["config-service-dev@flipkart.com"]
 
   spec.license       = "MIT"
 
@@ -19,4 +19,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.9"
   spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency "thor"
 end
