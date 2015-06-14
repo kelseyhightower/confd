@@ -2,9 +2,7 @@ require 'json'
 
 module Confd
   class TemplateGenerator
-    SPECIAL = "?<>',?[]}{=-)(*&^%$#`~{}"
-    REGEX = /[#{SPECIAL.gsub(/./){|char| "\\#{char}"}}]/
-
+    REGEX = / /
     attr_reader :input
     def initialize(input)
       @input = input

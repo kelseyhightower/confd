@@ -33,7 +33,7 @@ module Confd
     end
 
     def sanatized_tmpl
-      confd_generator.to_tmpl.to_yaml.gsub(": |", ":").gsub("'{{", "{{").gsub("}}'", "}}")
+      confd_generator.to_tmpl.to_yaml.gsub(": |", ":").gsub("'{{", "{{").gsub("}}'", "}}").gsub("'\"{{", "\"{{").gsub("}}\"'", "}}\"")
     end
   end
 end
