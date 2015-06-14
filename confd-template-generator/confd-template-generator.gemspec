@@ -8,13 +8,12 @@ Gem::Specification.new do |spec|
   spec.version       = Confd::TemplateGenerator::VERSION
   spec.authors       = ["Smit Shah"]
   spec.email         = ["config-service-dev@flipkart.com"]
-
   spec.license       = "MIT"
+  spec.summary       = "Generates confd toml,templ and JSON payload"
 
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.bindir        = "exe"
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.executables   = "confd-generator"
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.9"
