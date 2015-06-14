@@ -24,8 +24,8 @@ describe Confd::TemplateGenerator do
   end
 
   it 'extract keys from the complex input hashmap' do
-    hash = {"a" => {"b" => "abc", "d" => "dc"}, "c" => 4}
-    expect(Confd::TemplateGenerator.new(hash).to_toml).to eq(["/a.b", "/a.d", "/c"])
+    hash = {"a" => {"b" => ["abc", "nyc"], "d" => "dc"}, "c" => 4}
+    expect(Confd::TemplateGenerator.new(hash).to_toml).to eq(["/a.b" , "/a.d", "/c"])
   end
 
   it 'generates JSON from the complex input hashmap' do

@@ -6,6 +6,8 @@ import (
 	"github.com/kelseyhightower/confd/log"
 	"errors"
 	"fmt"
+	"reflect"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 // Client provides a wrapper around the zookeeper client
@@ -66,7 +68,15 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 		for _, dynamicBucket := range dynamicBuckets {
 			val := dynamicBucket.GetKeys()[key]
-			if val != nil {
+			valType := reflect.TypeOf(val).Kind()
+			if valType == reflect.Slice {
+				data, err := ffjson.Marshal(val)
+				if err != nil {
+				    log.Error("Failed decoding from JSON")
+				} else {
+					vars[key] = string(data[:])
+				}
+			} else {
 				vars[key] = fmt.Sprint(val)
 			}
 		}
