@@ -86,8 +86,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 		bearer := "Bearer " + c.token
 
-		fmt.Println("URI: ", uri, bearer)
-
 		req.Header.Add("Authorization", bearer)
 		parseFormErr := req.ParseForm()
 		if parseFormErr != nil {
@@ -117,8 +115,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			vars[path.Join("/", p.Key)] = string(p.Value)
 		}
 	}
-
-	fmt.Println(vars)
 
 	return vars, nil
 }
