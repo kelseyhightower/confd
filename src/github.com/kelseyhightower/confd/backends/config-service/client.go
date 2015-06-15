@@ -5,9 +5,9 @@ import (
 	cfgsvc "github.com/Flipkart/config-service/client-go"
 	"github.com/kelseyhightower/confd/log"
 	"errors"
-	"fmt"
 	"reflect"
 	"github.com/pquerna/ffjson/ffjson"
+	"strconv"
 )
 
 // Client provides a wrapper around the zookeeper client
@@ -77,7 +77,16 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 					vars[key] = string(data[:])
 				}
 			} else {
-				vars[key] = fmt.Sprint(val)
+				switch val.(type) {
+					case int,int64:
+					vars[key] = strconv.FormatInt(val.(int64), 64)
+					case string:
+					vars[key] = val.(string)
+					case bool:
+					vars[key] = strconv.FormatBool(val.(bool))
+					case float32,float64:
+					vars[key] = strconv.FormatFloat(val.(float64), 'f', -1, 64)
+				}
 			}
 		}
 
