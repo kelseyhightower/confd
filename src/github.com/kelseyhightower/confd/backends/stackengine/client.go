@@ -108,11 +108,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			fmt.Println("Error reading http response: ", err)
 		}
 
-		// Display Results
-		fmt.Println("response Status : ", resp.Status)
-		fmt.Println("response Headers : ", resp.Header)
-		fmt.Println("response Body : ", string(respBody))
-
 		err = json.Unmarshal(respBody, &pairs)
 
 		if err != nil {
@@ -134,20 +129,6 @@ type watchResponse struct {
 }
 
 func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	respChan := make(chan watchResponse)
-	go func() {
-		//opts := api.QueryOptions{
-		//	WaitIndex: waitIndex,
-		//}
-		//_, meta, err := c.client.List(prefix, &opts)
-		//respChan <- watchResponse{meta.LastIndex, err}
-	}()
-	for {
-		select {
-		case <-stopChan:
-			return waitIndex, nil
-		case r := <-respChan:
-			return r.waitIndex, r.err
-		}
-	}
+	<-stopChan
+	return 0, nil
 }
