@@ -20,6 +20,7 @@ import (
 var (
 	configFile        = ""
 	defaultConfigFile = "/etc/confd/confd.toml"
+	authToken         string
 	backend           string
 	clientCaKeys      string
 	clientCert        string
@@ -44,6 +45,7 @@ var (
 
 // A Config structure is used to configure confd.
 type Config struct {
+	AuthToken    string   `toml:"auth_token"`
 	Backend      string   `toml:"backend"`
 	BackendNodes []string `toml:"nodes"`
 	ClientCaKeys string   `toml:"client_cakeys"`
@@ -61,6 +63,7 @@ type Config struct {
 }
 
 func init() {
+	flag.StringVar(&authToken, "auth-token", "", "Auth bearer token to use")
 	flag.StringVar(&backend, "backend", "etcd", "backend to use")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
@@ -170,6 +173,7 @@ func initConfig() error {
 	}
 
 	backendsConfig = backends.Config{
+		AuthToken:    config.AuthToken,
 		Backend:      config.Backend,
 		ClientCaKeys: config.ClientCaKeys,
 		ClientCert:   config.ClientCert,
@@ -230,6 +234,8 @@ func processEnv() {
 
 func setConfigFromFlag(f *flag.Flag) {
 	switch f.Name {
+	case "auth-token":
+		config.AuthToken = authToken
 	case "backend":
 		config.Backend = backend
 	case "client-cert":
