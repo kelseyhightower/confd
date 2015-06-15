@@ -1,6 +1,0 @@
-backend = "config-service"
-confdir = "/etc/confd"
-watch = true
-nodes = [
-    "http://config-service-sandbox.ch.flipkart.com:8080",
-]
