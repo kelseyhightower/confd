@@ -73,7 +73,7 @@ type KVPair struct {
 	Session     string
 }
 
-// GetValues queries redis for keys prefixed by prefix.
+// GetValues queries StackEngine for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	var pairs []KVPair
