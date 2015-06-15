@@ -17,12 +17,22 @@ module Confd
     end
 
     def to_json
-      json = recur_to_json(input, {}, [])
-      Hash[*json.map{|k, v| [k, v || ""]}.flatten].to_json
+      hash = recur_to_json(input, {}, [])
+      nil2empty(hash)
+      hash.to_json
     end
 
     private
-    
+    def nil2empty(hash)
+      hash.keys.each do |key|
+        if hash[key].kind_of? Hash
+          nil2empty(hash[key])
+        else
+          hash[key] = '' if hash[key].nil?
+        end
+      end
+    end
+
     def terminal_arry?(arry)
       arry.all? { |value| [String, Fixnum, Symbol].include?(value.class) }
     end
