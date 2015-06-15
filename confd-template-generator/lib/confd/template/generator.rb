@@ -17,7 +17,8 @@ module Confd
     end
 
     def to_json
-      recur_to_json(input, {}, []).to_json
+      json = recur_to_json(input, {}, [])
+      Hash[*json.map{|k, v| [k, v || ""]}.flatten].to_json
     end
 
     private
@@ -117,5 +118,4 @@ module Confd
       total_keys
     end
   end
-
 end
