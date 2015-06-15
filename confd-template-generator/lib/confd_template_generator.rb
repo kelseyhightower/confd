@@ -3,7 +3,7 @@ require 'confd/template/yaml_generator'
 
 module Confd
   class ConfdTemplateGenerator < Thor
-    desc "generate", "generate tmpl, toml and json payload from yaml"
+    desc "generate YAML_FILENAME", "generate tmpl, toml and json payload from a yaml FILE"
     options :name => :required, :type => :string
     options :dest => :required, :type => :string
     options :bucket => :required, :type => :string, :aliases => :b
