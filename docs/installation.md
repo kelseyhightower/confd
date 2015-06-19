@@ -7,13 +7,13 @@ Currently confd ships binaries for OS X and Linux 64bit systems. You can downloa
 #### OS X
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.9.0/confd-0.9.0-darwin-amd64
+$ wget https://github.com/kelseyhightower/confd/releases/download/v0.10.0/confd-0.10.0-darwin-amd64
 ```
 
 #### Linux
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.9.0/confd-0.9.0-linux-amd64
+$ wget https://github.com/kelseyhightower/confd/releases/download/v0.10.0/confd-0.10.0-linux-amd64
 ```
 
 #### Building from Source
