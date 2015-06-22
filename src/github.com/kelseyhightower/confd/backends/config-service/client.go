@@ -68,6 +68,9 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 		for _, dynamicBucket := range dynamicBuckets {
 			val := dynamicBucket.GetKeys()[key]
+			if val == nil {
+				continue;
+			}
 			valType := reflect.TypeOf(val).Kind()
 			if valType == reflect.Slice {
 				data, err := ffjson.Marshal(val)
