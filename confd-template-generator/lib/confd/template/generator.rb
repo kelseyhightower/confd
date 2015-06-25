@@ -88,7 +88,7 @@ module Confd
             output[k] = (recur_to_tmpl(v, output[k], current_keys + [k]))
           elsif v.is_a?(Array) && terminal_arry?(v)
             keys = current_keys + [k]
-            output[k] = %Q[{{range jsonArray (getv "/#{keys.join(".")}")}}\n - {{.}}\n {{end}}\n]
+            output[k] = %Q[{{getv "/#{keys.join(".")}"}}]
           else
             keys = current_keys + [k]
             if v =~ REGEX
