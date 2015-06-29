@@ -3,6 +3,8 @@ package cfgsvc
 import (
 	"errors"
 	"log"
+    "net"
+    "os"
 	"net/http"
 	"strconv"
 	"net/url"
@@ -18,11 +20,40 @@ import (
 type HttpClient struct {
 	instance *http.Client
 	url string
+	ipv4 string
+	hostname string
 }
 
 // NewHttpClient is the constructor for the bucket API implementation of HttpClient.
 func NewHttpClient(client *http.Client, url string) (*HttpClient, error) {
-	return &HttpClient{instance: client, url: url}, nil
+
+    // get hostname
+	hostname, err := os.Hostname()
+	if (err != nil) {
+		return nil, err
+	}
+
+    // get canonical hostname
+    canonical, err := net.LookupCNAME(hostname)
+    if (err != nil) {
+        return nil, err
+    }
+
+    // get ipv4
+    var ip string
+    addrs, err := net.LookupIP(canonical)
+    if (err != nil) {
+        return nil, err
+    }
+    for _, addr := range addrs {
+        if ipv4 := addr.To4(); ipv4 != nil {
+            ip = ipv4.String()
+        }
+    }
+
+    // create instance
+	return &HttpClient{instance: client, url: url, ipv4: ip, hostname: canonical}, nil
+
 }
 
 const(
@@ -60,6 +91,10 @@ func (this *HttpClient) get(name string, version int, watch bool, sourceVersion 
 	}
 
 	req.Header.Add("X-Config-Bucket-Version", sourceVersion)
+
+    // identity headers
+    req.Header.Add("X-Client-IPv4", this.ipv4)
+    req.Header.Add("X-Client-Hostname", this.hostname)
 
 	resp, err := this.instance.Do(req)
 	if err != nil {
@@ -159,4 +194,3 @@ func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket
 		}
 	}
 }
-

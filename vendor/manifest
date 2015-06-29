@@ -95,9 +95,9 @@
 		{
 			"importpath": "github.com/Flipkart/config-service/client-go",
 			"repository": "https://github.com/Flipkart/config-service",
-			"revision": "11a58309e88f8e67da690273bdb6259047dbca5c",
+			"revision": "1ff60b8187d6041f65b4dbe61f73f7e9dee4a246",
 			"branch": "master",
-			"path": "/client-go"
+			"path": ""
 		}
 	]
 }

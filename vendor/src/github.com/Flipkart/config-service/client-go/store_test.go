@@ -1,5 +1,6 @@
 package cfgsvc
 import (
+    "net/http"
     "testing"
     "github.com/stretchr/testify/assert"
 )
@@ -22,5 +23,10 @@ func Test_HttpClient_GetBucket(t *testing.T) {
 
 func Test_HttpClient_WatchBucket(t *testing.T) {
 
+}
+
+func Test_HttpClient_Construction(t *testing.T) {
+    _, err := NewHttpClient(&http.Client{}, "http://localhost:8080")
+    assert.Nil(t, err)
 }
 
