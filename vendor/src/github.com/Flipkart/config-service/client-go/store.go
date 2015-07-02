@@ -33,26 +33,29 @@ func NewHttpClient(client *http.Client, url string) (*HttpClient, error) {
 		return nil, err
 	}
 
-    // get canonical hostname
-    canonical, err := net.LookupCNAME(hostname)
-    if (err != nil) {
-        return nil, err
-    }
+	canonical, err := net.LookupCNAME(hostname)
+	if (err != nil) {
+		return nil, err
+	}
 
     // get ipv4
-    var ip string
-    addrs, err := net.LookupIP(canonical)
-    if (err != nil) {
-        return nil, err
-    }
-    for _, addr := range addrs {
-        if ipv4 := addr.To4(); ipv4 != nil {
-            ip = ipv4.String()
+    var hostIP string
+    interfaces, _ := net.Interfaces()
+    for _, inter := range interfaces {
+        if addrs, err := inter.Addrs(); err == nil {
+            for _, addr := range addrs {
+                switch ip := addr.(type) {
+                case *net.IPNet:
+                    if ip.IP.DefaultMask() != nil && !ip.IP.IsLoopback() {
+                        hostIP = ip.IP.To4().String()
+                    }
+                }
+            }
         }
     }
 
     // create instance
-	return &HttpClient{instance: client, url: url, ipv4: ip, hostname: canonical}, nil
+	return &HttpClient{instance: client, url: url, ipv4: hostIP, hostname: canonical}, nil
 
 }
 
