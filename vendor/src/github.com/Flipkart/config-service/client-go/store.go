@@ -12,6 +12,7 @@ import (
 	"github.com/jpillora/backoff"
 	"time"
 	"github.com/pquerna/ffjson/ffjson"
+	"io/ioutil"
 )
 
 
@@ -63,6 +64,7 @@ const(
 	BUCKET_PATH  = "/v1/buckets/"
 	INITIAL_VERSION = "0"
 	DELETED = "DELETED"
+	NOT_MODIFIED = "NOT_MODIFIED"
 )
 
 //getBucketURL builds URL to be used by the HTTP client
@@ -127,8 +129,15 @@ func (this *HttpClient) GetBucket(name string, version int) (*Bucket, error) {
 		return nil, errors.New(errResp.Error())
 	}
 
+	// read response
+	data, err := this.readResp(resp)
+	if err != nil {
+		log.Println("Error reading resp ", err.Error())
+		return nil, err
+	}
+
 	// create and return bucket
-	bucket, err := this.newBucket(resp)
+	bucket, err := this.newBucket(data)
 	if err != nil {
 		log.Println("Error creating bucket ", err.Error())
 		return nil, err
@@ -137,15 +146,19 @@ func (this *HttpClient) GetBucket(name string, version int) (*Bucket, error) {
 	return bucket, nil
 }
 
+func (this *HttpClient) readResp(resp *http.Response) ([]byte, error) {
+	return ioutil.ReadAll(resp.Body)
+}
+
 // newBucket creates a bucket from JSON data
-func (this *HttpClient) newBucket(resp *http.Response) (*Bucket, error) {
+func (this *HttpClient) newBucket(data []byte) (*Bucket, error) {
 	log.Println("Extracting keys from the response body")
 
 	bucket := &Bucket{}
 
-	err := ffjson.NewDecoder().DecodeReader(resp.Body, bucket)
+	err := ffjson.Unmarshal(data, bucket)
 	if err != nil {
-		return nil, errors.New("Error decoding JSON")
+		return nil, errors.New("Error decoding bucket")
 	}
 
 	log.Println("Fetched bucket ", bucket)
@@ -158,7 +171,7 @@ func (this *HttpClient) newBucket(resp *http.Response) (*Bucket, error) {
 func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket *DynamicBucket){
 	backOff :=  &backoff.Backoff{
 		Min:    1 * time.Second,
-		Max: 300 * time.Second,
+		Max: 50 * time.Second,
 		Jitter: true,
 	}
 	for {
@@ -178,6 +191,13 @@ func (this *HttpClient) WatchBucket(name string, cache *lru.Cache, dynamicBucket
 				dynamicBucket.DeleteBucket()
 				cache.Remove(name)
 				return
+			}
+
+		    if bucketResp.err != nil && bucketResp.statusCode == 304 {
+				log.Println("Watch timed out fetching bucket: ", bucketResp.err)
+				dynamicBucket.Disconnected(bucketResp.err)
+				backOff.Reset()
+				continue;
 			}
 
 			if bucketResp.err != nil {

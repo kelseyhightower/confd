@@ -31,7 +31,6 @@ func (this *BucketListener) Connected(bucketName string) {
 
 func (this *BucketListener) Disconnected(bucketName string, err error) {
 	log.Info("Disconnected! " + bucketName)
-	this.watchResp <- &watchResponse{waitIndex:this.currentIndex, err: err}
 }
 
 func (this *BucketListener) Deleted(bucketName string) {

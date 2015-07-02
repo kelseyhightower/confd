@@ -9,6 +9,7 @@ import (
 const (
 	INTERNAL_ERROR = 500
 	BUCKET_NOT_FOUND = 404
+	BUCKET_NOT_MODIFIED = 304
 )
 type BucketResponse struct {
 	bucket *Bucket
@@ -58,7 +59,16 @@ func (this *WatchAsync) createNewBucket(resp *http.Response) {
 	httpClient := this.httpClient
 	asyncResp := this.asyncResp
 
-	newBucket, err := httpClient.newBucket(resp)
+	this.dynamicBucket.Connected()
+
+	data, err := httpClient.readResp(resp)
+	if err != nil {
+		log.Println("Error reading resp ", err.Error())
+		asyncResp <- &BucketResponse{bucket: nil, err: err, statusCode: resp.StatusCode}
+		return
+	}
+
+	newBucket, err := httpClient.newBucket(data)
 	if err != nil {
 		log.Println("Error while fetching bucket ", err)
 		asyncResp <- &BucketResponse{bucket: nil, err: err, statusCode: resp.StatusCode}
@@ -66,23 +76,24 @@ func (this *WatchAsync) createNewBucket(resp *http.Response) {
 		if (newBucket.isValid()) {
 			asyncResp <- &BucketResponse{bucket: newBucket, err: err, statusCode: resp.StatusCode}
 		} else {
-			this.handleInvalidBucket(resp)
+			this.handleInvalidBucket(data)
 		}
 	}
 
 }
 
-func (this *WatchAsync) handleInvalidBucket(resp *http.Response) {
+func (this *WatchAsync) handleInvalidBucket(data []byte) {
 	asyncResp := this.asyncResp
 
 	errResp := &ErrorResp{}
-	err := ffjson.NewDecoder().DecodeReader(resp.Body, errResp)
+	err := ffjson.Unmarshal(data, errResp)
 	if err != nil {
 		asyncResp <- &BucketResponse{bucket: nil, err: errors.New("Error decoding to JSON"), statusCode: INTERNAL_ERROR}
 	} else {
-		log.Println("Error parsing bucket from watch", errResp)
 		if errResp.ErrorType == DELETED {
 			asyncResp <- &BucketResponse{bucket: nil, err: errResp, statusCode: BUCKET_NOT_FOUND}
+		} else if errResp.ErrorType == NOT_MODIFIED {
+				asyncResp <- &BucketResponse{bucket: nil, err: errResp, statusCode: BUCKET_NOT_MODIFIED}
 		} else {
 			asyncResp <- &BucketResponse{bucket: nil, err: errResp, statusCode: INTERNAL_ERROR}
 		}
