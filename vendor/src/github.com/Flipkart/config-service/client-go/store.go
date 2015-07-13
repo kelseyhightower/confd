@@ -34,11 +34,6 @@ func NewHttpClient(client *http.Client, url string) (*HttpClient, error) {
 		return nil, err
 	}
 
-	canonical, err := net.LookupCNAME(hostname)
-	if (err != nil) {
-		return nil, err
-	}
-
     // get ipv4
     var hostIP string
     interfaces, _ := net.Interfaces()
@@ -56,7 +51,7 @@ func NewHttpClient(client *http.Client, url string) (*HttpClient, error) {
     }
 
     // create instance
-	return &HttpClient{instance: client, url: url, ipv4: hostIP, hostname: canonical}, nil
+	return &HttpClient{instance: client, url: url, ipv4: hostIP, hostname: hostname}, nil
 
 }
 
