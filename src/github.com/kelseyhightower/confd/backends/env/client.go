@@ -7,7 +7,7 @@ import (
 
 var replacer = strings.NewReplacer("/", "_")
 
-// Client provides a wrapper around the consulkv client
+// Client provides a shell for the env client
 type Client struct{}
 
 // NewEnvClient returns a new client

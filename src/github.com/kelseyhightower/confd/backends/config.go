@@ -1,6 +1,7 @@
 package backends
 
 type Config struct {
+	AuthToken    string
 	Backend      string
 	ClientCaKeys string
 	ClientCert   string

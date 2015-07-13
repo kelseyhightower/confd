@@ -9,6 +9,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/redis"
+	"github.com/kelseyhightower/confd/backends/stackengine"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
 )
@@ -46,6 +47,8 @@ func New(config Config) (StoreClient, error) {
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
 		return dynamodb.NewDynamoDBClient(table)
+	case "stackengine":
+		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
 	}
 	return nil, errors.New("Invalid backend")
 }
