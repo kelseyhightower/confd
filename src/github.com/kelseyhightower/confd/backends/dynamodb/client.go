@@ -20,7 +20,11 @@ type Client struct {
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
 func NewDynamoDBClient(table string) (*Client, error) {
-	creds := credentials.NewStaticCredentials("", "", "")
+	creds := credentials.NewChainCredentials(
+		[]credentials.Provider{
+			&credentials.EnvProvider{},
+			&credentials.EC2RoleProvider{},
+		})
 	_, err := creds.Get()
 	if err != nil {
 		return nil, err
