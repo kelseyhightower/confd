@@ -40,6 +40,8 @@ if [ "$CMD" == "configure" ]; then
 
     /usr/share/fk-ops-servicebuilder/servicebuilder.pl -N $PAC  -R /usr/share/$PAC/bin/run.sh || die "installing in /etc/service"
     
+    chmod 755 /etc/service/$PAC/run
+    svc -u /etc/service/$PAC
     #/etc/init.d/$PAC start || die
     #/etc/init.d/$PAC status || die
 
