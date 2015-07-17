@@ -23,6 +23,15 @@ makedir () {
 }
 
 if [ "$CMD" == "configure" ]; then
+    
+    for i in `seq 1 30`;
+    do
+        ps cax | grep svscanboot > /dev/null
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        sleep 30
+    done
 
     # creating user & group if it doesnt exist
     if ! getent group $GROUP > /dev/null; then
@@ -40,17 +49,6 @@ if [ "$CMD" == "configure" ]; then
 
     /usr/share/fk-ops-servicebuilder/servicebuilder.pl -N $PAC  -R /usr/share/$PAC/bin/run.sh || die "installing in /etc/service"
     
-    for i in `seq 1 5`;
-    do
-        ps cax | grep svscanboot > /dev/null
-        if [ $? -eq 0 ]; then
-            break
-        fi
-        sleep 30
-    done
-
-    chmod 755 /etc/service/$PAC/run
-    svc -u /etc/service/$PAC
     #/etc/init.d/$PAC start || die
     #/etc/init.d/$PAC status || die
 
