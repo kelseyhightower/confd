@@ -44,6 +44,7 @@ type TemplateResource struct {
 	Mode          string
 	Prefix        string
 	ReloadCmd     string `toml:"reload_cmd"`
+	SrcKey        string `toml:"src_key"`
 	Src           string
 	StageFile     *os.File
 	Uid           int
@@ -77,10 +78,12 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.store = memkv.New()
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
-	if tr.Src == "" {
+	if tr.Src == "" && tr.SrcKey == "" {
 		return nil, ErrEmptySrc
 	}
-	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
+	if tr.Src != "" {
+		tr.Src = filepath.Join(config.TemplateDir, tr.Src)
+	}
 	return &tr, nil
 }
 
@@ -105,18 +108,36 @@ func (t *TemplateResource) setVars() error {
 // StageFile for the template resource.
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
-	log.Debug("Using source template " + t.Src)
+	var tmpl *template.Template
+	var err error
+	if t.SrcKey != "" {
+		log.Debug("Using external source template key " + t.SrcKey)
+		result, err := t.storeClient.GetValues(appendPrefix(t.prefix, []string{t.SrcKey}))
+		if err != nil {
+			return err
+		}
+		src, ok := result[t.SrcKey]
+		if !ok {
+			return errors.New("Missing template: " + t.SrcKey)
+		}
+		log.Debug("Compiling source template " + t.SrcKey)
+		tmpl, err = template.New(t.SrcKey).Funcs(t.funcMap).Parse(src)
+		if err != nil {
+			return fmt.Errorf("Unable to process template %s, %s", t.SrcKey, err)
+		}
+	} else {
+		log.Debug("Using source template " + t.Src)
 
-	if !isFileExist(t.Src) {
-		return errors.New("Missing template: " + t.Src)
+		if !isFileExist(t.Src) {
+			return errors.New("Missing template: " + t.Src)
+		}
+
+		log.Debug("Compiling source template " + t.Src)
+		tmpl, err = template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
+		if err != nil {
+			return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
+		}
 	}
-
-	log.Debug("Compiling source template " + t.Src)
-	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
-	if err != nil {
-		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
-	}
-
 	// create TempFile in Dest directory to avoid cross-filesystem issues
 	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
 	if err != nil {
