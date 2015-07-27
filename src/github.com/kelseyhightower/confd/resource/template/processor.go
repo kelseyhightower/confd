@@ -124,7 +124,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 			lastError = err
 			continue
 		}
-		templates = append(templates, t)
+		templates = append(templates, t...)
 	}
 	return templates, lastError
 }
