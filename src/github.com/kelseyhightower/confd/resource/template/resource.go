@@ -31,7 +31,7 @@ type Config struct {
 
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
-	TemplateResources []TemplateResource `toml:"template"`
+	TemplateResources []*TemplateResource `toml:"template"`
 }
 
 // TemplateResource is the representation of a parsed template resource.
@@ -82,7 +82,7 @@ func NewTemplateResource(path string, config Config) ([]*TemplateResource, error
 			return nil, ErrEmptySrc
 		}
 		tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-		templates = append(templates, &tr)
+		templates = append(templates, tr)
 	}
 	return templates, nil
 }
