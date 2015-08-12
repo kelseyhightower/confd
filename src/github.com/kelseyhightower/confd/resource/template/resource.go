@@ -112,11 +112,12 @@ func (t *TemplateResource) createStageFile() error {
 	var err error
 	if t.SrcKey != "" {
 		log.Debug("Using external source template key " + t.SrcKey)
-		result, err := t.storeClient.GetValues(appendPrefix(t.prefix, []string{t.SrcKey}))
+		fullKey := path.Join(t.prefix, t.SrcKey)
+		result, err := t.storeClient.GetValues([]string{fullKey})
 		if err != nil {
 			return err
 		}
-		src, ok := result[t.SrcKey]
+		src, ok := result[fullKey]
 		if !ok {
 			return errors.New("Missing template: " + t.SrcKey)
 		}
