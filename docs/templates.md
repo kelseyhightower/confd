@@ -80,6 +80,15 @@ export HOSTNAME=`hostname`
 hostname: {{getenv "HOSTNAME"}}
 ```
 
+### getips
+
+Alias for net.LookupIP
+Uses local resolver to resolve a host. Returns a list of all IPv4 and IPv6 IP Addresses. Returns an error if host not found.
+
+```
+IPS: {{getips "www.example.com"}}
+```
+
 ### datetime
 
 Alias for time.Now
