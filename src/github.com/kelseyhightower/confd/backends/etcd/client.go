@@ -1,8 +1,8 @@
 package etcd
 
 import (
-	"errors"
-	"strings"
+	//"errors"
+	//"strings"
 	"time"
 
 	goetcd "github.com/coreos/go-etcd/etcd"
@@ -28,10 +28,11 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 	}
 	// Configure the DialTimeout, since 1 second is often too short
 	c.SetDialTimeout(time.Duration(3) * time.Second)
-	success := c.SetCluster(machines)
+	/*success := c.SetCluster(machines)
 	if !success {
 		return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
 	}
+	*/
 	return &Client{c}, nil
 }
 
