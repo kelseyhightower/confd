@@ -18,6 +18,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		ConfDir:      "/etc/confd",
 		Interval:     600,
 		Noop:         false,
+		NoDiscover:   false,
 		Prefix:       "/",
 		SRVDomain:    "",
 		Scheme:       "http",

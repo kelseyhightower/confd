@@ -1,8 +1,8 @@
 package etcd
 
 import (
-	//"errors"
-	//"strings"
+	"errors"
+	"strings"
 	"time"
 
 	goetcd "github.com/coreos/go-etcd/etcd"
@@ -15,7 +15,7 @@ type Client struct {
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client, error) {
+func NewEtcdClient(machines []string, cert, key string, caCert string, noDiscover bool) (*Client, error) {
 	var c *goetcd.Client
 	var err error
 	if cert != "" && key != "" {
@@ -28,11 +28,14 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 	}
 	// Configure the DialTimeout, since 1 second is often too short
 	c.SetDialTimeout(time.Duration(3) * time.Second)
-	/*success := c.SetCluster(machines)
-	if !success {
-		return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+
+	// If noDiscover is not set, we should locate the whole etcd cluster.
+	if !noDiscover {
+		success := c.SetCluster(machines)
+		if !success {
+			return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+		}
 	}
-	*/
 	return &Client{c}, nil
 }
 
