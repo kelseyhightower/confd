@@ -2,6 +2,7 @@ package template
 
 import (
 	"encoding/json"
+	"net"
 	"os"
 	"path"
 	"strings"
@@ -22,6 +23,7 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["getips"] = net.LookupIP
 	return m
 }
 
