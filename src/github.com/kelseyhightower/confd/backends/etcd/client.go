@@ -66,7 +66,7 @@ func nodeWalk(node *goetcd.Node, vars map[string]string) error {
 	return nil
 }
 
-func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool, keys []string) (uint64, error) {
 	if waitIndex == 0 {
 		resp, err := c.client.Get(prefix, false, true)
 		if err != nil {
