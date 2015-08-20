@@ -74,15 +74,25 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 		}
 		return resp.EtcdIndex, nil
 	}
-	resp, err := c.client.Watch(prefix, waitIndex+1, true, nil, stopChan)
-	if err != nil {
-		switch e := err.(type) {
-		case *goetcd.EtcdError:
-			if e.ErrorCode == 401 {
-				return 0, nil
+	for {
+		resp, err := c.client.Watch(prefix, waitIndex+1, true, nil, stopChan)
+		if err != nil {
+			switch e := err.(type) {
+			case *goetcd.EtcdError:
+				if e.ErrorCode == 401 {
+					return 0, nil
+				}
+			}
+			return waitIndex, err
+		}
+
+		// Check that the key for this node is one of the keys we care about.
+		for _, k := range keys {
+			if k == resp.Node.Key {
+				return resp.Node.ModifiedIndex, err
 			}
 		}
-		return waitIndex, err
+
+		waitIndex = resp.Node.ModifiedIndex
 	}
-	return resp.Node.ModifiedIndex, err
 }
