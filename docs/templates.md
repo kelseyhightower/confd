@@ -1,6 +1,6 @@
 # Templates
 
-Templates define a single application configration template.
+Templates define a single application configuration template.
 Templates are stored under the `/etc/confd/templates` directory by default.
 
 Templates are written in Go's [`text/template`](http://golang.org/pkg/text/template/).
