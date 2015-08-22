@@ -4,8 +4,10 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"fmt"
 
 	goetcd "github.com/coreos/go-etcd/etcd"
+	"github.com/kelseyhightower/confd/log"
 )
 
 // Client is a wrapper around the etcd client
@@ -28,10 +30,23 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 	}
 	// Configure the DialTimeout, since 1 second is often too short
 	c.SetDialTimeout(time.Duration(3) * time.Second)
-	success := c.SetCluster(machines)
-	if !success {
-		return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+
+	maxConnectAttempts := 10
+	for attempt := 1; attempt <= maxConnectAttempts; attempt++ {
+		success := c.SetCluster(machines)
+		if success {
+			break
+			return &Client{c}, nil
+		}
+
+		if attempt == maxConnectAttempts {
+			break
+			return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+		}
+		log.Info(fmt.Sprintf("[Attempt: %d] Attempting access to etcd after 5 second sleep", attempt))
+		time.Sleep(5 * time.Second)
 	}
+
 	return &Client{c}, nil
 }
 
