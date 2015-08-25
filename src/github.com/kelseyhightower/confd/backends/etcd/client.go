@@ -18,6 +18,7 @@ type Client struct {
 func NewEtcdClient(machines []string, cert, key string, caCert string, noDiscover bool) (*Client, error) {
 	var c *goetcd.Client
 	var err error
+	machines = prependSchemeToMachines(machines)
 	if cert != "" && key != "" {
 		c, err = goetcd.NewTLSClient(machines, cert, key, caCert)
 		if err != nil {
