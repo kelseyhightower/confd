@@ -88,7 +88,7 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 
 		// Check that the key for this node is one of the keys we care about.
 		for _, k := range keys {
-			if k == resp.Node.Key {
+			if strings.HasPrefix(resp.Node.Key, k) {
 				return resp.Node.ModifiedIndex, err
 			}
 		}
