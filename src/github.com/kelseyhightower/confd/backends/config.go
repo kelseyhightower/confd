@@ -9,4 +9,6 @@ type Config struct {
 	BackendNodes []string
 	Scheme       string
 	Table        string
+	Asg          string
+	AWSRegion    string
 }
