@@ -36,7 +36,7 @@ func New(config Config) (StoreClient, error) {
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
-		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.NoDiscover)
+		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.NoSync)
 	case "zookeeper":
 		return zookeeper.NewZookeeperClient(backendNodes)
 	case "redis":

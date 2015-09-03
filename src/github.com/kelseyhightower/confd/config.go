@@ -32,7 +32,7 @@ var (
 	logLevel          string
 	nodes             Nodes
 	noop              bool
-	noDiscover        bool
+	noSync            bool
 	onetime           bool
 	prefix            string
 	printVersion      bool
@@ -55,7 +55,7 @@ type Config struct {
 	ConfDir      string   `toml:"confdir"`
 	Interval     int      `toml:"interval"`
 	Noop         bool     `toml:"noop"`
-	NoDiscover   bool     `toml:"no_discover"`
+	NoSync       bool     `toml:"no_sync"`
 	Prefix       string   `toml:"prefix"`
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
@@ -77,7 +77,7 @@ func init() {
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
 	flag.Var(&nodes, "node", "list of backend nodes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes")
-	flag.BoolVar(&noDiscover, "no-discover", false, "do not discover extra nodes (etcd backend only)")
+	flag.BoolVar(&noSync, "no-sync", false, "do not discover extra nodes (etcd backend only)")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
@@ -184,7 +184,7 @@ func initConfig() error {
 		ClientCert:   config.ClientCert,
 		ClientKey:    config.ClientKey,
 		BackendNodes: config.BackendNodes,
-		NoDiscover:   config.NoDiscover,
+		NoSync:       config.NoSync,
 		Scheme:       config.Scheme,
 		Table:        config.Table,
 	}
@@ -258,8 +258,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Interval = interval
 	case "noop":
 		config.Noop = noop
-	case "no-discover":
-		config.NoDiscover = noDiscover
+	case "no-sync":
+		config.NoSync = noSync
 	case "prefix":
 		config.Prefix = prefix
 	case "scheme":

@@ -7,7 +7,7 @@ type Config struct {
 	ClientCert   string
 	ClientKey    string
 	BackendNodes []string
-	NoDiscover   bool
+	NoSync       bool
 	Scheme       string
 	Table        string
 }
