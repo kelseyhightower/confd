@@ -6,6 +6,8 @@ import (
 	"path"
 	"strings"
 	"time"
+	"net"
+	"sort"
 )
 
 func newFuncMap() map[string]interface{} {
@@ -22,6 +24,7 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["lookupIP"] = LookupIP
 	return m
 }
 
@@ -41,4 +44,18 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 	var ret []interface{}
 	err := json.Unmarshal([]byte(data), &ret)
 	return ret, err
+}
+
+func LookupIP(data string) ([]string) {
+	ips, err := net.LookupIP(data)
+	if(err != nil) {
+		return nil
+	}
+	ipStrings := make([]string, len(ips))
+
+	for i, ip := range ips {
+		ipStrings[i] = ip.String()
+	}
+	sort.Strings(ipStrings)
+	return ipStrings
 }

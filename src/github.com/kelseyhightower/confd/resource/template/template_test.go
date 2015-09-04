@@ -369,6 +369,34 @@ dir: /test/data
 			tr.store.Set("/test/data/def", "child")
 		},
 	},
+	templateTest{
+		desc: "ip lookup test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data",
+    "/test/data/abc",
+]
+`,
+		tmpl: `
+{{range lookupIP "localhost"}}
+ip: {{.}}
+{{end}}
+`,
+		expected: `
+
+ip: 127.0.0.1
+
+ip: ::1
+
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", "parent")
+			tr.store.Set("/test/data/def", "child")
+		},
+	},
 }
 
 // TestTemplates runs all tests in templateTests
