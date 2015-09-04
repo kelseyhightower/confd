@@ -6,3 +6,4 @@ RUN mkdir -p /go/src /go/bin && chmod -R 777 /go
 ENV GOPATH /go
 ENV PATH /go/bin:$PATH
 WORKDIR /go
+RUN go get github.com/constabulary/gb/...
