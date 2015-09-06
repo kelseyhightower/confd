@@ -2,9 +2,9 @@ package template
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
-	"strings"
 
 	"github.com/kelseyhightower/confd/log"
 )
@@ -134,7 +134,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	if err == nil {
 		for k, v := range result {
 			log.Info("dynamic key: " + k + " / " + v)
-			t, err := NewTemplateResource(config.ConfigDir + "/" + v, config)
+			t, err := NewTemplateResource(config.ConfigDir+"/"+v, config)
 			if err != nil {
 				lastError = err
 				continue
@@ -142,7 +142,8 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 
 			split := strings.Split(k, "/")
 			key := "/" + split[len(split)-1]
-			t.Dest = strings.Replace(t.Dest,"{{.token}}",key, 1)
+			t.Dest = strings.Replace(t.Dest, "{{.token}}", key, 1)
+			t.ReloadCmd = strings.Replace(t.ReloadCmd, "{{.token}}", key, 1)
 			t.Prefix = key
 			t.prefix = key
 			templates = append(templates, t)
