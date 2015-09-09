@@ -239,6 +239,16 @@ Alias for the strings.Join function.
 services: {{join $services ","}}
 ```
 
+### lookupIP
+
+Wrapper for net.LookupIP function. The wrapper also sorts (alphabeticaly) the IP addresses. This is crucial since in dynamic environments DNS servers typically shuffle the addresses linked to domain name. And that would cause unnecessary config reloads.
+
+```
+{{range lookupIP "some.host.local"}}
+    server {{.}};
+{{end}}
+```
+
 ## Example Usage
 
 ```Bash
@@ -380,4 +390,3 @@ server {
 ```
 
 Go's [`text/template`](http://golang.org/pkg/text/template/) package is very powerful. For more details on it's capabilities see its [documentation.](http://golang.org/pkg/text/template/)
-

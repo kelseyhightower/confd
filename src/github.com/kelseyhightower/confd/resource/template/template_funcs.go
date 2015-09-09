@@ -51,6 +51,7 @@ func LookupIP(data string) ([]string) {
 	if(err != nil) {
 		return nil
 	}
+	// "Cast" IPs into strings and sort the array
 	ipStrings := make([]string, len(ips))
 
 	for i, ip := range ips {
