@@ -162,6 +162,7 @@ func initConfig() error {
 			"zookeeper": true,
 			"redis":     true,
 			"dynamodb":  true,
+			"rancher":   true,
 		}
 
 		if unsupportedBackends[config.Backend] {

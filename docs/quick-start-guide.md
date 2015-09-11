@@ -12,6 +12,7 @@ confd supports the following backends:
 * redis
 * zookeeper
 * dynamodb
+* rancher
 
 ### Add keys
 
@@ -75,6 +76,10 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
     --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
 
+#### rancher
+
+This backend consumes the Rancher Container Service metadata. For available keys see [rancher metadata docs](http://docs.rancher.com/rancher/metadata-service/)
+
 ### Create the confdir
 
 The confdir is where template resource configs and source templates are stored.
@@ -136,6 +141,14 @@ confd -onetime -backend dynamodb -table <YOUR_TABLE>
 ```
 confd -onetime -backend env
 ```
+
+#### rancher
+
+```
+confd -onetime -backend rancher -prefix /2015-07-25
+```
+
+*Note*: The metadata api prefix can be defined on the cli, or as part of your keys in the template toml file.
 
 Output:
 ```
