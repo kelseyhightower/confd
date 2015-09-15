@@ -142,7 +142,7 @@ confd -onetime -backend dynamodb -table <YOUR_TABLE>
 confd -onetime -backend env
 ```
 
-#### stackengine
+#### StackEngine
 
 ```
 confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.168.255.210:8443 -scheme https
