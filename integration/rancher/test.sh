@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat > /rancher-answers.json<<EOF
+cat > ./rancher-answers.json<<EOF
 {
     "default": {
         "key": "foobar",
@@ -29,7 +29,7 @@ cat > /rancher-answers.json<<EOF
     }
 }
 EOF
-rancher-metadata -listen 127.0.0.1:8080 --answers /rancher-answers.json &
+rancher-metadata -listen 127.0.0.1:8080 --answers ./rancher-answers.json &
 
 confd --onetime --log-level debug --prefix /2015-07-25 --confdir ./integration/confdir --backend rancher --node 127.0.0.1:8080 --watch
 if [ $? -eq 0 ]
