@@ -38,6 +38,8 @@ var (
 	scheme            string
 	srvDomain         string
 	table             string
+	asg               string
+	awsregion         string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	watch             bool
@@ -58,6 +60,8 @@ type Config struct {
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
 	Table        string   `toml:"table"`
+	Asg          string   `toml:"asg"`
+	AWSRegion    string   `toml:"awsregion"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
 }
@@ -81,6 +85,8 @@ func init() {
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
+	flag.StringVar(&asg, "asg", "", "the name of the Auto Scaling Group (only used with -backend=autoscaling)")
+	flag.StringVar(&awsregion, "awsregion", "", "the AWS Region to use (only used with -backend=autoscaling)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
 
@@ -174,6 +180,27 @@ func initConfig() error {
 		return errors.New("No DynamoDB table configured")
 	}
 
+	if config.Backend == "autoscaling" && config.Asg == "" {
+		return errors.New("No Auto Scaling Group name configured")
+	}
+
+	if config.Backend == "dynamodb" || config.Backend == "autoscaling" {
+		if config.AWSRegion != "" {
+			err := validateRegion(config.AWSRegion)
+			if err != nil {
+				return errors.New("Not a valid region: " + config.AWSRegion)
+			}
+		} else {
+			region := os.Getenv("AWS_REGION")
+			if region != "" {
+				err := validateRegion(region)
+				if err != nil {
+					return errors.New("Not a valid region: " + region)
+				}
+			}
+		}
+	}
+
 	backendsConfig = backends.Config{
 		AuthToken:    config.AuthToken,
 		Backend:      config.Backend,
@@ -183,6 +210,8 @@ func initConfig() error {
 		BackendNodes: config.BackendNodes,
 		Scheme:       config.Scheme,
 		Table:        config.Table,
+		Asg:          config.Asg,
+		AWSRegion:    config.AWSRegion,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -194,6 +223,19 @@ func initConfig() error {
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
 	}
 	return nil
+}
+
+func validateRegion(region string) error {
+	var regions = [11]string{"us-east-1", "us-west-2", "us-west-1", "eu-west-1",
+		"eu-central-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1",
+		"sa-east-1", "cn-north-1", "us-gov-west-1"}
+
+	for _, valid := range regions {
+		if region == valid {
+			return nil
+		}
+	}
+	return fmt.Errorf("Not a valid region: %s", region)
 }
 
 func getBackendNodesFromSRV(backend, domain, scheme string) ([]string, error) {
@@ -262,6 +304,10 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SRVDomain = srvDomain
 	case "table":
 		config.Table = table
+	case "asg":
+		config.Asg = asg
+	case "awsregion":
+		config.AWSRegion = awsregion
 	case "log-level":
 		config.LogLevel = logLevel
 	case "watch":

@@ -12,6 +12,7 @@ confd supports the following backends:
 * redis
 * zookeeper
 * dynamodb
+* autoscaling
 
 ### Add keys
 
@@ -75,6 +76,21 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
     --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
 
+#### autoscaling
+
+The autoscaling backend retrieves the private and public IP addresses and DNS names from all healthy instances belonging to a named Auto Scaling Group in EC2. Healthy instances are identified by having a Health Status of 'Healthy' and a Lifecycle of 'InService'.
+
+The IP addresses and DNS names are then available under the keys:
+
+ - /privateIps/N
+ - /publicIps/N
+ - /privateDnsNames/N
+ - /publicDnsNames/N
+
+Where N is the instance index starting from 0.
+
+To get started, first create an Auto Scaling Group in Ec2 with at least one instance.
+
 ### Create the confdir
 
 The confdir is where template resource configs and source templates are stored.
@@ -129,6 +145,12 @@ confd -onetime -backend consul -node 127.0.0.1:8500
 
 ```
 confd -onetime -backend dynamodb -table <YOUR_TABLE>
+```
+
+#### autoscaling
+
+```
+confd -onetime -backend autoscaling -asg "<YOUR_AUTO_SCALING_GROUP>" -awsregion <YOUR_AWS_REGION>
 ```
 
 #### env

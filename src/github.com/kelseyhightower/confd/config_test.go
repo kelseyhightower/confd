@@ -22,6 +22,8 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		SRVDomain:    "",
 		Scheme:       "http",
 		Table:        "",
+		Asg:          "",
+		AWSRegion:    "",
 	}
 	if err := initConfig(); err != nil {
 		t.Errorf(err.Error())
