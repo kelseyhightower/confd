@@ -9,4 +9,5 @@ type Config struct {
 	BackendNodes []string
 	Scheme       string
 	Table        string
+	SecKeyFile   string
 }
