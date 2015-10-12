@@ -1,10 +1,11 @@
 package template
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
+	"github.com/kelseyhightower/confd/backends"
+	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -12,46 +13,31 @@ type Processor interface {
 	Process()
 }
 
-func Process(config Config) error {
-	ts, err := getTemplateResources(config)
-	if err != nil {
-		return err
-	}
-	return process(ts)
-}
-
-func process(ts []*TemplateResource) error {
-	var lastErr error
-	for _, t := range ts {
-		if err := t.process(); err != nil {
-			log.Error(err.Error())
-			lastErr = err
-		}
-	}
-	return lastErr
+func Process(tcs []*config.TemplateConfig, storeClient backends.StoreClient, noop bool) error {
+	return process(getTemplateResources(tcs, storeClient), noop)
 }
 
 type intervalProcessor struct {
-	config   Config
-	stopChan chan bool
-	doneChan chan bool
-	errChan  chan error
-	interval int
+	trs         []*TemplateResource
+	storeClient backends.StoreClient
+	noop        bool
+
+	stopChan    chan bool
+	doneChan    chan bool
+	errChan     chan error
+	interval    int
 }
 
-func IntervalProcessor(config Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
-	return &intervalProcessor{config, stopChan, doneChan, errChan, interval}
+func IntervalProcessor(tcs []*config.TemplateConfig, storeClient backends.StoreClient, noop bool,
+                       stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
+	trs := getTemplateResources(tcs, storeClient)
+	return &intervalProcessor{trs, storeClient, noop, stopChan, doneChan, errChan, interval}
 }
 
 func (p *intervalProcessor) Process() {
 	defer close(p.doneChan)
-	ts, err := getTemplateResources(p.config)
-	if err != nil {
-		log.Fatal(err.Error())
-		return
-	}
 	for {
-		process(ts)
+		process(p.trs, p.noop)
 		select {
 		case <-p.stopChan:
 			break
@@ -62,26 +48,26 @@ func (p *intervalProcessor) Process() {
 }
 
 type watchProcessor struct {
-	config   Config
-	stopChan chan bool
-	doneChan chan bool
-	errChan  chan error
-	wg       sync.WaitGroup
+	trs         []*TemplateResource
+	storeClient backends.StoreClient
+	noop        bool
+
+	stopChan    chan bool
+	doneChan    chan bool
+	errChan     chan error
+	wg          sync.WaitGroup
 }
 
-func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
+func WatchProcessor(tcs []*config.TemplateConfig, storeClient backends.StoreClient, noop bool,
+                    stopChan, doneChan chan bool, errChan chan error) Processor {
 	var wg sync.WaitGroup
-	return &watchProcessor{config, stopChan, doneChan, errChan, wg}
+	trs := getTemplateResources(tcs, storeClient)
+	return &watchProcessor{trs, storeClient, noop, stopChan, doneChan, errChan, wg}
 }
 
 func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
-	ts, err := getTemplateResources(p.config)
-	if err != nil {
-		log.Fatal(err.Error())
-		return
-	}
-	for _, t := range ts {
+	for _, t := range p.trs {
 		t := t
 		p.wg.Add(1)
 		go p.monitorPrefix(t)
@@ -92,7 +78,7 @@ func (p *watchProcessor) Process() {
 func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 	defer p.wg.Done()
 	for {
-		index, err := t.storeClient.WatchPrefix(t.Prefix, t.lastIndex, p.stopChan)
+		index, err := t.storeClient.WatchPrefix(t.config.Prefix, t.lastIndex, p.stopChan)
 		if err != nil {
 			p.errChan <- err
 			// Prevent backend errors from consuming all resources.
@@ -100,31 +86,27 @@ func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 			continue
 		}
 		t.lastIndex = index
-		if err := t.process(); err != nil {
+		if err := t.process(p.noop); err != nil {
 			p.errChan <- err
 		}
 	}
 }
 
-func getTemplateResources(config Config) ([]*TemplateResource, error) {
-	var lastError error
-	templates := make([]*TemplateResource, 0)
-	log.Debug("Loading template resources from confdir " + config.ConfDir)
-	if !isFileExist(config.ConfDir) {
-		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
-		return nil, nil
-	}
-	paths, err := recursiveFindFiles(config.ConfigDir, "*toml")
-	if err != nil {
-		return nil, err
-	}
-	for _, p := range paths {
-		t, err := NewTemplateResource(p, config)
-		if err != nil {
-			lastError = err
-			continue
+func process(trs []*TemplateResource, noop bool) error {
+	var lastErr error
+	for _, t := range trs {
+		if err := t.process(noop); err != nil {
+			log.Error(err.Error())
+			lastErr = err
 		}
-		templates = append(templates, t)
 	}
-	return templates, lastError
+	return lastErr
+}
+
+func getTemplateResources(tcs []*config.TemplateConfig, storeClient backends.StoreClient) []*TemplateResource {
+	trs := make([]*TemplateResource, 0)
+	for _, tc := range tcs {
+		trs = append(trs, NewTemplateResource(tc, storeClient))
+	}
+	return trs
 }

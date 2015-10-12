@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/config"
+	"github.com/kelseyhightower/confd/util"
 	goetcd "github.com/coreos/go-etcd/etcd"
 )
 
@@ -15,11 +17,12 @@ type Client struct {
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client, error) {
+func NewEtcdClient(ec *config.EtcdBackendConfig) (*Client, error) {
+	machines := util.GetBackendNodesFromSRVOrElse(ec.Type(), ec.Srv, func()[]string { return ec.Nodes })
 	var c *goetcd.Client
 	var err error
-	if cert != "" && key != "" {
-		c, err = goetcd.NewTLSClient(machines, cert, key, caCert)
+	if ec.Cert != "" && ec.CertKey != "" {
+		c, err = goetcd.NewTLSClient(machines, ec.Cert, ec.CertKey, ec.CAKeys)
 		if err != nil {
 			return &Client{c}, err
 		}

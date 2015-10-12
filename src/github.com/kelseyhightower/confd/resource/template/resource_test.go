@@ -8,7 +8,9 @@ import (
 	"text/template"
 
 	"github.com/kelseyhightower/confd/backends/env"
+	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/util"
 )
 
 // createTempDirs is a helper function which creates temporary directories
@@ -82,18 +84,18 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 
 	os.Setenv("FOO", "bar")
-	storeClient, err := env.NewEnvClient()
+	storeClient, err := env.NewEnvClient(config.NewEnvBackendConfig())
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	c := Config{
-		ConfDir:     tempConfDir,
-		ConfigDir:   filepath.Join(tempConfDir, "conf.d"),
-		StoreClient: storeClient,
-		TemplateDir: filepath.Join(tempConfDir, "templates"),
+
+	tcs, err := util.GetTemplateConfigs(tempConfDir)
+	if err != nil {
+		t.Errorf(err.Error())
 	}
+
 	// Process the test template resource.
-	err = Process(c)
+	err = Process(tcs, storeClient, false)
 	if err != nil {
 		t.Error(err.Error())
 	}

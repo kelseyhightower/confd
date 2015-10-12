@@ -7,10 +7,10 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/util"
 )
 
 // fileInfo describes a configuration file and is returned by fileStat.
@@ -29,17 +29,9 @@ func appendPrefix(prefix string, keys []string) []string {
 	return s
 }
 
-// isFileExist reports whether path exits.
-func isFileExist(fpath string) bool {
-	if _, err := os.Stat(fpath); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
 // fileStat return a fileInfo describing the named file.
 func fileStat(name string) (fi fileInfo, err error) {
-	if isFileExist(name) {
+	if util.IsFileExist(name) {
 		f, err := os.Open(name)
 		if err != nil {
 			return fi, err
@@ -63,7 +55,7 @@ func fileStat(name string) (fi fileInfo, err error) {
 // Unix permissions. The owner, group, and mode must match.
 // It return false in other cases.
 func sameConfig(src, dest string) (bool, error) {
-	if !isFileExist(dest) {
+	if !util.IsFileExist(dest) {
 		return false, nil
 	}
 	d, err := fileStat(dest)
@@ -92,24 +84,3 @@ func sameConfig(src, dest string) (bool, error) {
 	return true, nil
 }
 
-// recursiveFindFiles find files with pattern in the root with depth.
-func recursiveFindFiles(root string, pattern string) ([]string, error) {
-	files := make([]string, 0)
-	findfile := func(path string, f os.FileInfo, err error) (inner error) {
-		if err != nil {
-			return
-		}
-		if f.IsDir() {
-			return
-		} else if match, innerr := filepath.Match(pattern, f.Name()); innerr == nil && match {
-			files = append(files, path)
-		}
-		return
-	}
-	err := filepath.Walk(root, findfile)
-	if len(files) == 0 {
-		return files, err
-	} else {
-		return files, err
-	}
-}

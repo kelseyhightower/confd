@@ -13,9 +13,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
+	"github.com/kelseyhightower/confd/config"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/util"
 	"github.com/kelseyhightower/memkv"
 )
 
@@ -36,22 +37,11 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
-	CheckCmd      string `toml:"check_cmd"`
-	Dest          string
-	FileMode      os.FileMode
-	Gid           int
-	Keys          []string
-	Mode          string
-	Prefix        string
-	ReloadCmd     string `toml:"reload_cmd"`
-	Src           string
-	StageFile     *os.File
-	Uid           int
+	config        *config.TemplateConfig
+	fileMode      os.FileMode
+	stageFile     *os.File
 	funcMap       map[string]interface{}
 	lastIndex     uint64
-	keepStageFile bool
-	noop          bool
-	prefix        string
 	store         memkv.Store
 	storeClient   backends.StoreClient
 }
@@ -59,43 +49,34 @@ type TemplateResource struct {
 var ErrEmptySrc = errors.New("empty src template")
 
 // NewTemplateResource creates a TemplateResource.
-func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
-	if config.StoreClient == nil {
-		return nil, errors.New("A valid StoreClient is required.")
+func NewTemplateResource(config *config.TemplateConfig, storeClient backends.StoreClient) *TemplateResource {
+	store := memkv.New()
+	funcMap := newFuncMap()
+	addFuncs(funcMap, store.FuncMap)
+
+	tr := &TemplateResource{
+		config:      config,
+		funcMap:     funcMap,
+		lastIndex:   0,
+		store:       store,
+		storeClient: storeClient,
 	}
-	var tc *TemplateResourceConfig
-	log.Debug("Loading template resource from " + path)
-	_, err := toml.DecodeFile(path, &tc)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
-	}
-	tr := tc.TemplateResource
-	tr.keepStageFile = config.KeepStageFile
-	tr.noop = config.Noop
-	tr.storeClient = config.StoreClient
-	tr.funcMap = newFuncMap()
-	tr.store = memkv.New()
-	addFuncs(tr.funcMap, tr.store.FuncMap)
-	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
-	if tr.Src == "" {
-		return nil, ErrEmptySrc
-	}
-	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-	return &tr, nil
+
+	return tr
 }
 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
-	log.Debug("Key prefix set to " + t.prefix)
-	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys))
+	log.Debug("Key prefix set to " + t.config.Prefix)
+	result, err := t.storeClient.GetValues(appendPrefix(t.config.Prefix, t.config.Keys))
 	if err != nil {
 		return err
 	}
 	t.store.Purge()
 	for k, v := range result {
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.prefix)), v)
+		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.config.Prefix)), v)
 	}
 	return nil
 }
@@ -105,20 +86,20 @@ func (t *TemplateResource) setVars() error {
 // StageFile for the template resource.
 // It returns an error if any.
 func (t *TemplateResource) createStageFile() error {
-	log.Debug("Using source template " + t.Src)
+	log.Debug("Using source template " + t.config.Src)
 
-	if !isFileExist(t.Src) {
-		return errors.New("Missing template: " + t.Src)
+	if !util.IsFileExist(t.config.Src) {
+		return errors.New("Missing template: " + t.config.Src)
 	}
 
-	log.Debug("Compiling source template " + t.Src)
-	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
-	if err != nil {
-		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
+	log.Debug("Compiling source template " + t.config.Src)
+    tmpl, err := template.New(path.Base(t.config.Src)).Funcs(t.funcMap).ParseFiles(t.config.Src)
+    if err != nil {
+		return fmt.Errorf("Unable to process template %s, %s", t.config.Src, err)
 	}
 
-	// create TempFile in Dest directory to avoid cross-filesystem issues
-	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
+    // create TempFile in Dest directory to avoid cross-filesystem issues
+	temp, err := ioutil.TempFile(filepath.Dir(t.config.Dest), "."+filepath.Base(t.config.Dest))
 	if err != nil {
 		return err
 	}
@@ -129,12 +110,12 @@ func (t *TemplateResource) createStageFile() error {
 		return err
 	}
 	defer temp.Close()
-
+	
 	// Set the owner, group, and mode on the stage file now to make it easier to
 	// compare against the destination configuration file later.
-	os.Chmod(temp.Name(), t.FileMode)
-	os.Chown(temp.Name(), t.Uid, t.Gid)
-	t.StageFile = temp
+	os.Chmod(temp.Name(), t.fileMode)
+	os.Chown(temp.Name(), t.config.Uid, t.config.Gid)
+	t.stageFile = temp
 	return nil
 }
 
@@ -143,35 +124,37 @@ func (t *TemplateResource) createStageFile() error {
 // overwriting the target config file. Finally, sync will run a reload command
 // if set to have the application or service pick up the changes.
 // It returns an error if any.
-func (t *TemplateResource) sync() error {
-	staged := t.StageFile.Name()
-	if t.keepStageFile {
+func (t *TemplateResource) sync(noop bool) error {
+	staged := t.stageFile.Name()
+	if t.config.KeepStageFile {
 		log.Info("Keeping staged file: " + staged)
 	} else {
 		defer os.Remove(staged)
 	}
 
-	log.Debug("Comparing candidate config to " + t.Dest)
-	ok, err := sameConfig(staged, t.Dest)
+	log.Debug("Comparing candidate config to " + t.config.Dest)
+	ok, err := sameConfig(staged, t.config.Dest)
 	if err != nil {
 		log.Error(err.Error())
 	}
-	if t.noop {
-		log.Warning("Noop mode enabled. " + t.Dest + " will not be modified")
+
+	if noop {
+		log.Warning("Noop mode enabled. " + t.config.Dest + " will not be modified")
 		return nil
 	}
+
 	if !ok {
-		log.Info("Target config " + t.Dest + " out of sync")
-		if t.CheckCmd != "" {
+		log.Info("Target config " + t.config.Dest + " out of sync")
+		if t.config.CheckCmd != "" {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
 			}
 		}
-		log.Debug("Overwriting target config " + t.Dest)
-		err := os.Rename(staged, t.Dest)
+		log.Debug("Overwriting target config " + t.config.Dest)
+		err := os.Rename(staged, t.config.Dest)
 		if err != nil {
 			if strings.Contains(err.Error(), "device or resource busy") {
-				log.Debug("Rename failed - target is likely a mount. Trying to write instead")
+				log.Debug("Rename failed - target is likely a mount.config. Trying to write instead")
 				// try to open the file and write to it
 				var contents []byte
 				var rerr error
@@ -179,9 +162,9 @@ func (t *TemplateResource) sync() error {
 				if rerr != nil {
 					return rerr
 				}
-				err := ioutil.WriteFile(t.Dest, contents, t.FileMode)
+				err := ioutil.WriteFile(t.config.Dest, contents, t.fileMode)
 				// make sure owner and group match the temp file, in case the file was created with WriteFile
-				os.Chown(t.Dest, t.Uid, t.Gid)
+				os.Chown(t.config.Dest, t.config.Uid, t.config.Gid)
 				if err != nil {
 					return err
 				}
@@ -189,15 +172,16 @@ func (t *TemplateResource) sync() error {
 				return err
 			}
 		}
-		if t.ReloadCmd != "" {
+		if t.config.ReloadCmd != "" {
 			if err := t.reload(); err != nil {
 				return err
 			}
 		}
-		log.Info("Target config " + t.Dest + " has been updated")
+		log.Info("Target config " + t.config.Dest + " has been updated")
 	} else {
-		log.Debug("Target config " + t.Dest + " in sync")
+		log.Debug("Target config " + t.config.Dest + " in sync")
 	}
+
 	return nil
 }
 
@@ -210,8 +194,8 @@ func (t *TemplateResource) sync() error {
 func (t *TemplateResource) check() error {
 	var cmdBuffer bytes.Buffer
 	data := make(map[string]string)
-	data["src"] = t.StageFile.Name()
-	tmpl, err := template.New("checkcmd").Parse(t.CheckCmd)
+	data["src"] = t.stageFile.Name()
+	tmpl, err := template.New("checkcmd").Parse(t.config.CheckCmd)
 	if err != nil {
 		return err
 	}
@@ -232,8 +216,8 @@ func (t *TemplateResource) check() error {
 // reload executes the reload command.
 // It returns nil if the reload command returns 0.
 func (t *TemplateResource) reload() error {
-	log.Debug("Running " + t.ReloadCmd)
-	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
+	log.Debug("Running " + t.config.ReloadCmd)
+	c := exec.Command("/bin/sh", "-c", t.config.ReloadCmd)
 	output, err := c.CombinedOutput()
 	if err != nil {
 		log.Error(fmt.Sprintf("%q", string(output)))
@@ -248,7 +232,7 @@ func (t *TemplateResource) reload() error {
 // from the store, then we stage a candidate configuration file, and finally sync
 // things up.
 // It returns an error if any.
-func (t *TemplateResource) process() error {
+func (t *TemplateResource) process(noop bool) error {
 	if err := t.setFileMode(); err != nil {
 		return err
 	}
@@ -258,7 +242,7 @@ func (t *TemplateResource) process() error {
 	if err := t.createStageFile(); err != nil {
 		return err
 	}
-	if err := t.sync(); err != nil {
+	if err := t.sync(noop); err != nil {
 		return err
 	}
 	return nil
@@ -266,22 +250,22 @@ func (t *TemplateResource) process() error {
 
 // setFileMode sets the FileMode.
 func (t *TemplateResource) setFileMode() error {
-	if t.Mode == "" {
-		if !isFileExist(t.Dest) {
-			t.FileMode = 0644
+	if t.config.Mode == "" {
+		if !util.IsFileExist(t.config.Dest) {
+			t.fileMode = 0644
 		} else {
-			fi, err := os.Stat(t.Dest)
+			fi, err := os.Stat(t.config.Dest)
 			if err != nil {
 				return err
 			}
-			t.FileMode = fi.Mode()
+			t.fileMode = fi.Mode()
 		}
 	} else {
-		mode, err := strconv.ParseUint(t.Mode, 0, 32)
+		mode, err := strconv.ParseUint(t.config.Mode, 0, 32)
 		if err != nil {
 			return err
 		}
-		t.FileMode = os.FileMode(mode)
+		t.fileMode = os.FileMode(mode)
 	}
 	return nil
 }

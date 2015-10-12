@@ -9,4 +9,4 @@ curl -X PUT http://127.0.0.1:8500/v1/kv/upstream/app1 -d '10.0.1.10:8080'
 curl -X PUT http://127.0.0.1:8500/v1/kv/upstream/app2 -d '10.0.1.11:8080'
 
 # Run confd
-confd --onetime --log-level debug --confdir ./integration/confdir --backend consul --node 127.0.0.1:8500
+confd --onetime --log-level debug --confdir ./integration/confdir consul --node 127.0.0.1:8500

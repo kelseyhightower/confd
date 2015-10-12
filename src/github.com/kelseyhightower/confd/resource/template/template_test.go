@@ -6,7 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kelseyhightower/confd/backends"
+
+	"github.com/kelseyhightower/confd/backends/env"
+	"github.com/kelseyhightower/confd/config"
 )
 
 const (
@@ -396,7 +398,7 @@ func ExecuteTestTemplate(tt templateTest, t *testing.T) {
 		t.Errorf(tt.desc + ": failed createStageFile: " + err.Error())
 	}
 
-	actual, err := ioutil.ReadFile(tr.StageFile.Name())
+	actual, err := ioutil.ReadFile(tr.stageFile.Name())
 	if err != nil {
 		t.Errorf(tt.desc + ": failed to read StageFile: " + err.Error())
 	}
@@ -430,23 +432,17 @@ func setupDirectoriesAndFiles(tt templateTest, t *testing.T) {
 
 // templateResource creates a templateResource for creating a config file
 func templateResource() (*TemplateResource, error) {
-	backendConf := backends.Config{
-		Backend: "env"}
-	client, err := backends.New(backendConf)
+	client, err := env.NewEnvClient(config.NewEnvBackendConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	config := Config{
-		StoreClient: client, // not used but must be set
-		TemplateDir: "./test/templates",
-	}
+	tc := config.NewTemplateConfig()
+	tc.Src = "./test/templates/test.conf.tmpl"
+	tc.Dest = "./test/tmp/test.conf"
 
-	tr, err := NewTemplateResource(tomlFilePath, config)
-	if err != nil {
-		return nil, err
-	}
-	tr.Dest = "./test/tmp/test.conf"
-	tr.FileMode = 0666
+	tr := NewTemplateResource(tc, client)
+	tr.fileMode = 0666
+
 	return tr, nil
 }
