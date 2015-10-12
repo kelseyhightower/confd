@@ -70,6 +70,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
 	tr := tc.TemplateResource
+	tr.expandEnv()
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
 	tr.storeClient = config.StoreClient
@@ -284,4 +285,10 @@ func (t *TemplateResource) setFileMode() error {
 		t.FileMode = os.FileMode(mode)
 	}
 	return nil
+}
+
+func (t *TemplateResource) expandEnv() {
+	for i, key := range t.Keys {
+		t.Keys[i] = os.ExpandEnv(key)
+	}
 }
