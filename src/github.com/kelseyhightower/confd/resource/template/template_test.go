@@ -287,6 +287,7 @@ num: 3
 src = "test.conf.tmpl"
 dest = "./tmp/test.conf"
 keys = [
+    "/test/dat/abc",
     "/test/data/abc",
     "/test/data/def",
     "/test/data/ghi",
@@ -294,6 +295,12 @@ keys = [
 `,
 		tmpl: `
 {{range ls "/test/data"}}
+value: {{.}}
+{{end}}
+{{range ls "/test/data"}}
+value: {{.}}
+{{end}}
+{{range ls "/test/dat"}}
 value: {{.}}
 {{end}}
 `,
@@ -305,11 +312,22 @@ value: def
 
 value: ghi
 
+
+value: abc
+
+value: def
+
+value: ghi
+
+
+value: abc
+
 `,
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data/abc", "123")
 			tr.store.Set("/test/data/def", "456")
 			tr.store.Set("/test/data/ghi", "789")
+			tr.store.Set("/test/dat/abc", "123")
 		},
 	},
 
@@ -320,6 +338,7 @@ value: ghi
 src = "test.conf.tmpl"
 dest = "./tmp/test.conf"
 keys = [
+    "/test/dat/abc",
     "/test/data/abc",
     "/test/data/def/ghi",
     "/test/data/jkl/mno",
@@ -329,6 +348,9 @@ keys = [
 {{range lsdir "/test/data"}}
 value: {{.}}
 {{end}}
+{{range lsdir "/test/dat"}}
+value: {{.}}
+{{end}}
 `,
 		expected: `
 
@@ -336,8 +358,13 @@ value: def
 
 value: jkl
 
+
+value: jpp
+
 `,
 		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/dat/abc", "123")
+			tr.store.Set("/test/dat/jpp/jp", "123")
 			tr.store.Set("/test/data/abc", "123")
 			tr.store.Set("/test/data/def/ghi", "456")
 			tr.store.Set("/test/data/jkl/mno", "789")
