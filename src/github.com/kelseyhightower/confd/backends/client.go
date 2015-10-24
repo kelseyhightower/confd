@@ -8,6 +8,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
+	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
@@ -39,6 +40,8 @@ func New(config Config) (StoreClient, error) {
 		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys)
 	case "zookeeper":
 		return zookeeper.NewZookeeperClient(backendNodes)
+	case "rancher":
+		return rancher.NewRancherClient(backendNodes)
 	case "redis":
 		return redis.NewRedisClient(backendNodes)
 	case "env":
