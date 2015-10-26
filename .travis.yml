@@ -19,6 +19,11 @@ before_install:
   - mkdir /tmp/dynamodb
   - wget -O - http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest | tar xz --directory /tmp/dynamodb
   - java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
+  # Install rancher metadata
+  - wget https://github.com/rancher/rancher-metadata/releases/download/v0.1.0/rancher-metadata.tar.gz
+  - mkdir -p ./rancher-metadata
+  - tar xzf rancher-metadata.tar.gz --strip-components=1 -C ./rancher-metadata
+  - sudo mv ./rancher-metadata/bin/rancher-metadata /bin/
 install:
   - sudo pip install awscli
   - go get github.com/constabulary/gb/...
@@ -30,3 +35,4 @@ script:
   - bash integration/consul/test.sh
   - bash integration/etcd/test.sh
   - bash integration/redis/test.sh
+  - bash integration/rancher/test.sh
