@@ -22,6 +22,7 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["add"] = func(a, b int) int { return a + b }
 	return m
 }
 
