@@ -23,7 +23,7 @@ Usage of confd:
   -prefix="/": key path prefix
   -scheme="http": the backend URI scheme (http or https)
   -srv-domain="": the name of the resource record
-  -syc-only=false: sync without check_cmd and reload_cmd
+  -sync-only=false: sync without check_cmd and reload_cmd
   -version=false: print version and exit
   -watch=false: enable watch support
 ```
