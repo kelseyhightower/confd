@@ -1,8 +1,6 @@
 language: go
 go:
   - 1.4
-  - 1.3
-  - 1.2
   - tip
 services:
   - redis
@@ -17,13 +15,24 @@ before_install:
   - tar xzf etcd-v2.0.9-linux-amd64.tar.gz
   - sudo mv etcd-v2.0.9-linux-amd64/etcd /bin/
   - etcd &
+  # install DynamoDB
+  - mkdir /tmp/dynamodb
+  - wget -O - http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest | tar xz --directory /tmp/dynamodb
+  - java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
+  # Install rancher metadata
+  - wget https://github.com/rancher/rancher-metadata/releases/download/v0.1.0/rancher-metadata.tar.gz
+  - mkdir -p ./rancher-metadata
+  - tar xzf rancher-metadata.tar.gz --strip-components=1 -C ./rancher-metadata
+  - sudo mv ./rancher-metadata/bin/rancher-metadata /bin/
 install:
-  - go get github.com/tools/godep
+  - sudo pip install awscli
+  - go get github.com/constabulary/gb/...
   - go get golang.org/x/tools/cmd/cover
-  - ./build
+  - gb build all
   - sudo ./install
 script:
   - ./test
   - bash integration/consul/test.sh
   - bash integration/etcd/test.sh
   - bash integration/redis/test.sh
+  - bash integration/rancher/test.sh
