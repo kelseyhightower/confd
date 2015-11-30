@@ -23,6 +23,11 @@ func newFuncMap() map[string]interface{} {
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
 	m["add"] = func(a, b int) int { return a + b }
+	m["sub"] = func(a, b int) int { return a - b }
+	m["div"] = func(a, b int) int { return a / b }
+	m["mod"] = func(a, b int) int { return a % b }
+	m["mul"] = func(a, b int) int { return a * b }
+	m["modBool"] = func(a, b int) bool { return a%b == 0 }
 	return m
 }
 
