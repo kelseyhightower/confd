@@ -1,3 +1,14 @@
+### v0.11.0
+
+46d3c69 load template resources every interval
+6b01b27 Add Rancher Metadata backend
+bec0b60 link to the right command-line-flags doc
+be20ca7 Fix typo in templates.md
+745cf2b add default node for zookeeper backend
+0dd4c53 Add StackEngine backend support
+f446ce4 Load AWS credentials through a provider chain
+f206b47 Add strings.Replace support
+
 ### v0.10.0
 
 70cf76a move contrib to root dir
