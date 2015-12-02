@@ -46,19 +46,6 @@ var (
 
 // A Config structure is used to configure confd.
 type Config struct {
-	Backend       string   `toml:"backend"`
-	BackendNodes  []string `toml:"nodes"`
-	ClientCaKeys  string   `toml:"client_cakeys"`
-	ClientCert    string   `toml:"client_cert"`
-	ClientKey     string   `toml:"client_key"`
-	ConfDir       string   `toml:"confdir"`
-	Interval      int      `toml:"interval"`
-	Noop          bool     `toml:"noop"`
-	Prefix        string   `toml:"prefix"`
-	SRVDomain     string   `toml:"srv_domain"`
-	Scheme        string   `toml:"scheme"`
-	LogLevel      string   `toml:"log-level"`
-	Watch         bool     `toml:"watch"`
 	AuthToken    string   `toml:"auth_token"`
 	Backend      string   `toml:"backend"`
 	BackendNodes []string `toml:"nodes"`
