@@ -31,7 +31,7 @@ type Config struct {
 
 // TemplateResourceConfig holds the parsed template resource.
 type TemplateResourceConfig struct {
-	TemplateResource TemplateResource `toml:"template"`
+	TemplateResources []*TemplateResource `toml:"template"`
 }
 
 // TemplateResource is the representation of a parsed template resource.
@@ -59,7 +59,7 @@ type TemplateResource struct {
 var ErrEmptySrc = errors.New("empty src template")
 
 // NewTemplateResource creates a TemplateResource.
-func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
+func NewTemplateResource(path string, config Config) ([]*TemplateResource, error) {
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
@@ -69,19 +69,22 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
-	tr := tc.TemplateResource
-	tr.keepStageFile = config.KeepStageFile
-	tr.noop = config.Noop
-	tr.storeClient = config.StoreClient
-	tr.funcMap = newFuncMap()
-	tr.store = memkv.New()
-	addFuncs(tr.funcMap, tr.store.FuncMap)
-	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
-	if tr.Src == "" {
-		return nil, ErrEmptySrc
+	var templates []*TemplateResource
+	for _, tr := range tc.TemplateResources {
+		tr.keepStageFile = config.KeepStageFile
+		tr.noop = config.Noop
+		tr.storeClient = config.StoreClient
+		tr.funcMap = newFuncMap()
+		tr.store = memkv.New()
+		addFuncs(tr.funcMap, tr.store.FuncMap)
+		tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
+		if tr.Src == "" {
+			return nil, ErrEmptySrc
+		}
+		tr.Src = filepath.Join(config.TemplateDir, tr.Src)
+		templates = append(templates, tr)
 	}
-	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-	return &tr, nil
+	return templates, nil
 }
 
 // setVars sets the Vars for template resource.
