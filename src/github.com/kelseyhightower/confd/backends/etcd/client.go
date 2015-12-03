@@ -15,9 +15,10 @@ type Client struct {
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client, error) {
+func NewEtcdClient(machines []string, cert, key string, caCert string, noSync bool) (*Client, error) {
 	var c *goetcd.Client
 	var err error
+	machines = prependSchemeToMachines(machines)
 	if cert != "" && key != "" {
 		c, err = goetcd.NewTLSClient(machines, cert, key, caCert)
 		if err != nil {
@@ -28,9 +29,13 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 	}
 	// Configure the DialTimeout, since 1 second is often too short
 	c.SetDialTimeout(time.Duration(3) * time.Second)
-	success := c.SetCluster(machines)
-	if !success {
-		return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+
+	// If noSync is not set, we should locate the whole etcd cluster.
+	if !noSync {
+		success := c.SetCluster(machines)
+		if !success {
+			return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+		}
 	}
 	return &Client{c}, nil
 }
