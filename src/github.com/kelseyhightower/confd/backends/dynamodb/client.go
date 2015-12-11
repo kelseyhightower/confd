@@ -46,7 +46,7 @@ func NewDynamoDBClient(table string) (*Client, error) {
 }
 
 // GetValues retrieves the values for the given keys from DynamoDB
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		// Check if we can find the single item

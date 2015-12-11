@@ -1,0 +1,144 @@
+diff --git a/src/github.com/kelseyhightower/confd/backends/client.go b/src/github.com/kelseyhightower/confd/backends/client.go
+index 527cd0d..95b61ea 100644
+--- a/src/github.com/kelseyhightower/confd/backends/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/client.go
+@@ -18,7 +18,7 @@ import (
+ // The StoreClient interface is implemented by objects that can retrieve
+ // key/value pairs from a backend store.
+ type StoreClient interface {
+-	GetValues(keys []string) (map[string]string, error)
++	GetValues(keys []string, token string) (map[string]string, error)
+ 	WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error)
+ }
+ 
+diff --git a/src/github.com/kelseyhightower/confd/backends/consul/client.go b/src/github.com/kelseyhightower/confd/backends/consul/client.go
+index b611ebf..b6a07b0 100644
+--- a/src/github.com/kelseyhightower/confd/backends/consul/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/consul/client.go
+@@ -56,11 +56,12 @@ func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error
+ }
+ 
+ // GetValues queries Consul for keys
+-func (c *ConsulClient) GetValues(keys []string) (map[string]string, error) {
++func (c *ConsulClient) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := make(map[string]string)
++	qo := &api.QueryOptions{Token: token}
+ 	for _, key := range keys {
+ 		key := strings.TrimPrefix(key, "/")
+-		pairs, _, err := c.client.List(key, nil)
++		pairs, _, err := c.client.List(key, qo)
+ 		if err != nil {
+ 			return vars, err
+ 		}
+diff --git a/src/github.com/kelseyhightower/confd/backends/dynamodb/client.go b/src/github.com/kelseyhightower/confd/backends/dynamodb/client.go
+index b6940a3..4ae6f5e 100644
+--- a/src/github.com/kelseyhightower/confd/backends/dynamodb/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/dynamodb/client.go
+@@ -46,7 +46,7 @@ func NewDynamoDBClient(table string) (*Client, error) {
+ }
+ 
+ // GetValues retrieves the values for the given keys from DynamoDB
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := make(map[string]string)
+ 	for _, key := range keys {
+ 		// Check if we can find the single item
+diff --git a/src/github.com/kelseyhightower/confd/backends/env/client.go b/src/github.com/kelseyhightower/confd/backends/env/client.go
+index 6374062..5b92bf9 100644
+--- a/src/github.com/kelseyhightower/confd/backends/env/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/env/client.go
+@@ -16,7 +16,7 @@ func NewEnvClient() (*Client, error) {
+ }
+ 
+ // GetValues queries the environment for keys
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	allEnvVars := os.Environ()
+ 	envMap := make(map[string]string)
+ 	for _, e := range allEnvVars {
+diff --git a/src/github.com/kelseyhightower/confd/backends/etcd/client.go b/src/github.com/kelseyhightower/confd/backends/etcd/client.go
+index 1398778..b95ede3 100644
+--- a/src/github.com/kelseyhightower/confd/backends/etcd/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/etcd/client.go
+@@ -36,7 +36,7 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
+ }
+ 
+ // GetValues queries etcd for keys prefixed by prefix.
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := make(map[string]string)
+ 	for _, key := range keys {
+ 		resp, err := c.client.Get(key, true, true)
+diff --git a/src/github.com/kelseyhightower/confd/backends/rancher/client.go b/src/github.com/kelseyhightower/confd/backends/rancher/client.go
+index 9c1b370..d31e59e 100644
+--- a/src/github.com/kelseyhightower/confd/backends/rancher/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/rancher/client.go
+@@ -39,7 +39,7 @@ func NewRancherClient(backendNodes []string) (*Client, error) {
+ 
+ }
+ 
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := map[string]string{}
+ 
+ 	for _, key := range keys {
+diff --git a/src/github.com/kelseyhightower/confd/backends/redis/client.go b/src/github.com/kelseyhightower/confd/backends/redis/client.go
+index 724c088..a675772 100644
+--- a/src/github.com/kelseyhightower/confd/backends/redis/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/redis/client.go
+@@ -33,7 +33,7 @@ func NewRedisClient(machines []string) (*Client, error) {
+ }
+ 
+ // GetValues queries redis for keys prefixed by prefix.
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := make(map[string]string)
+ 	for _, key := range keys {
+ 		key = strings.Replace(key, "/*", "", -1)
+diff --git a/src/github.com/kelseyhightower/confd/backends/stackengine/client.go b/src/github.com/kelseyhightower/confd/backends/stackengine/client.go
+index fe25331..459b1f1 100644
+--- a/src/github.com/kelseyhightower/confd/backends/stackengine/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/stackengine/client.go
+@@ -74,7 +74,7 @@ type KVPair struct {
+ }
+ 
+ // GetValues queries StackEngine for keys prefixed by prefix.
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := make(map[string]string)
+ 	var pairs []KVPair
+ 
+diff --git a/src/github.com/kelseyhightower/confd/backends/zookeeper/client.go b/src/github.com/kelseyhightower/confd/backends/zookeeper/client.go
+index bb913e6..764acf2 100644
+--- a/src/github.com/kelseyhightower/confd/backends/zookeeper/client.go
++++ b/src/github.com/kelseyhightower/confd/backends/zookeeper/client.go
+@@ -54,7 +54,7 @@ func nodeWalk(prefix string, c *Client, vars map[string]string) error {
+ 	return nil
+ }
+ 
+-func (c *Client) GetValues(keys []string) (map[string]string, error) {
++func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
+ 	vars := make(map[string]string)
+ 	for _, v := range keys {
+ 		v = strings.Replace(v, "/*", "", -1)
+diff --git a/src/github.com/kelseyhightower/confd/resource/template/resource.go b/src/github.com/kelseyhightower/confd/resource/template/resource.go
+index cbd0480..6efa588 100644
+--- a/src/github.com/kelseyhightower/confd/resource/template/resource.go
++++ b/src/github.com/kelseyhightower/confd/resource/template/resource.go
+@@ -45,6 +45,7 @@ type TemplateResource struct {
+ 	Prefix        string
+ 	ReloadCmd     string `toml:"reload_cmd"`
+ 	Src           string
++	Token         string
+ 	StageFile     *os.File
+ 	Uid           int
+ 	funcMap       map[string]interface{}
+@@ -89,7 +90,7 @@ func (t *TemplateResource) setVars() error {
+ 	var err error
+ 	log.Debug("Retrieving keys from store")
+ 	log.Debug("Key prefix set to " + t.prefix)
+-	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys))
++	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys), t.Token)
+ 	if err != nil {
+ 		return err
+ 	}

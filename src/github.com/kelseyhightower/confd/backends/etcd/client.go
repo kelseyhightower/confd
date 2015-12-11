@@ -36,7 +36,7 @@ func NewEtcdClient(machines []string, cert, key string, caCert string) (*Client,
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		resp, err := c.client.Get(key, true, true)
