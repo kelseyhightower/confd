@@ -28,7 +28,7 @@ When drafting a new release, you must make sure that a `darwin` and `linux` buil
 been uploaded. If you have cross-compile support, you can use the following command to generate
 those binaries:
 
-    $ CONFD_CROSSPLATFORMS="darwin/amd64 linux/amd64"
+    $ CONFD_CROSSPLATFORMS="darwin/amd64 linux/amd64" NEW_RELEASE="x.y.z"
     $ for platform in $CONFD_CROSSPLATFORMS; do \
         GOOS=${platform%/*} GOARCH=${platform##*/} ./build; \
         mv bin/confd bin/confd-$NEW_RELEASE-${platform%/*}-${platform##*/}; \
