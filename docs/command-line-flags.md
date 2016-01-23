@@ -8,6 +8,7 @@ confd -h
 
 ```Text
 Usage of confd:
+  -auth-token="": stackengine auth-token
   -backend="etcd": backend to use
   -client-ca-keys="": client ca keys
   -client-cert="": the client cert
