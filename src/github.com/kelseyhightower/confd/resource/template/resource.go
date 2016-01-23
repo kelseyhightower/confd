@@ -26,6 +26,7 @@ type Config struct {
 	Noop          bool
 	Prefix        string
 	StoreClient   backends.StoreClient
+	SyncOnly      bool
 	TemplateDir   string
 }
 
@@ -54,6 +55,7 @@ type TemplateResource struct {
 	prefix        string
 	store         memkv.Store
 	storeClient   backends.StoreClient
+	syncOnly      bool
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -75,6 +77,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.storeClient = config.StoreClient
 	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
+	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
 	if tr.Src == "" {
@@ -162,7 +165,7 @@ func (t *TemplateResource) sync() error {
 	}
 	if !ok {
 		log.Info("Target config " + t.Dest + " out of sync")
-		if t.CheckCmd != "" {
+		if !t.syncOnly && t.CheckCmd != "" {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
 			}
@@ -189,7 +192,7 @@ func (t *TemplateResource) sync() error {
 				return err
 			}
 		}
-		if t.ReloadCmd != "" {
+		if !t.syncOnly && t.ReloadCmd != "" {
 			if err := t.reload(); err != nil {
 				return err
 			}

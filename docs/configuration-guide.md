@@ -19,6 +19,7 @@ Optional:
 * `prefix` (string) - The string to prefix to keys. ("/")
 * `scheme` (string) - The backend URI scheme. ("http" or "https")
 * `srv_domain` (string) - The name of the resource record.
+* `sync-only` (bool) - sync without check_cmd and reload_cmd.
 * `watch` (bool) - Enable watch support.
 
 Example:

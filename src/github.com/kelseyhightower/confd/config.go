@@ -37,6 +37,7 @@ var (
 	printVersion      bool
 	scheme            string
 	srvDomain         string
+	syncOnly          bool
 	table             string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
@@ -57,6 +58,7 @@ type Config struct {
 	Prefix       string   `toml:"prefix"`
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
+	SyncOnly     bool     `toml:"sync-only"`
 	Table        string   `toml:"table"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
@@ -80,6 +82,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
+	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
@@ -192,6 +195,7 @@ func initConfig() error {
 		KeepStageFile: keepStageFile,
 		Noop:          config.Noop,
 		Prefix:        config.Prefix,
+		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
 	}
 	return nil
@@ -261,6 +265,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Scheme = scheme
 	case "srv-domain":
 		config.SRVDomain = srvDomain
+	case "sync-only":
+		config.SyncOnly = syncOnly
 	case "table":
 		config.Table = table
 	case "log-level":
