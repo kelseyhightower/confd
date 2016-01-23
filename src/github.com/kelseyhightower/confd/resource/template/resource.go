@@ -46,6 +46,7 @@ type TemplateResource struct {
 	Prefix        string
 	ReloadCmd     string `toml:"reload_cmd"`
 	Src           string
+	Token         string
 	StageFile     *os.File
 	Uid           int
 	funcMap       map[string]interface{}
@@ -92,7 +93,7 @@ func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.prefix)
-	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys))
+	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys), t.Token)
 	if err != nil {
 		return err
 	}

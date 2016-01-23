@@ -74,7 +74,7 @@ type KVPair struct {
 }
 
 // GetValues queries StackEngine for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	var pairs []KVPair
 

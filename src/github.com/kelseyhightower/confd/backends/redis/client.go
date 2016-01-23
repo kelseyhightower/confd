@@ -33,7 +33,7 @@ func NewRedisClient(machines []string) (*Client, error) {
 }
 
 // GetValues queries redis for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		key = strings.Replace(key, "/*", "", -1)
