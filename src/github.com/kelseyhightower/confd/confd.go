@@ -32,7 +32,7 @@ func main() {
 	templateConfig.StoreClient = storeClient
 	if onetime {
 		if err := template.Process(templateConfig); err != nil {
-			os.Exit(1)
+			log.Fatal(err.Error())
 		}
 		os.Exit(0)
 	}
