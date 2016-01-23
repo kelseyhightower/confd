@@ -22,6 +22,7 @@ var (
 	defaultConfigFile = "/etc/confd/confd.toml"
 	authToken         string
 	backend           string
+	basicAuth         bool
 	clientCaKeys      string
 	clientCert        string
 	clientKey         string
@@ -41,6 +42,8 @@ var (
 	table             string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
+	username          string
+	password          string
 	watch             bool
 )
 
@@ -48,6 +51,7 @@ var (
 type Config struct {
 	AuthToken    string   `toml:"auth_token"`
 	Backend      string   `toml:"backend"`
+	BasicAuth    bool     `toml:"basic_auth"`
 	BackendNodes []string `toml:"nodes"`
 	ClientCaKeys string   `toml:"client_cakeys"`
 	ClientCert   string   `toml:"client_cert"`
@@ -55,11 +59,13 @@ type Config struct {
 	ConfDir      string   `toml:"confdir"`
 	Interval     int      `toml:"interval"`
 	Noop         bool     `toml:"noop"`
+	Password     string   `toml:"password"`
 	Prefix       string   `toml:"prefix"`
 	SRVDomain    string   `toml:"srv_domain"`
 	Scheme       string   `toml:"scheme"`
 	SyncOnly     bool     `toml:"sync-only"`
 	Table        string   `toml:"table"`
+	Username     string   `toml:"username"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
 }
@@ -67,6 +73,7 @@ type Config struct {
 func init() {
 	flag.StringVar(&authToken, "auth-token", "", "Auth bearer token to use")
 	flag.StringVar(&backend, "backend", "etcd", "backend to use")
+	flag.BoolVar(&basicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=etcd)")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
@@ -84,6 +91,8 @@ func init() {
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
+	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with -backend=etcd)")
+	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with -backend=etcd)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
 
@@ -181,12 +190,15 @@ func initConfig() error {
 	backendsConfig = backends.Config{
 		AuthToken:    config.AuthToken,
 		Backend:      config.Backend,
+		BasicAuth:    config.BasicAuth,
 		ClientCaKeys: config.ClientCaKeys,
 		ClientCert:   config.ClientCert,
 		ClientKey:    config.ClientKey,
 		BackendNodes: config.BackendNodes,
+		Password:     config.Password,
 		Scheme:       config.Scheme,
 		Table:        config.Table,
+		Username:     config.Username,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -245,6 +257,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AuthToken = authToken
 	case "backend":
 		config.Backend = backend
+	case "basic-auth":
+		config.BasicAuth = basicAuth
 	case "client-cert":
 		config.ClientCert = clientCert
 	case "client-key":
@@ -259,6 +273,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Interval = interval
 	case "noop":
 		config.Noop = noop
+	case "password":
+		config.Password = password
 	case "prefix":
 		config.Prefix = prefix
 	case "scheme":
@@ -269,6 +285,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SyncOnly = syncOnly
 	case "table":
 		config.Table = table
+	case "username":
+		config.Username = username
 	case "log-level":
 		config.LogLevel = logLevel
 	case "watch":
