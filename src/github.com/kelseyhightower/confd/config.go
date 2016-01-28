@@ -21,6 +21,7 @@ var (
 	configFile        = ""
 	defaultConfigFile = "/etc/confd/confd.toml"
 	authToken         string
+	authType          string
 	backend           string
 	basicAuth         bool
 	clientCaKeys      string
@@ -45,11 +46,14 @@ var (
 	username          string
 	password          string
 	watch             bool
+	appID             string
+	userID            string
 )
 
 // A Config structure is used to configure confd.
 type Config struct {
 	AuthToken    string   `toml:"auth_token"`
+	AuthType     string   `toml:"auth_type"`
 	Backend      string   `toml:"backend"`
 	BasicAuth    bool     `toml:"basic_auth"`
 	BackendNodes []string `toml:"nodes"`
@@ -68,6 +72,8 @@ type Config struct {
 	Username     string   `toml:"username"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
+	AppID        string   `toml:"app_id"`
+	UserID       string   `toml:"user_id"`
 }
 
 func init() {
@@ -90,9 +96,12 @@ func init() {
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
+	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
+	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
+	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
-	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with -backend=etcd)")
-	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with -backend=etcd)")
+	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
+	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
 }
 
@@ -189,6 +198,7 @@ func initConfig() error {
 
 	backendsConfig = backends.Config{
 		AuthToken:    config.AuthToken,
+		AuthType:     config.AuthType,
 		Backend:      config.Backend,
 		BasicAuth:    config.BasicAuth,
 		ClientCaKeys: config.ClientCaKeys,
@@ -199,6 +209,8 @@ func initConfig() error {
 		Scheme:       config.Scheme,
 		Table:        config.Table,
 		Username:     config.Username,
+		AppID:        config.AppID,
+		UserID:       config.UserID,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -255,6 +267,8 @@ func setConfigFromFlag(f *flag.Flag) {
 	switch f.Name {
 	case "auth-token":
 		config.AuthToken = authToken
+	case "auth-type":
+		config.AuthType = authType
 	case "backend":
 		config.Backend = backend
 	case "basic-auth":
@@ -291,5 +305,9 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.LogLevel = logLevel
 	case "watch":
 		config.Watch = watch
+	case "app-id":
+		config.AppID = appID
+	case "user-id":
+		config.UserID = userID
 	}
 }

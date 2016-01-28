@@ -2,6 +2,7 @@ package backends
 
 type Config struct {
 	AuthToken    string
+	AuthType     string
 	Backend      string
 	BasicAuth    bool
 	ClientCaKeys string
@@ -12,4 +13,6 @@ type Config struct {
 	Scheme       string
 	Table        string
 	Username     string
+	AppID        string
+	UserID       string
 }

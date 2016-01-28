@@ -11,6 +11,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
+	"github.com/kelseyhightower/confd/backends/vault"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
 )
@@ -46,6 +47,18 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes)
 	case "env":
 		return env.NewEnvClient()
+	case "vault":
+		vaultConfig := map[string]string{
+			"app-id":   config.AppID,
+			"user-id":  config.UserID,
+			"username": config.Username,
+			"password": config.Password,
+			"token":    config.AuthToken,
+			"cert":     config.ClientCert,
+			"key":      config.ClientKey,
+			"caCert":   config.ClientCaKeys,
+		}
+		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
 	case "dynamodb":
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
