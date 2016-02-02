@@ -1,12 +1,12 @@
 # confd for Apache Tomcat
-If you administrate an [Apache Tomcat](http://tomcat.apache.org/) you usally need to edit multiple config files and set some environment variables. 
-[confd](https://github.com/kelseyhightower/confd) can help here espcially if you have multiple Tomcats in a cluster. Configuring Tomcat is an interesting sample, because it needs multiple config files and some environment variables.
+If you administrate an [Apache Tomcat](http://tomcat.apache.org/) you usually need to edit multiple config files and set some environment variables. 
+[confd](https://github.com/kelseyhightower/confd) can help here especially if you have multiple Tomcats in a cluster. Configuring Tomcat is an interesting sample, because it needs multiple config files and some environment variables.
 
 Important configuration files of Tomcat are 
 - server.xml: e.g. configure here jvmRoute for load balancing, ports etc.
 - tomcat-users.xml: configure access rights for manager webapp
 
-An frequently used environment variable is CATALINA_OPTS: Here you can define memory settings
+A frequently used environment variable is CATALINA_OPTS: Here you can define memory settings
 
 ## server.xml
 In this case we simply want to use the hostname for jvmRoute. Because it is not possible to execute a Unix command within a toml template, we use an environment variable "HOSTNAME" instead.
@@ -53,7 +53,7 @@ reload_cmd = "/usr/local/tomcat/bin/catalina.sh stop -force && /usr/local/tomcat
 
  
 ## catalina.sh
-File catalina.sh is the startscript for Tomcat. If confd should set memory settings like Xmx or Xms, we could either create a catalina.sh.tmpl and proceed like above or we can try to use envionment variables and leave catalina.sh untouched. Leaving catalina.sh untouched is preferred here. Because it is not possible to use enviroment variables within toml files, we need to write a minimal shell script that passes CATALINA_OPTS variable.
+File catalina.sh is the startscript for Tomcat. If confd should set memory settings like Xmx or Xms, we could either create a catalina.sh.tmpl and proceed like above or we can try to use environment variables and leave catalina.sh untouched. Leaving catalina.sh untouched is preferred here. Because it is not possible to use environment variables within toml files, we need to write a minimal shell script that passes CATALINA_OPTS variable.
 
 Create the file /etc/confd/conf.d/catalina_start.sh.toml
 ```
