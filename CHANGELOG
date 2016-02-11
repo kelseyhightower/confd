@@ -1,3 +1,22 @@
+### v0.10.0
+
+70cf76a move contrib to root dir
+34a0ff7 Updating README.md to include new backends
+fee8361 Fix broken links to documentation
+d9d4cb1 Use the gb tool for dep management and building.
+1ef34cb template: don't crash on template error
+7531530 Log command output on error
+fed32fe Draft: Support for DynamoDB
+7f59d50 Use correct application name for ZooKeeper example
+03a7c7e feat: add strings.Contains support
+6307c26 change opdemand emails to engine yard
+5350113 client cert config from environment variables
+b6f414e Adding better support for Consul, enabling SSL/TLS client config
+e94151b update release checklist
+ce4eb5c bump to v1.0.0-dev
+503d745 remove --quiet, --debug and --verbose
+c9cefaf random doc fixes
+
 ### v0.9.0
 
 8888b7a Add maintainers file

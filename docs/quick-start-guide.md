@@ -11,6 +11,8 @@ confd supports the following backends:
 * environment variables
 * redis
 * zookeeper
+* dynamodb
+* rancher
 
 ### Add keys
 
@@ -47,11 +49,36 @@ redis-cli set /myapp/database/user rob
 #### zookeeper
 
 ```
-[zk: localhost:2181(CONNECTED) 1] create /my_app ""
-[zk: localhost:2181(CONNECTED) 2] create /my_app/database ""
-[zk: localhost:2181(CONNECTED) 3] create /my_app/database/url "db.example.com"
-[zk: localhost:2181(CONNECTED) 4] create /my_app/database/user "rob"
+[zk: localhost:2181(CONNECTED) 1] create /myapp ""
+[zk: localhost:2181(CONNECTED) 2] create /myapp/database ""
+[zk: localhost:2181(CONNECTED) 3] create /myapp/database/url "db.example.com"
+[zk: localhost:2181(CONNECTED) 4] create /myapp/database/user "rob"
 ```
+
+#### dynamodb
+
+First create a table with the following schema:
+
+```
+aws dynamodb create-table \
+    --region <YOUR_REGION> --table-name <YOUR_TABLE> \
+    --attribute-definitions AttributeName=key,AttributeType=S \
+    --key-schema AttributeName=key,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1
+```
+
+Now create the items:
+
+```
+aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
+    --item '{ "key": { "S": "/myapp/database/url" }, "value": {"S": "db.example.com"}}'
+aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
+    --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
+```
+
+#### rancher
+
+This backend consumes the Rancher Container Service metadata. For available keys see [rancher metadata docs](http://docs.rancher.com/rancher/metadata-service/)
 
 ### Create the confdir
 
@@ -103,11 +130,25 @@ confd -onetime -backend etcd -node 127.0.0.1:4001
 confd -onetime -backend consul -node 127.0.0.1:8500
 ```
 
+#### dynamodb
+
+```
+confd -onetime -backend dynamodb -table <YOUR_TABLE>
+```
+
 #### env
 
 ```
 confd -onetime -backend env
 ```
+
+#### rancher
+
+```
+confd -onetime -backend rancher -prefix /2015-07-25
+```
+
+*Note*: The metadata api prefix can be defined on the cli, or as part of your keys in the template toml file.
 
 Output:
 ```
