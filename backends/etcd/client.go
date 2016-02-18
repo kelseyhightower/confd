@@ -1,50 +1,93 @@
 package etcd
 
 import (
-	"errors"
-	"strings"
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"time"
 
-	goetcd "github.com/coreos/go-etcd/etcd"
+	"github.com/coreos/etcd/client"
+	"golang.org/x/net/context"
 )
 
 // Client is a wrapper around the etcd client
 type Client struct {
-	client *goetcd.Client
+	client client.KeysAPI
 }
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
-// It returns an error if a connection to the cluster cannot be made.
-func NewEtcdClient(machines []string, cert, key string, caCert string, basicAuth bool, username string, password string) (*Client, error) {
-	var c *goetcd.Client
+func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, username string, password string) (*Client, error) {
+	var c client.Client
+	var kapi client.KeysAPI
 	var err error
-	if cert != "" && key != "" {
-		c, err = goetcd.NewTLSClient(machines, cert, key, caCert)
-		if err != nil {
-			return &Client{c}, err
-		}
-	} else {
-		c = goetcd.NewClient(machines)
-	}
-	// Configure BasicAuth if enabled
-	if basicAuth {
-		c.SetCredentials(username, password)
+	var transport = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
 	}
 
-	// Configure the DialTimeout, since 1 second is often too short
-	c.SetDialTimeout(time.Duration(3) * time.Second)
-	success := c.SetCluster(machines)
-	if !success {
-		return &Client{c}, errors.New("cannot connect to etcd cluster: " + strings.Join(machines, ","))
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: false,
 	}
-	return &Client{c}, nil
+
+	cfg := client.Config{
+		Endpoints:               machines,
+		HeaderTimeoutPerRequest: time.Duration(3) * time.Second,
+	}
+
+	if basicAuth {
+		cfg.Username = username
+		cfg.Password = password
+	}
+
+	if caCert != "" {
+		certBytes, err := ioutil.ReadFile(caCert)
+		if err != nil {
+			return &Client{kapi}, err
+		}
+
+		caCertPool := x509.NewCertPool()
+		ok := caCertPool.AppendCertsFromPEM(certBytes)
+
+		if ok {
+			tlsConfig.RootCAs = caCertPool
+		}
+	}
+
+	if cert != "" && key != "" {
+		tlsCert, err := tls.LoadX509KeyPair(cert, key)
+		if err != nil {
+			return &Client{kapi}, err
+		}
+		tlsConfig.Certificates = []tls.Certificate{tlsCert}
+	}
+
+	transport.TLSClientConfig = tlsConfig
+	cfg.Transport = transport
+
+	c, err = client.New(cfg)
+	if err != nil {
+		return &Client{kapi}, err
+	}
+
+	kapi = client.NewKeysAPI(c)
+	return &Client{kapi}, nil
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
-		resp, err := c.client.Get(key, true, true)
+		resp, err := c.client.Get(context.Background(), key, &client.GetOptions{
+			Recursive: true,
+			Sort:      true,
+			Quorum:    true,
+		})
 		if err != nil {
 			return vars, err
 		}
@@ -57,7 +100,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 }
 
 // nodeWalk recursively descends nodes, updating vars.
-func nodeWalk(node *goetcd.Node, vars map[string]string) error {
+func nodeWalk(node *client.Node, vars map[string]string) error {
 	if node != nil {
 		key := node.Key
 		if !node.Dir {
@@ -72,18 +115,41 @@ func nodeWalk(node *goetcd.Node, vars map[string]string) error {
 }
 
 func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+	if prefix == "" {
+		prefix = "/"
+	}
+
 	if waitIndex == 0 {
-		resp, err := c.client.Get(prefix, false, true)
+		resp, err := c.client.Get(context.Background(), prefix, &client.GetOptions{
+			Recursive: true,
+			Sort:      false,
+			Quorum:    true,
+		})
 		if err != nil {
 			return 0, err
 		}
-		return resp.EtcdIndex, nil
+		return resp.Index, nil
 	}
-	resp, err := c.client.Watch(prefix, waitIndex+1, true, nil, stopChan)
+
+	watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: waitIndex, Recursive: true})
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelRoutine := make(chan bool)
+	defer close(cancelRoutine)
+
+	go func() {
+		select {
+		case <-stopChan:
+			cancel()
+		case <-cancelRoutine:
+			return
+		}
+	}()
+
+	resp, err := watcher.Next(ctx)
 	if err != nil {
 		switch e := err.(type) {
-		case *goetcd.EtcdError:
-			if e.ErrorCode == 401 {
+		case *client.Error:
+			if e.Code == 401 {
 				return 0, nil
 			}
 		}

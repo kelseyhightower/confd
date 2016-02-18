@@ -1,121 +1,29 @@
 {
 	"ImportPath": "github.com/kelseyhightower/confd",
-	"GoVersion": "go1.6",
+	"GoVersion": "go1.5.3",
 	"Deps": [
 		{
-			"ImportPath": "github.com/BurntSushi/toml",
-			"Comment": "v0.1.0-25-g312db06",
-			"Rev": "312db06c6c6dbfa9899e58564bacfaa584f18ab7"
+			"ImportPath": "github.com/coreos/etcd/client",
+			"Comment": "v2.3.0-alpha.0-907-gfe55002",
+			"Rev": "fe5500228a2574f499390f54c84883cf0df82cdd"
 		},
 		{
-			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.9.0-3-g3455d89",
-			"Rev": "3455d89ac9652295c85db2a98ea32f1d61c380bc"
+			"ImportPath": "github.com/coreos/etcd/pkg/pathutil",
+			"Comment": "v2.3.0-alpha.0-907-gfe55002",
+			"Rev": "fe5500228a2574f499390f54c84883cf0df82cdd"
 		},
 		{
-			"ImportPath": "github.com/aws/aws-sdk-go/aws",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/rest",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/signer/v4",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/waiter",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/service/dynamodb",
-			"Comment": "v1.1.0-5-g2a34ea8",
-			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
-		},
-		{
-			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v2.0.0-38-g003851b",
-			"Rev": "003851be7bb0694fe3cc457a49529a19388ee7cf"
-		},
-		{
-			"ImportPath": "github.com/fatih/structs",
-			"Rev": "a924a2250d1033753512e95dce41dca3fd793ad9"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "2668ae2944701f73206a228638407926dea859b1"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "2668ae2944701f73206a228638407926dea859b1"
-		},
-		{
-			"ImportPath": "github.com/go-ini/ini",
-			"Comment": "v1.9.0",
-			"Rev": "193d1ecb466bf97aae8b454a5cfc192941c64809"
-		},
-		{
-			"ImportPath": "github.com/hashicorp/consul/api",
-			"Comment": "v0.6.3-134-g09e60af",
-			"Rev": "09e60af97c5512ed57980931b314658611254ce0"
-		},
-		{
-			"ImportPath": "github.com/hashicorp/go-cleanhttp",
-			"Rev": "875fb671b3ddc66f8e2f0acc33829c8cb989a38d"
-		},
-		{
-			"ImportPath": "github.com/hashicorp/hcl",
-			"Rev": "1c284ec98f4b398443cbabb0d9197f7f4cc0077c"
-		},
-		{
-			"ImportPath": "github.com/hashicorp/serf/coordinate",
-			"Comment": "v0.7.0-18-gc4c55f1",
-			"Rev": "c4c55f16bae1aed9b355ad655d3ebf0215734461"
-		},
-		{
-			"ImportPath": "github.com/hashicorp/vault/api",
-			"Comment": "v0.5.0-28-g35d2976",
-			"Rev": "35d2976caefdd7b3a26c4d8720880d8344fd60c6"
-		},
-		{
-			"ImportPath": "github.com/jmespath/go-jmespath",
-			"Comment": "0.2.2-12-g0b12d6b",
-			"Rev": "0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74"
-		},
-		{
-			"ImportPath": "github.com/kelseyhightower/memkv",
-			"Rev": "32a4556de2a1aab8ea4c8600f5ea24db3fbd8908"
-		},
-		{
-			"ImportPath": "github.com/mitchellh/mapstructure",
-			"Rev": "d2dd0262208475919e1a362f675cfc0e7c10e905"
-		},
-		{
-			"ImportPath": "github.com/samuel/go-zookeeper/zk",
-			"Rev": "218e9c81c0dd8b3b18172b2bbfad92cc7d6db55f"
+			"ImportPath": "github.com/coreos/etcd/pkg/types",
+			"Comment": "v2.3.0-alpha.0-907-gfe55002",
+			"Rev": "fe5500228a2574f499390f54c84883cf0df82cdd"
 		},
 		{
 			"ImportPath": "github.com/ugorji/go/codec",
 			"Rev": "9f21f8ea305046b8d17a799e2c73069533a99d24"
 		},
 		{
-			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "20457ee8ea8546920d3f4e19e405da45250dc5a5"
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "04b9de9b512f58addf28c9853d50ebef61c3953e"
 		}
 	]
 }
