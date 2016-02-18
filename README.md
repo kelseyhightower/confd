@@ -16,12 +16,10 @@
 
 ## Building
 
-confd uses the [gb tool](http://getgb.io) to manage dependencies and producing builds.
-
 ```
 git clone https://github.com/kelseyhightower/confd.git
 cd confd
-gb build all
+go build
 ```
 
 You should now have confd binary in the bin directory:
@@ -44,8 +42,7 @@ $ pwd
 ```
 
 ```
-$ cd src/github.com/kelseyhightower/confd/
-$ GOPATH=/Users/kelseyhightower/confd/vendor:/Users/kelseyhightower/confd go build .
+$ go build .
 ```
 
 You can also produce a static binary too:
