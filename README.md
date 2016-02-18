@@ -48,8 +48,7 @@ $ go build .
 You can also produce a static binary too:
 
 ```
-GOPATH=/Users/kelseyhightower/confd/vendor:/Users/kelseyhightower/confd go build \ 
-  -a -installsuffix cgo -ldflags '-extld ld -extldflags -static' -a -x .
+$ go build -a -installsuffix cgo -ldflags '-extld ld -extldflags -static' -a -x .
 ```
 
 ## Getting Started
