@@ -3,9 +3,9 @@ package dynamodb
 import (
 	"os"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/aws/credentials"
-	"github.com/awslabs/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -23,7 +23,6 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
 			&credentials.EnvProvider{},
-			&credentials.EC2RoleProvider{},
 		})
 	_, err := creds.Get()
 	if err != nil {
@@ -32,11 +31,14 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	var c *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
-		c = &aws.Config{Endpoint: "http://localhost:8000"}
+		endpoint := "http://localhost:8000"
+		c = &aws.Config{
+			Endpoint: &endpoint,
+		}
 	} else {
 		c = nil
 	}
-	d := dynamodb.New(c)
+	d := dynamodb.New(nil, c)
 	// Check if the table exists
 	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
 	if err != nil {
@@ -50,18 +52,15 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		// Check if we can find the single item
-		g, err := c.client.GetItem(&dynamodb.GetItemInput{
-			Key: &map[string]*dynamodb.AttributeValue{
-				"key": &dynamodb.AttributeValue{S: aws.String(key)},
-			},
-			TableName: &c.table})
-
+		m := make(map[string]*dynamodb.AttributeValue)
+		m["key"] = &dynamodb.AttributeValue{S: aws.String(key)}
+		g, err := c.client.GetItem(&dynamodb.GetItemInput{Key: m, TableName: &c.table})
 		if err != nil {
 			return vars, err
 		}
 
 		if g.Item != nil {
-			if val, ok := (*(g.Item))["value"]; ok {
+			if val, ok := g.Item["value"]; ok {
 				vars[key] = *val.S
 				continue
 			}
@@ -70,7 +69,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		// Check for nested keys
 		q, err := c.client.Scan(
 			&dynamodb.ScanInput{
-				ScanFilter: &map[string]*dynamodb.Condition{
+				ScanFilter: map[string]*dynamodb.Condition{
 					"key": &dynamodb.Condition{
 						AttributeValueList: []*dynamodb.AttributeValue{
 							&dynamodb.AttributeValue{S: aws.String(key)}},
@@ -85,7 +84,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 
 		for _, i := range q.Items {
-			item := *i
+			item := i
 			if val, ok := item["value"]; ok {
 				vars[*item["key"].S] = *val.S
 				continue
