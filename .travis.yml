@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.4
+  - 1.6
   - tip
 env:
   - VAULT_ADDR='http://127.0.0.1:8200'
