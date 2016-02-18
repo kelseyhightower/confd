@@ -35,7 +35,7 @@ install:
   - sudo pip install awscli
   - go get github.com/constabulary/gb/...
   - go get golang.org/x/tools/cmd/cover
-  - go build .
+  - ./build
   - sudo ./install
 script:
   - ./test
