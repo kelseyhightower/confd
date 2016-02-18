@@ -33,7 +33,6 @@ before_install:
   - vault server -dev &
 install:
   - sudo pip install awscli
-  - go get github.com/constabulary/gb/...
   - go get golang.org/x/tools/cmd/cover
   - ./build
   - sudo ./install
