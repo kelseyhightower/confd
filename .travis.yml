@@ -9,7 +9,7 @@ services:
 before_install:
   # install consul
   - wget https://releases.hashicorp.com/consul/0.6.3/consul_0.6.3_linux_amd64.zip
-  - unzip 0.6.3_linux_amd64.zip
+  - unzip consul_0.6.3_linux_amd64.zip
   - sudo mv consul /bin/
   - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul &
   # install etcd
