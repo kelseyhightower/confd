@@ -16,6 +16,8 @@
 
 ## Building
 
+Go 1.6 is required to build confd, which uses the new vendor directory.
+
 ```
 git clone https://github.com/kelseyhightower/confd.git
 cd confd
