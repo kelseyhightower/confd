@@ -83,6 +83,10 @@ func (c *ConsulClient) WatchPrefix(prefix string, waitIndex uint64, stopChan cha
 			WaitIndex: waitIndex,
 		}
 		_, meta, err := c.client.List(prefix, &opts)
+		if err != nil {
+			respChan <- watchResponse{waitIndex, err}
+			return
+		}
 		respChan <- watchResponse{meta.LastIndex, err}
 	}()
 	for {
