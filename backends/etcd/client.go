@@ -119,19 +119,15 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 		prefix = "/"
 	}
 
+	// return something > 0 to trigger a key retrieval from the store
 	if waitIndex == 0 {
-		resp, err := c.client.Get(context.Background(), prefix, &client.GetOptions{
-			Recursive: true,
-			Sort:      false,
-			Quorum:    true,
-		})
-		if err != nil {
-			return 0, err
-		}
-		return resp.Index, nil
+		return 1, nil
 	}
 
-	watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: waitIndex, Recursive: true})
+	// Setting AfterIndex to 0 (default) means that the Watcher
+	// should start watching for events starting at the current
+	// index, whatever that may be.
+	watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
 	ctx, cancel := context.WithCancel(context.Background())
 	cancelRoutine := make(chan bool)
 	defer close(cancelRoutine)
