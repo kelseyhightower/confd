@@ -39,6 +39,7 @@ var (
 	printVersion      bool
 	scheme            string
 	srvDomain         string
+	srvRecord         string
 	syncOnly          bool
 	table             string
 	templateConfig    template.Config
@@ -66,6 +67,7 @@ type Config struct {
 	Password     string   `toml:"password"`
 	Prefix       string   `toml:"prefix"`
 	SRVDomain    string   `toml:"srv_domain"`
+	SRVRecord    string   `toml:"srv_record"`
 	Scheme       string   `toml:"scheme"`
 	SyncOnly     bool     `toml:"sync-only"`
 	Table        string   `toml:"table"`
@@ -95,6 +97,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
+	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
 	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
@@ -149,10 +152,14 @@ func initConfig() error {
 		log.SetLevel(config.LogLevel)
 	}
 
+	if config.SRVDomain != "" && config.SRVRecord == "" {
+		config.SRVRecord = fmt.Sprintf("_%s._tcp.%s.", config.Backend, config.SRVDomain)
+	}
+
 	// Update BackendNodes from SRV records.
-	if config.Backend != "env" && config.SRVDomain != "" {
-		log.Info("SRV domain set to " + config.SRVDomain)
-		srvNodes, err := getBackendNodesFromSRV(config.Backend, config.SRVDomain, config.Scheme)
+	if config.Backend != "env" && config.SRVRecord != "" {
+		log.Info("SRV record set to " + config.SRVRecord)
+		srvNodes, err := getBackendNodesFromSRV(config.SRVRecord, config.Scheme)
 		if err != nil {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
 		}
@@ -225,10 +232,11 @@ func initConfig() error {
 	return nil
 }
 
-func getBackendNodesFromSRV(backend, domain, scheme string) ([]string, error) {
+func getBackendNodesFromSRV(record, scheme string) ([]string, error) {
 	nodes := make([]string, 0)
+
 	// Ignore the CNAME as we don't need it.
-	_, addrs, err := net.LookupSRV(backend, "tcp", domain)
+	_, addrs, err := net.LookupSRV("", "", record)
 	if err != nil {
 		return nodes, err
 	}
@@ -295,6 +303,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Scheme = scheme
 	case "srv-domain":
 		config.SRVDomain = srvDomain
+	case "srv-record":
+		config.SRVRecord = srvRecord
 	case "sync-only":
 		config.SyncOnly = syncOnly
 	case "table":
