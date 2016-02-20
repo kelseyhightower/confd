@@ -130,12 +130,14 @@ func (s Store) List(filePath string) []string {
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
+	prefix := pathToTerms(path.Clean(filePath))
 	for _, kv := range s.m {
 		if kv.Key == filePath {
 			m[path.Base(kv.Key)] = true
 			continue
 		}
-		if strings.HasPrefix(kv.Key, filePath) {
+		target := pathToTerms(path.Dir(kv.Key))
+		if samePrefixTerms(target, prefix) {
 			m[strings.Split(stripKey(kv.Key, filePath), "/")[0]] = true
 		}
 	}
@@ -151,13 +153,13 @@ func (s Store) ListDir(filePath string) []string {
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
+	prefix := pathToTerms(path.Clean(filePath))
 	for _, kv := range s.m {
 		if strings.HasPrefix(kv.Key, filePath) {
-			items := strings.Split(stripKey(kv.Key, filePath), "/")
-			if len(items) < 2 {
-				continue
+			items := pathToTerms(path.Dir(kv.Key))
+			if samePrefixTerms(prefix, items) && (len(items)-len(prefix) >= 1) {
+				m[items[len(prefix):][0]] = true
 			}
-			m[items[0]] = true
 		}
 	}
 	for k := range m {
@@ -184,4 +186,21 @@ func (s Store) Purge() {
 
 func stripKey(key, prefix string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(key, prefix), "/")
+}
+
+func pathToTerms(filePath string) []string {
+	return strings.Split(path.Clean(filePath), "/")
+}
+
+func samePrefixTerms(left, right []string) bool {
+	l := len(left)
+	if len(left) > len(right) {
+		l = len(right)
+	}
+	for i := 0; i < l; i++ {
+		if left[i] != right[i] {
+			return false
+		}
+	}
+	return true
 }
