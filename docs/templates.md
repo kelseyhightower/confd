@@ -136,6 +136,19 @@ key: {{toLower "Value"}}
 
 Returns an map[string]interface{} of the json value.
 
+### lookupSRV
+
+Wrapper for [net.LookupSRV](https://golang.org/pkg/net/#LookupSRV). The wrapper also sorts the SRV records alphabetically by combining all the fields of the net.SRV struct to reduce unnecessary config reloads.
+
+```
+{{range lookupSRV "mail" "tcp" "example.com"}}
+  target: {{.Target}}
+  port: {{.Port}}
+  priority: {{.Priority}}
+  weight: {{.Weight}}
+{{end}}
+```
+
 #### Add keys to etcd
 
 ```
