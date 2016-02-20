@@ -2,12 +2,13 @@ package template
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"time"
-	"net"
-	"sort"
 )
 
 func newFuncMap() map[string]interface{} {
@@ -25,6 +26,7 @@ func newFuncMap() map[string]interface{} {
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
 	m["lookupIP"] = LookupIP
+	m["lookupSRV"] = LookupSRV
 	return m
 }
 
@@ -59,4 +61,29 @@ func LookupIP(data string) ([]string) {
 	}
 	sort.Strings(ipStrings)
 	return ipStrings
+}
+
+type sortSRV []*net.SRV
+
+func (s sortSRV) Len() int {
+	return len(s)
+}
+
+func (s sortSRV) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s sortSRV) Less(i, j int) bool {
+	str1 := fmt.Sprintf("%s%d%d%d", s[i].Target, s[i].Port, s[i].Priority, s[i].Weight)
+	str2 := fmt.Sprintf("%s%d%d%d", s[j].Target, s[j].Port, s[j].Priority, s[j].Weight)
+	return str1 < str2
+}
+
+func LookupSRV(service, proto, name string) []*net.SRV {
+	_, addrs, err := net.LookupSRV(service, proto, name)
+	if err != nil {
+		return []*net.SRV{}
+	}
+	sort.Sort(sortSRV(addrs))
+	return addrs
 }
