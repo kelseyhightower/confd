@@ -17,6 +17,15 @@ import (
 var ErrNotExist = errors.New("key does not exist")
 var ErrNoMatch = errors.New("no keys match")
 
+type KeyError struct {
+	Key string
+	Err error
+}
+
+func (e *KeyError) Error() string {
+	return e.Err.Error() + ": " + e.Key
+}
+
 // A Store represents an in-memory key-value store safe for
 // concurrent access.
 type Store struct {
@@ -63,7 +72,7 @@ func (s Store) Get(key string) (KVPair, error) {
 	kv, ok := s.m[key]
 	s.RUnlock()
 	if !ok {
-		return kv, ErrNotExist
+		return kv, &KeyError{key, ErrNotExist}
 	}
 	return kv, nil
 }
