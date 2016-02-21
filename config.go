@@ -153,14 +153,20 @@ func initConfig() error {
 	if config.Backend == "etcd" {
 		var machines []string
 		for _, node := range config.BackendNodes {
-			u, err := url.Parse(strings.Split(node, ":")[0])
+			uri := strings.Split(node, ":")
+			host := uri[0]
+			port := "4001"
+			if len(uri) > 1 {
+				port = uri[1]
+			}
+			u, err := url.Parse(host)
 			if err != nil {
 				return err
 			}
 			if u.Scheme == "" {
 				u.Scheme = config.Scheme
 			}
-			machines = append(machines, fmt.Sprintf("%s:%s", u.String(), strings.Split(node, ":")[1]))
+			machines = append(machines, fmt.Sprintf("%s:%s", u.String(), port))
 		}
 		config.BackendNodes = machines
 	}
