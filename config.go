@@ -95,7 +95,7 @@ func init() {
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
 	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
-	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
+	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
