@@ -1,9 +1,13 @@
-FROM gliderlabs/alpine:3.2
-MAINTAINER Jussi Nummelin <jussi.nummelin@gmail.com>
-RUN apk-install bash go bzr git mercurial subversion openssh-client ca-certificates
+FROM alpine:3.3
+MAINTAINER Rene Kaufmann <kaufmann.r@gmail.com>
 
-RUN mkdir -p /go/src /go/bin && chmod -R 777 /go
 ENV GOPATH /go
-ENV PATH /go/bin:$PATH
+ENV GO15VENDOREXPERIMENT 1
+
+RUN mkdir -p "$GOPATH/src/" "$GOPATH/bin" && chmod -R 777 "$GOPATH" && \
+    mkdir -p /go/src/github.com/kelseyhightower/confd
+
+RUN apk --update add go bash && \
+    ln -s /go/src/github.com/kelseyhightower/confd /app
+
 WORKDIR /app
-RUN go get github.com/constabulary/gb/...
