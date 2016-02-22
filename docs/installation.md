@@ -29,7 +29,7 @@ Since many people are using Alpine Linux as their base images for Docker there's
 
 ```
 $ docker build -t confd_builder -f Dockerfile.build.alpine .
-$ docker run -ti -v $(pwd):/app confd_builder ./build
+$ docker run -ti --rm -v $(pwd):/app confd_builder ./build
 ```
 The above docker commands will produce binary in the local bin directory.
 
