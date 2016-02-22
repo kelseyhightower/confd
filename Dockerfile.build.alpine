@@ -1,5 +1,4 @@
 FROM alpine:3.3
-MAINTAINER Rene Kaufmann <kaufmann.r@gmail.com>
 
 ENV GOPATH /go
 ENV GO15VENDOREXPERIMENT 1
