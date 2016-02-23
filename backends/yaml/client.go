@@ -79,7 +79,7 @@ func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool
 		select {
 		case event := <-watcher.Events:
 			if event.Op&fsnotify.Write == fsnotify.Write {
-				return 0, nil
+				return 1, nil
 			}
 		case err := <-watcher.Errors:
 			return 0, err
