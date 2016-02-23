@@ -252,6 +252,15 @@ Alias for the strings.Join function.
 services: {{join $services ","}}
 ```
 
+### replace
+
+Alias for the strings.Replace function.
+
+```
+{{$backend := getv "/services/backend/nginx"}}
+backend = {{replace $backend "-" "_" -1}}
+```
+
 ### lookupIP
 
 Wrapper for net.LookupIP function. The wrapper also sorts (alphabeticaly) the IP addresses. This is crucial since in dynamic environments DNS servers typically shuffle the addresses linked to domain name. And that would cause unnecessary config reloads.
