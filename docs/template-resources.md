@@ -18,6 +18,11 @@ Template resources are stored under the `/etc/confd/conf.d` directory by default
 * `check_cmd` (string) - The command to check config. Use `{{.src}}` to reference the rendered source template.
 * `prefix` (string) - The string to prefix to keys.
 
+### Notes
+
+When using the `reload_cmd` feature it's important that the command exits on it's own. The reload
+command is not managed by confd, and will block the configuration run until it exits.
+
 ## Example
 
 ```TOML
