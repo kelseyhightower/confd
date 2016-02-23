@@ -49,14 +49,14 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 func transform(key string) string {
 	k := strings.TrimPrefix(key, "/")
-	return strings.ToUpper(replacer.Replace(k))
+	return replacer.Replace(k)
 }
 
 var cleanReplacer = strings.NewReplacer("_", "/")
 
 func clean(key string) string {
 	newKey := "/" + key
-	return cleanReplacer.Replace(strings.ToLower(newKey))
+	return cleanReplacer.Replace(newKey)
 }
 
 func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
