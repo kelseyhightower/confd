@@ -12,6 +12,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
 	"github.com/kelseyhightower/confd/backends/vault"
+	"github.com/kelseyhightower/confd/backends/yaml"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
 )
@@ -47,6 +48,8 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes)
 	case "env":
 		return env.NewEnvClient()
+	case "yaml":
+		return yaml.NewYamlClient(config.YAMLFile)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,
