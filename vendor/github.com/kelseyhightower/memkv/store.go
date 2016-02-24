@@ -79,9 +79,17 @@ func (s Store) Get(key string) (KVPair, error) {
 
 // GetValue gets the value associated with key. If there are no values
 // associated with key, GetValue returns "", ErrNotExist.
-func (s Store) GetValue(key string) (string, error) {
+func (s Store) GetValue(key string, v ...string) (string, error) {
+	defaultValue := ""
+	if len(v) > 0 {
+		defaultValue = v[0]
+	}
+
 	kv, err := s.Get(key)
 	if err != nil {
+		if defaultValue != "" {
+			return defaultValue, nil
+		}
 		return "", err
 	}
 	return kv.Value, nil

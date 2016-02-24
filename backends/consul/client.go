@@ -76,7 +76,7 @@ type watchResponse struct {
 	err       error
 }
 
-func (c *ConsulClient) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *ConsulClient) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	respChan := make(chan watchResponse)
 	go func() {
 		opts := api.QueryOptions{

@@ -52,10 +52,17 @@ Returns all KVPair, []KVPair, where key matches its argument. Returns an error i
 
 ### getv
 
-Returns the value as a string where key matches its argument. Returns an error if key is not found.
+Returns the value as a string where key matches its argument or an optional default value.
+Returns an error if key is not found and no default value given.
 
 ```
 value: {{getv "/key"}}
+```
+
+#### With a default value
+
+```
+value: {{getv "/key" "default_value"}}
 ```
 
 ### getvs

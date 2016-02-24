@@ -81,7 +81,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 // We also need to encourage users to set prefix and add a flag to enale support for "" prefix (aka "/")
 //
 
-func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	<-stopChan
 	return 0, nil
 }
