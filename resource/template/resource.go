@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"text/template"
 
 	"github.com/BurntSushi/toml"
@@ -65,7 +66,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
-	var tc *TemplateResourceConfig
+	tc := &TemplateResourceConfig{TemplateResource{Uid: -1, Gid: -1}}
 	log.Debug("Loading template resource from " + path)
 	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
@@ -135,6 +136,35 @@ func (t *TemplateResource) createStageFile() error {
 
 	// Set the owner, group, and mode on the stage file now to make it easier to
 	// compare against the destination configuration file later.
+
+	// get stat on existing file
+	// If file doesn't exist and no uid/gid in config is set, gid/uid should be 0
+	destFi, err := os.Stat(t.Dest)
+	if os.IsNotExist(err) {
+		if t.Gid == -1 {
+			t.Gid = 0
+		}
+		if t.Uid == -1 {
+			t.Uid = 0
+		}
+	} else { // ok it exists
+		// need to know if were unix or not
+		unixStat, ok := destFi.Sys().(*syscall.Stat_t)
+		if !ok {
+			// not unix set to 0
+			t.Uid = 0
+			t.Gid = 0
+		} else { // it is unix! yay
+			// if still have default values then we sould get them from the destFile
+			if t.Gid == -1 {
+				t.Gid = int(unixStat.Gid)
+			}
+			if t.Uid == -1 {
+				t.Uid = int(unixStat.Uid)
+			}
+		}
+	}
+
 	os.Chmod(temp.Name(), t.FileMode)
 	os.Chown(temp.Name(), t.Uid, t.Gid)
 	t.StageFile = temp
