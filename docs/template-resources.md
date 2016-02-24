@@ -11,9 +11,9 @@ Template resources are stored under the `/etc/confd/conf.d` directory by default
 
 ### Optional
 
-* `gid` (int) - The gid that should own the file.
+* `gid` (int) - The gid that should own the file. Defaults to the effective gid.
 * `mode` (string) - The permission mode of the file.
-* `uid` (int) - The uid that should own the file.
+* `uid` (int) - The uid that should own the file. Defaults to the effective uid.
 * `reload_cmd` (string) - The command to reload config.
 * `check_cmd` (string) - The command to check config. Use `{{.src}}` to reference the rendered source template.
 * `prefix` (string) - The string to prefix to keys.
