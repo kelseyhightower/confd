@@ -65,12 +65,17 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
-	var tc *TemplateResourceConfig
+
+	// Set the default uid and gid so we can determine if it was
+	// unset from configuration.
+	tc := &TemplateResourceConfig{TemplateResource{Uid: -1, Gid: -1}}
+
 	log.Debug("Loading template resource from " + path)
 	_, err := toml.DecodeFile(path, &tc)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
+
 	tr := tc.TemplateResource
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
@@ -80,9 +85,19 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
+
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
 	}
+
+	if tr.Uid == -1 {
+		tr.Uid = os.Geteuid()
+	}
+
+	if tr.Gid == -1 {
+		tr.Gid = os.Getegid()
+	}
+
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
 	return &tr, nil
 }
@@ -92,11 +107,14 @@ func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.prefix)
+
 	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys))
 	if err != nil {
 		return err
 	}
+
 	t.store.Purge()
+
 	for k, v := range result {
 		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.prefix)), v)
 	}
