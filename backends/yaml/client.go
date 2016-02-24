@@ -59,7 +59,7 @@ func clean(key string) string {
 	return cleanReplacer.Replace(newKey)
 }
 
-func (c *Client) WatchPrefix(prefix string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	if waitIndex == 0 {
 		return 1, nil
 	}
