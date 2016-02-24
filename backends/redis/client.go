@@ -13,12 +13,13 @@ import (
 type Client struct {
 	client   redis.Conn
 	machines []string
+	password string
 }
 
 // Iterate through `machines`, trying to connect to each in turn.
 // Returns the first successful connection or the last error encountered.
 // Assumes that `machines` is non-empty.
-func tryConnect(machines []string, options ...string) (redis.Conn, error) {
+func tryConnect(machines []string, password string) (redis.Conn, error) {
 	var err error
 	for _, address := range machines {
 		var conn redis.Conn
@@ -34,8 +35,8 @@ func tryConnect(machines []string, options ...string) (redis.Conn, error) {
 			redis.DialWriteTimeout(time.Second),
 		}
 
-		if len(options) > 0 {
-			dialops = append(dialops, redis.DialPassword(options[0]))
+		if password != "" {
+			dialops = append(dialops, redis.DialPassword(password))
 		}
 
 		conn, err = redis.Dial(network, address, dialops...)
@@ -66,7 +67,7 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 	// Existing client could have been deleted by previous block
 	if c.client == nil {
 		var err error
-		c.client, err = tryConnect(c.machines, c.options)
+		c.client, err = tryConnect(c.machines, c.password)
 		if err != nil {
 			return nil, err
 		}
@@ -77,10 +78,10 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 
 // NewRedisClient returns an *redis.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewRedisClient(machines []string, options ...string) (*Client, error) {
+func NewRedisClient(machines []string, password string) (*Client, error) {
 	var err error
-	clientWrapper := &Client{ machines : machines, options : options, client: nil }
-	clientWrapper.client, err = tryConnect(machines, options)
+	clientWrapper := &Client{ machines : machines, password: password, client: nil }
+	clientWrapper.client, err = tryConnect(machines, password)
 	return clientWrapper, err
 }
 
