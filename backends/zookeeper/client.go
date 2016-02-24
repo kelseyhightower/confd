@@ -73,15 +73,49 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-// WatchPrefix is not yet implemented. There's a WIP.
-// Since zookeeper doesn't handle recursive watch, we need to create a *lot* of watches.
-// Implementation should take care of this.
-// A good start is bamboo
-// URL https://github.com/QubitProducts/bamboo/blob/master/qzk/qzk.go
-// We also need to encourage users to set prefix and add a flag to enale support for "" prefix (aka "/")
-//
+type watchResponse struct {
+	event zk.Event
+	err   error
+}
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	<-stopChan
+	// return something > 0 to trigger a key retrieval from the store
+	if waitIndex == 0 {
+		return 1, nil
+	}
+
+	watchChan := make(chan watchResponse)
+	cancelRoutine := make(chan bool)
+	defer close(cancelRoutine)
+
+	for _, v := range keys {
+		go func(key string) {
+			_, _, eventChan, err := c.client.GetW(key)
+			if err != nil {
+				watchChan <- watchResponse{zk.Event{}, err}
+				return
+			} else {
+				select {
+				case event := <-eventChan:
+					watchChan <- watchResponse{event, nil}
+				case <-cancelRoutine:
+					return
+				}
+			}
+		}(v)
+	}
+
+	select {
+	case response := <-watchChan:
+		if response.err != nil {
+			return 0, response.err
+		}
+		if response.event.Type == zk.EventNodeDataChanged {
+			return 1, nil
+		}
+	case <-stopChan:
+		return 0, nil
+	}
+
 	return 0, nil
 }
