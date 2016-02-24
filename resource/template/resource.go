@@ -52,7 +52,6 @@ type TemplateResource struct {
 	lastIndex     uint64
 	keepStageFile bool
 	noop          bool
-	prefix        string
 	store         memkv.Store
 	storeClient   backends.StoreClient
 	syncOnly      bool
@@ -84,7 +83,11 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
-	tr.prefix = filepath.Join("/", config.Prefix, tr.Prefix)
+
+	if config.Prefix != "" {
+		tr.Prefix = config.Prefix
+	}
+	tr.Prefix = filepath.Join("/", tr.Prefix)
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -106,9 +109,9 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
-	log.Debug("Key prefix set to " + t.prefix)
+	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(appendPrefix(t.prefix, t.Keys))
+	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
 	if err != nil {
 		return err
 	}
@@ -116,7 +119,7 @@ func (t *TemplateResource) setVars() error {
 	t.store.Purge()
 
 	for k, v := range result {
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.prefix)), v)
+		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
 }

@@ -93,7 +93,7 @@ func init() {
 	flag.Var(&nodes, "node", "list of backend nodes")
 	flag.BoolVar(&noop, "noop", false, "only show pending changes")
 	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.StringVar(&prefix, "prefix", "/", "key path prefix")
+	flag.StringVar(&prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
@@ -124,7 +124,7 @@ func initConfig() error {
 		Backend:  "etcd",
 		ConfDir:  "/etc/confd",
 		Interval: 600,
-		Prefix:   "/",
+		Prefix:   "",
 		Scheme:   "http",
 	}
 	// Update config from the TOML configuration file.
