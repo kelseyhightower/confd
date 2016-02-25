@@ -30,7 +30,13 @@ func New(config Config) (StoreClient, error) {
 		config.Backend = "etcd"
 	}
 	backendNodes := config.BackendNodes
-	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
+
+	if config.Backend == "file" {
+		log.Info("Backend source(s) set to " + config.YAMLFile)
+	} else {
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
+	}
+
 	switch config.Backend {
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
