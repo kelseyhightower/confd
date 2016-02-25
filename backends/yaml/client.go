@@ -22,7 +22,7 @@ func NewYamlClient(filepath string) (*Client, error) {
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
-	yamlMap := make(map[string]string)
+	yamlMap := make(map[interface{}]interface{})
 	vars := make(map[string]string)
 
 	data, err := ioutil.ReadFile(c.filepath)
@@ -34,29 +34,37 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		return vars, err
 	}
 
-	for _, key := range keys {
-		k := transform(key)
-		for yamlKey, yamlValue := range yamlMap {
-			if strings.HasPrefix(yamlKey, k) {
-				vars[clean(yamlKey)] = yamlValue
-			}
-		}
-	}
+	nodeWalk(yamlMap, "", vars)
+
+	log.Debug(fmt.Sprintf("YAML Map: %#v", yamlMap))
+
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 
 	return vars, nil
 }
 
-func transform(key string) string {
-	k := strings.TrimPrefix(key, "/")
-	return replacer.Replace(k)
-}
+// nodeWalk recursively descends nodes, updating vars.
+func nodeWalk(node map[interface{}]interface{}, key string, vars map[string]string) error {
+	for k, v := range node {
+		key := key + "/" + k.(string)
 
-var cleanReplacer = strings.NewReplacer("_", "/")
-
-func clean(key string) string {
-	newKey := "/" + key
-	return cleanReplacer.Replace(newKey)
+		switch v.(type) {
+		case map[interface{}]interface{}:
+			nodeWalk(v.(map[interface{}]interface{}), key, vars)
+		case []interface{}:
+			for _, j := range v.([]interface{}) {
+				switch j.(type) {
+				case map[interface{}]interface{}:
+					nodeWalk(j.(map[interface{}]interface{}), key, vars)
+				case string:
+					vars[key+"/"+j.(string)] = ""
+				}
+			}
+		case string:
+			vars[key] = v.(string)
+		}
+	}
+	return nil
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
