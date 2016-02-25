@@ -77,7 +77,7 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
-	YAMLFile     string   `toml:"yaml_file"`
+	YAMLFile     string   `toml:"file"`
 }
 
 func init() {
@@ -89,7 +89,7 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.StringVar(&yamlFile, "yaml-file", "", "the YAML file to watch for changes")
+	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -323,7 +323,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
-	case "yaml-file":
+	case "file":
 		config.YAMLFile = yamlFile
 	}
 }

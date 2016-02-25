@@ -1,4 +1,4 @@
-package yaml
+package file
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ type Client struct {
 	filepath string
 }
 
-func NewYamlClient(filepath string) (*Client, error) {
+func NewFileClient(filepath string) (*Client, error) {
 	return &Client{filepath}, nil
 }
 
@@ -35,9 +35,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 
 	nodeWalk(yamlMap, "", vars)
-
-	log.Debug(fmt.Sprintf("YAML Map: %#v", yamlMap))
-
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 
 	return vars, nil
