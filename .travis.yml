@@ -43,3 +43,4 @@ script:
   - bash integration/redis/test.sh
   - bash integration/rancher/test.sh
   - bash integration/vault/test.sh
+  - bash integration/file/test.sh
