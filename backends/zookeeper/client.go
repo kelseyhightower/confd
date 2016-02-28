@@ -1,7 +1,6 @@
 package zookeeper
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -118,7 +117,6 @@ func (c *Client) watchKey(key string, respChan chan watchResponse, cancelRoutine
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	fmt.Println(prefix)
 	// return something > 0 to trigger a key retrieval from the store
 	if waitIndex == 0 {
 		return 1, nil
@@ -126,7 +124,6 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	// List the childrens first
 	entries, err := c.GetValues([]string{prefix})
-	fmt.Println(entries)
 	if err != nil {
 		return 0, err
 	}
