@@ -1,9 +1,12 @@
 package zookeeper
 
 import (
+	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/log"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
 
@@ -73,15 +76,89 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-// WatchPrefix is not yet implemented. There's a WIP.
-// Since zookeeper doesn't handle recursive watch, we need to create a *lot* of watches.
-// Implementation should take care of this.
-// A good start is bamboo
-// URL https://github.com/QubitProducts/bamboo/blob/master/qzk/qzk.go
-// We also need to encourage users to set prefix and add a flag to enale support for "" prefix (aka "/")
-//
+type watchResponse struct {
+	waitIndex uint64
+	err       error
+}
+
+func (c *Client) watchFolder(folder string, respChan chan watchResponse, cancelRoutine chan bool) {
+	_, _, eventCh, err := c.client.ChildrenW(folder)
+	if err != nil {
+		respChan <- watchResponse{0, err}
+	}
+	for {
+		select {
+		case e := <-eventCh:
+			if e.Type == zk.EventNodeChildrenChanged {
+				respChan <- watchResponse{1, e.Err}
+			}
+		case <-cancelRoutine:
+			// There is no way to stop ChildrenW so just quit
+			return
+		}
+	}
+}
+
+func (c *Client) watchKey(key string, respChan chan watchResponse, cancelRoutine chan bool) {
+	_, _, eventCh, err := c.client.GetW(key)
+	if err != nil {
+		respChan <- watchResponse{0, err}
+	}
+	for {
+		select {
+		case e := <-eventCh:
+			if e.Type == zk.EventNodeDataChanged {
+				respChan <- watchResponse{1, e.Err}
+			}
+		case <-cancelRoutine:
+			// There is no way to stop GetW so just quit
+			return
+		}
+	}
+}
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	<-stopChan
-	return 0, nil
+	fmt.Println(prefix)
+	// return something > 0 to trigger a key retrieval from the store
+	if waitIndex == 0 {
+		return 1, nil
+	}
+
+	// List the childrens first
+	entries, err := c.GetValues([]string{prefix})
+	fmt.Println(entries)
+	if err != nil {
+		return 0, err
+	}
+
+	respChan := make(chan watchResponse)
+	cancelRoutine := make(chan bool)
+	defer close(cancelRoutine)
+
+	//watch prefix for new/deleted children
+	watchMap := make(map[string]string)
+	for k, _ := range entries {
+		for dir := filepath.Dir(k); dir != prefix; dir = filepath.Dir(dir) {
+			if _, ok := watchMap[dir]; !ok {
+				watchMap[dir] = ""
+				log.Debug("Watching: " + dir)
+				go c.watchFolder(dir, respChan, cancelRoutine)
+			}
+		}
+	}
+
+	//watch all keys in prefix for changes
+	for k, _ := range entries {
+		log.Debug("Watching: " + k)
+		go c.watchKey(k, respChan, cancelRoutine)
+	}
+
+	for {
+		select {
+		case <-stopChan:
+			return waitIndex, nil
+		case r := <-respChan:
+			return r.waitIndex, r.err
+		}
+	}
 }
