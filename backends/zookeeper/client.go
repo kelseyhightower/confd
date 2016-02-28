@@ -137,6 +137,9 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	//watch prefix for new/deleted children
 	watchMap := make(map[string]string)
+	log.Debug("Watching: " + prefix)
+	go c.watchFolder(prefix, respChan, cancelRoutine)
+	//watch all subfolders for changes
 	for k, _ := range entries {
 		for dir := filepath.Dir(k); dir != prefix; dir = filepath.Dir(dir) {
 			if _, ok := watchMap[dir]; !ok {
