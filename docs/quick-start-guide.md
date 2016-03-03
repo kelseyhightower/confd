@@ -8,6 +8,7 @@ confd supports the following backends:
 
 * etcd
 * consul
+* vault
 * environment variables
 * redis
 * zookeeper
@@ -31,6 +32,12 @@ etcdctl set /myapp/database/user rob
 ```
 curl -X PUT -d 'db.example.com' http://localhost:8500/v1/kv/myapp/database/url
 curl -X PUT -d 'rob' http://localhost:8500/v1/kv/myapp/database/user
+```
+
+####vault
+```
+vault mount -path myapp generic
+vault write myapp/database url=db.example.com user=rob
 ```
 
 #### environment variables
@@ -133,6 +140,14 @@ confd -onetime -backend etcd -node http://127.0.0.1:4001
 
 ```
 confd -onetime -backend consul -node 127.0.0.1:8500
+```
+
+#### vault
+```
+ROOT_TOKEN=$(vault read -field id auth/token/lookup-self)
+
+confd -onetime -backend vault -node http://127.0.0.1:8200 \
+      -auth-type token -auth-token $ROOT_TOKEN
 ```
 
 #### dynamodb
