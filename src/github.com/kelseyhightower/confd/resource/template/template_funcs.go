@@ -2,12 +2,20 @@ package template
 
 import (
 	"encoding/json"
+	"net"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"time"
-	"net"
-	"sort"
+	// Taken from crypt
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
+	"io"
+	"io/ioutil"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 func newFuncMap() map[string]interface{} {
@@ -25,6 +33,7 @@ func newFuncMap() map[string]interface{} {
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
 	m["lookupIP"] = LookupIP
+	m["decrypt"] = Decrypt
 	return m
 }
 
@@ -46,9 +55,9 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 	return ret, err
 }
 
-func LookupIP(data string) ([]string) {
+func LookupIP(data string) []string {
 	ips, err := net.LookupIP(data)
-	if(err != nil) {
+	if err != nil {
 		return nil
 	}
 	// "Cast" IPs into strings and sort the array
@@ -59,4 +68,34 @@ func LookupIP(data string) ([]string) {
 	}
 	sort.Strings(ipStrings)
 	return ipStrings
+}
+
+func Decrypt(data string, key_file string) (string, error) {
+
+	secretKeyring, err := os.Open(key_file)
+	if err != nil {
+		return nil, err
+	}
+	defer secretKeyring.Close()
+
+	// Taken from crypt and adapted
+	decoder := base64.NewDecoder(base64.StdEncoding, bytes.NewBufferString(data))
+	entityList, err := openpgp.ReadArmoredKeyRing(secretKeyring)
+	if err != nil {
+		return nil, err
+	}
+	md, err := openpgp.ReadMessage(decoder, entityList, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	gzReader, err := gzip.NewReader(md.UnverifiedBody)
+	if err != nil {
+		return nil, err
+	}
+	defer gzReader.Close()
+	bytes, err := ioutil.ReadAll(gzReader)
+	if err != nil {
+		return nil, err
+	}
+	return string(bytes), nil
 }
