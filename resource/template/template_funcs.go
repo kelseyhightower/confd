@@ -29,6 +29,7 @@ func newFuncMap() map[string]interface{} {
 	m["replace"] = strings.Replace
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
+	m["fileExists"] = isFileExist
 	return m
 }
 
