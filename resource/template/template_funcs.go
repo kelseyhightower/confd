@@ -20,7 +20,7 @@ func newFuncMap() map[string]interface{} {
 	m["jsonArray"] = UnmarshalJsonArray
 	m["dir"] = path.Dir
 	m["map"] = CreateMap
-	m["getenv"] = os.Getenv
+	m["getenv"] = Getenv
 	m["join"] = strings.Join
 	m["datetime"] = time.Now
 	m["toUpper"] = strings.ToUpper
@@ -36,6 +36,22 @@ func addFuncs(out, in map[string]interface{}) {
 	for name, fn := range in {
 		out[name] = fn
 	}
+}
+
+// Getenv retrieves the value of the environment variable named by the key.
+// It returns the value, which will the default value if the variable is not present.
+// If no default value was given - returns "".
+func Getenv(key string, v ...string) string {
+	defaultValue := ""
+	if len(v) > 0 {
+		defaultValue = v[0]
+	}
+
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
 
 // CreateMap creates a key-value map of string -> interface{}
