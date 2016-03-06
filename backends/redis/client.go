@@ -13,12 +13,13 @@ import (
 type Client struct {
 	client   redis.Conn
 	machines []string
+	password string
 }
 
 // Iterate through `machines`, trying to connect to each in turn.
 // Returns the first successful connection or the last error encountered.
 // Assumes that `machines` is non-empty.
-func tryConnect(machines []string) (redis.Conn, error) {
+func tryConnect(machines []string, password string) (redis.Conn, error) {
 	var err error
 	for _, address := range machines {
 		var conn redis.Conn
@@ -27,7 +28,19 @@ func tryConnect(machines []string) (redis.Conn, error) {
 			network = "unix"
 		}
 		log.Debug(fmt.Sprintf("Trying to connect to redis node %s", address))
-		conn, err = redis.DialTimeout(network, address, time.Second, time.Second, time.Second)
+		
+		dialops := []redis.DialOption{
+			redis.DialConnectTimeout(time.Second),
+			redis.DialReadTimeout(time.Second),
+			redis.DialWriteTimeout(time.Second),
+		}
+
+		if password != "" {
+			dialops = append(dialops, redis.DialPassword(password))
+		}
+
+		conn, err = redis.Dial(network, address, dialops...)
+
 		if err != nil {
 			continue
 		}
@@ -54,7 +67,7 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 	// Existing client could have been deleted by previous block
 	if c.client == nil {
 		var err error
-		c.client, err = tryConnect(c.machines)
+		c.client, err = tryConnect(c.machines, c.password)
 		if err != nil {
 			return nil, err
 		}
@@ -65,10 +78,10 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 
 // NewRedisClient returns an *redis.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewRedisClient(machines []string) (*Client, error) {
+func NewRedisClient(machines []string, password string) (*Client, error) {
 	var err error
-	clientWrapper := &Client{ machines : machines, client: nil }
-	clientWrapper.client, err = tryConnect(machines)
+	clientWrapper := &Client{ machines : machines, password: password, client: nil }
+	clientWrapper.client, err = tryConnect(machines, password)
 	return clientWrapper, err
 }
 
