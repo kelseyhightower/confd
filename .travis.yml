@@ -31,6 +31,11 @@ before_install:
   - unzip vault_0.4.1_linux_amd64.zip
   - sudo mv vault /bin/
   - vault server -dev &
+  # Install zookeeper
+  - wget http://www.eu.apache.org/dist/zookeeper/zookeeper-3.4.8/zookeeper-3.4.8.tar.gz
+  - tar xzf zookeeper-3.4.8.tar.gz
+  - mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-3.4.8/conf/zoo.cfg
+  - zookeeper-3.4.8/bin/zkServer.sh start
 install:
   - sudo pip install awscli
   - go get golang.org/x/tools/cmd/cover
@@ -43,3 +48,4 @@ script:
   - bash integration/redis/test.sh
   - bash integration/rancher/test.sh
   - bash integration/vault/test.sh
+  - bash integration/zookeeper/test.sh

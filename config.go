@@ -187,10 +187,9 @@ func initConfig() error {
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
-			"zookeeper": true,
-			"redis":     true,
-			"dynamodb":  true,
-			"rancher":   true,
+			"redis":    true,
+			"dynamodb": true,
+			"rancher":  true,
 		}
 
 		if unsupportedBackends[config.Backend] {
