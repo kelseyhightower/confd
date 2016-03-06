@@ -51,7 +51,7 @@ func New(config Config) (StoreClient, error) {
 	case "rancher":
 		return rancher.NewRancherClient(backendNodes)
 	case "redis":
-		return redis.NewRedisClient(backendNodes)
+		return redis.NewRedisClient(backendNodes, config.ClientKey)
 	case "env":
 		return env.NewEnvClient()
 	case "file":
