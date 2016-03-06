@@ -2,6 +2,7 @@ package template
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -18,6 +19,7 @@ func newFuncMap() map[string]interface{} {
 	m["json"] = UnmarshalJsonObject
 	m["jsonArray"] = UnmarshalJsonArray
 	m["dir"] = path.Dir
+	m["map"] = CreateMap
 	m["getenv"] = os.Getenv
 	m["join"] = strings.Join
 	m["datetime"] = time.Now
@@ -36,6 +38,23 @@ func addFuncs(out, in map[string]interface{}) {
 	}
 }
 
+// CreateMap creates a key-value map of string -> interface{}
+// The i'th is the key and the i+1 is the value
+func CreateMap(values ...interface{}) (map[string]interface{}, error) {
+	if len(values)%2 != 0 {
+		return nil, errors.New("invalid map call")
+	}
+	dict := make(map[string]interface{}, len(values)/2)
+	for i := 0; i < len(values); i += 2 {
+		key, ok := values[i].(string)
+		if !ok {
+			return nil, errors.New("map keys must be strings")
+		}
+		dict[key] = values[i+1]
+	}
+	return dict, nil
+}
+
 func UnmarshalJsonObject(data string) (map[string]interface{}, error) {
 	var ret map[string]interface{}
 	err := json.Unmarshal([]byte(data), &ret)
@@ -48,9 +67,9 @@ func UnmarshalJsonArray(data string) ([]interface{}, error) {
 	return ret, err
 }
 
-func LookupIP(data string) ([]string) {
+func LookupIP(data string) []string {
 	ips, err := net.LookupIP(data)
-	if(err != nil) {
+	if err != nil {
 		return nil
 	}
 	// "Cast" IPs into strings and sort the array
