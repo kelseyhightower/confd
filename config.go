@@ -44,11 +44,27 @@ var (
 	table             string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
+	backendsConfig2   backends.Config
 	username          string
 	password          string
 	watch             bool
 	appID             string
 	userID            string
+	// 2nd backend config
+	authToken2         string
+	authType2          string
+	backend2           string
+	basicAuth2         bool
+	clientCaKeys2      string
+	clientCert2        string
+	clientKey2         string
+	nodes2             Nodes
+	prefix2            string
+	table2             string
+	username2          string
+	password2          string
+	appID2             string
+	userID2            string
 )
 
 // A Config structure is used to configure confd.
@@ -76,6 +92,21 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
+	// 2nd backend config
+	AuthToken2    string   `toml:"auth_token2"`
+	AuthType2     string   `toml:"auth_type2"`
+	Backend2      string   `toml:"backend2"`
+	BasicAuth2    bool     `toml:"basic_auth2"`
+	BackendNodes2 []string `toml:"nodes2"`
+	ClientCaKeys2 string   `toml:"client_cakeys2"`
+	ClientCert2   string   `toml:"client_cert2"`
+	ClientKey2    string   `toml:"client_key2"`
+	Password2     string   `toml:"password2"`
+	Prefix2       string   `toml:"prefix2"`
+	Table2        string   `toml:"table2"`
+	Username2     string   `toml:"username2"`
+	AppID2        string   `toml:"app_id2"`
+	UserID2       string   `toml:"user_id2"`
 }
 
 func init() {
@@ -106,6 +137,21 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	// 2nd backend config
+	flag.StringVar(&authToken2, "auth-token2", "", "Auth bearer token to use for 2nd backend")
+	flag.StringVar(&backend2, "backend2", "etcd", "2nd backend to use")
+	flag.BoolVar(&basicAuth2, "basic-auth2", false, "Use Basic Auth to authenticate (only used with -backend=etcd) to use for 2nd backend")
+	flag.StringVar(&clientCaKeys2, "client-ca-keys2", "", "client ca keys to use for 2nd backend")
+	flag.StringVar(&clientCert2, "client-cert2", "", "the client cert to use for 2nd backend")
+	flag.StringVar(&clientKey2, "client-key2", "", "the client key to use for 2nd backend")
+	flag.Var(&nodes2, "node2", "list of 2nd backend nodes ")
+	flag.StringVar(&prefix2, "prefix2", "", "key path prefix to use for 2nd backend")
+	flag.StringVar(&authType2, "auth-type2", "", "Vault 2nd auth backend type to use (only used with -backend2=vault)")
+	flag.StringVar(&appID2, "app-id2", "", "Vault app-id2 to use with the app-id2 on 2nd backend (only used with -backend2=vault and auth-type2=app-id)")
+	flag.StringVar(&userID2, "user-id2", "", "Vault user-id to use with the 2nd app-id backend (only used with -backend2=value and auth-type2=app-id)")
+	flag.StringVar(&table2, "table2", "", "the name of the DynamoDB table (only used with -backend2=dynamodb) to use for 2nd backend")
+	flag.StringVar(&username2, "username2", "", "the username to authenticate as (only used with vault and etcd 2nd backends ) to use for 2nd backend")
+	flag.StringVar(&password2, "password2", "", "the password to authenticate with (only used with vault and etcd 2nd backends) to use for 2nd backend")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -185,6 +231,29 @@ func initConfig() error {
 	// Initialize the storage client
 	log.Info("Backend set to " + config.Backend)
 
+	// 2nd backend defaults if available
+	if len(config.Backend2) > 0 && len(config.BackendNodes2) == 0 {
+		switch config.Backend2 {
+		case "consul":
+			config.BackendNodes2 = []string{"127.0.0.1:8500"}
+		case "etcd":
+			peerstr := os.Getenv("ETCDCTL_PEERS")
+			if len(peerstr) > 0 {
+				config.BackendNodes2 = strings.Split(peerstr, ",")
+			} else {
+				config.BackendNodes2 = []string{"http://127.0.0.1:4001"}
+			}
+		case "redis":
+			config.BackendNodes2 = []string{"127.0.0.1:6379"}
+		case "zookeeper":
+			config.BackendNodes2 = []string{"127.0.0.1:2181"}
+		}
+
+		// Initialize the storage client
+		log.Info("2nd Backend set to " + config.Backend2)
+	}
+
+
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
 			"redis":    true,
@@ -196,10 +265,20 @@ func initConfig() error {
 			log.Info(fmt.Sprintf("Watch is not supported for backend %s. Exiting...", config.Backend))
 			os.Exit(1)
 		}
+
+		// warning for 2nd backend
+		if len(config.Backend2) > 0 && unsupportedBackends[config.Backend2] {
+			log.Info(fmt.Sprintf("Watch is not supported for 2nd backend %s. Exiting...", config.Backend2))
+			os.Exit(1)
+		}
 	}
 
 	if config.Backend == "dynamodb" && config.Table == "" {
-		return errors.New("No DynamoDB table configured")
+		return errors.New("No DynamoDB table configured for 1st backend")
+	}
+
+	if config.Backend2 == "dynamodb" && config.Table2 == "" {
+		return errors.New("No DynamoDB table configured for 2nd backend")
 	}
 
 	backendsConfig = backends.Config{
@@ -218,6 +297,27 @@ func initConfig() error {
 		AppID:        config.AppID,
 		UserID:       config.UserID,
 	}
+
+	//2nd backend configuration
+	if len(config.Backend2) > 0 {
+		backendsConfig2 = backends.Config{
+			AuthToken:    config.AuthToken2,
+			AuthType:     config.AuthType2,
+			Backend:      config.Backend2,
+			BasicAuth:    config.BasicAuth2,
+			ClientCaKeys: config.ClientCaKeys2,
+			ClientCert:   config.ClientCert2,
+			ClientKey:    config.ClientKey2,
+			BackendNodes: config.BackendNodes2,
+			Password:     config.Password2,
+			Scheme:       config.Scheme,
+			Table:        config.Table2,
+			Username:     config.Username2,
+			AppID:        config.AppID2,
+			UserID:       config.UserID2,
+		}
+	}
+
 	// Template configuration.
 	templateConfig = template.Config{
 		ConfDir:       config.ConfDir,
@@ -225,6 +325,7 @@ func initConfig() error {
 		KeepStageFile: keepStageFile,
 		Noop:          config.Noop,
 		Prefix:        config.Prefix,
+		Prefix2:       config.Prefix2,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
 	}
@@ -268,6 +369,22 @@ func processEnv() {
 	if len(key) > 0 {
 		config.ClientKey = key
 	}
+	// 2nd backend
+	cakeys2 := os.Getenv("CONFD_CLIENT_CAKEYS2")
+	if len(cakeys2) > 0 {
+		config.ClientCaKeys2 = cakeys2
+	}
+
+	cert2 := os.Getenv("CONFD_CLIENT_CERT2")
+	if len(cert2) > 0 {
+		config.ClientCert2 = cert2
+	}
+
+	key2 := os.Getenv("CONFD_CLIENT_KEY2")
+	if len(key2) > 0 {
+		config.ClientKey2 = key2
+	}
+
 }
 
 func setConfigFromFlag(f *flag.Flag) {
@@ -318,5 +435,34 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	// 2nd backend config
+	case "auth-token2":
+		config.AuthToken2 = authToken2
+	case "auth-type2":
+		config.AuthType2 = authType2
+	case "backend2":
+		config.Backend2 = backend2
+	case "basic-auth2":
+		config.BasicAuth2 = basicAuth2
+	case "client-cert2":
+		config.ClientCert2 = clientCert2
+	case "client-key2":
+		config.ClientKey2 = clientKey2
+	case "client-ca-keys2":
+		config.ClientCaKeys2 = clientCaKeys2
+	case "node2":
+		config.BackendNodes2 = nodes2
+	case "password2":
+		config.Password2 = password2
+	case "prefix2":
+		config.Prefix2 = prefix2
+	case "table2":
+		config.Table2 = table2
+	case "username2":
+		config.Username2 = username2
+	case "app-id2":
+		config.AppID2 = appID2
+	case "user-id2":
+		config.UserID2 = userID2
 	}
 }

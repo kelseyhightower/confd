@@ -138,7 +138,6 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 				return
 			}
 		}()
-
 		resp, err := watcher.Next(ctx)
 		if err != nil {
 			switch e := err.(type) {
