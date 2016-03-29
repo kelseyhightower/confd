@@ -1,6 +1,6 @@
 # confd
 
-[![Build Status](https://travis-ci.org/kelseyhightower/confd.png?branch=master)](https://travis-ci.org/kelseyhightower/confd)
+[![Build Status](https://travis-ci.org/kelseyhightower/confd.svg?branch=master)](https://travis-ci.org/kelseyhightower/confd)
 
 `confd` is a lightweight configuration management tool focused on:
 
