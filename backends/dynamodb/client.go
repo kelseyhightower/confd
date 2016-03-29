@@ -62,7 +62,11 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 		if g.Item != nil {
 			if val, ok := g.Item["value"]; ok {
-				vars[key] = *val.S
+				if val.S != nil {
+					vars[key] = *val.S
+				} else {
+					log.Warning("Skipping key '%s'. 'value' is not of type 'string'.", key)
+				}
 				continue
 			}
 		}
@@ -87,7 +91,11 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		for _, i := range q.Items {
 			item := i
 			if val, ok := item["value"]; ok {
-				vars[*item["key"].S] = *val.S
+				if val.S != nil {
+					vars[*item["key"].S] = *val.S
+				} else {
+					log.Warning("Skipping key '%s'. 'value' is not of type 'string'.", *item["key"].S)
+				}
 				continue
 			}
 		}
