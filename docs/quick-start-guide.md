@@ -75,7 +75,7 @@ aws dynamodb create-table \
     --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1
 ```
 
-Now create the items:
+Now create the items. The attribute value `value` must be of type [string](http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_AttributeValue.html):
 
 ```
 aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
