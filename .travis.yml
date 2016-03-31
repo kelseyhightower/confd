@@ -49,3 +49,4 @@ script:
   - bash integration/rancher/test.sh
   - bash integration/vault/test.sh
   - bash integration/zookeeper/test.sh
+  - bash integration/dynamodb/test.sh
