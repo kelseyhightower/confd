@@ -21,6 +21,66 @@
 			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/awserr",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/awsutil",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/client",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/client/metadata",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/corehandlers",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/credentials",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/defaults",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/ec2metadata",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/request",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws/session",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/endpoints",
+			"Comment": "v1.1.0-5-g2a34ea8",
+			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
+		},
+		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
 			"Comment": "v1.1.0-5-g2a34ea8",
 			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"

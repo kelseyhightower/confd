@@ -34,6 +34,10 @@ aws dynamodb put-item --table-name confd --region eu-west-1 \
 aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/upstream/app2" }, "value": {"S": "10.0.1.11:8080"}}' \
     --endpoint-url http://localhost:8000
+# Add a broken value, to see if it is handled
+aws dynamodb put-item --table-name confd --region eu-west-1 \
+    --item '{ "key": { "S": "/upstream/broken" }, "value": {"N": "4711"}}' \
+    --endpoint-url http://localhost:8000
 aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/prefix/database/host" }, "value": {"S": "127.0.0.1"}}' \
     --endpoint-url http://localhost:8000
