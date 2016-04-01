@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/kelseyhightower/confd/log"
@@ -21,14 +20,6 @@ type Client struct {
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
 func NewDynamoDBClient(table string) (*Client, error) {
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.EnvProvider{},
-		})
-	_, err := creds.Get()
-	if err != nil {
-		return nil, err
-	}
 	var c *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
@@ -39,7 +30,17 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	} else {
 		c = nil
 	}
-	d := dynamodb.New(session.New(), c)
+
+	session := session.New(c)
+
+	// Fail early, if no credentials can be found
+	_, err := session.Config.Credentials.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	d := dynamodb.New(session)
+
 	// Check if the table exists
 	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
 	if err != nil {
