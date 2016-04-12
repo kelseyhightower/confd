@@ -20,38 +20,17 @@
 Go 1.6 is required to build confd, which uses the new vendor directory.
 
 ```
-git clone https://github.com/kelseyhightower/confd.git
-cd confd
-go build
+$ mkdir -p $GOPATH/src/github.com/kelseyhightower
+$ git clone https://github.com/kelseyhightower/confd.git $GOPATH/src/github.com/kelseyhightower/confd
+$ cd $GOPATH/src/github.com/kelseyhightower/confd
+$ ./build
 ```
 
-You should now have confd binary in the bin directory:
+You should now have confd in your `bin/` directory:
 
 ```
 $ ls bin/
 confd
-```
-
-### Building with the go tool
-
-```
-$ git clone https://github.com/kelseyhightower/confd.git
-$ cd confd
-```
-
-```
-$ pwd
-/Users/kelseyhightower/confd
-```
-
-```
-$ go build .
-```
-
-You can also produce a static binary too:
-
-```
-$ go build -a -installsuffix cgo -ldflags '-extld ld -extldflags -static' -a -x .
 ```
 
 ## Getting Started
