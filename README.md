@@ -22,7 +22,6 @@ Go 1.6 is required to build confd, which uses the new vendor directory.
 ```
 cd $GOPATH
 go get github.com/kelseyhightower/confd
-git clone https://github.com/kelseyhightower/confd
 go build github.com/kelseyhightower/confd
 ```
 
