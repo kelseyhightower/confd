@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -87,7 +86,10 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.Prefix != "" {
 		tr.Prefix = config.Prefix
 	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
+
+	if !strings.HasPrefix(tr.Prefix, "/") {
+		tr.Prefix = "/" + tr.Prefix
+	}
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -136,7 +138,8 @@ func (t *TemplateResource) createStageFile() error {
 	}
 
 	log.Debug("Compiling source template " + t.Src)
-	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
+
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}
