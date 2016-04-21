@@ -88,9 +88,9 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
 curl -k -X PUT -d 'value' https://mesh-01:8443/api/kv/key --header "Authorization: Bearer stackengine_api_key"
 ```
 
-#### rancher
+#### Rancher
 
-This backend consumes the Rancher Container Service metadata. For available keys see [rancher metadata docs](http://docs.rancher.com/rancher/metadata-service/)
+This backend consumes the [Rancher](https://www.rancher.com) metadata service. For available keys, see the [Rancher Metadata Service docs](http://docs.rancher.com/rancher/rancher-services/metadata-service/).
 
 ### Create the confdir
 
