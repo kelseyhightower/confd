@@ -20,7 +20,7 @@ Template resources are stored under the `/etc/confd/conf.d` directory by default
 
 ### Notes
 
-When using the `reload_cmd` feature it's important that the command exits on it's own. The reload
+When using the `reload_cmd` feature it's important that the command exits on its own. The reload
 command is not managed by confd, and will block the configuration run until it exits.
 
 ## Example
