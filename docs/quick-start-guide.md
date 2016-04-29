@@ -168,6 +168,12 @@ confd -onetime -backend env
 confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.168.255.210:8443 -scheme https
 ```
 
+#### redis
+
+```
+confd -onetime -backend redis -node 192.168.255.210:6379
+```
+
 =======
 #### rancher
 
