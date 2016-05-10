@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/backends"
@@ -15,7 +16,7 @@ import (
 func main() {
 	flag.Parse()
 	if printVersion {
-		fmt.Printf("confd %s\n", Version)
+		fmt.Printf("confd %s (Git commit: %s, Go version: %s)\n", Version, GitCommit, runtime.Version())
 		os.Exit(0)
 	}
 	if err := initConfig(); err != nil {
