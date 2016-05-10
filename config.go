@@ -178,6 +178,8 @@ func initConfig() error {
 			}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
+		case "vault":
+			config.BackendNodes = []string{"http://127.0.0.1:8200"}
 		case "zookeeper":
 			config.BackendNodes = []string{"127.0.0.1:2181"}
 		}
