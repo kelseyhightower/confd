@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
+	"github.com/kelseyhightower/confd/backends/azuretablestorage"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
@@ -31,6 +32,8 @@ func New(config Config) (StoreClient, error) {
 	backendNodes := config.BackendNodes
 	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	switch config.Backend {
+	case "azuretablestorage":
+		return azuretablestorage.NewAzureTableStorageClient()
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
