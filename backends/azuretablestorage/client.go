@@ -9,47 +9,63 @@ import (
 	"github.com/kelseyhightower/confd/log"
 )
 
+type tableEntry struct {
+	partitionKey string
+	rowKey       string
+	Value        string
+}
+
+func (t tableEntry) PartitionKey() string {
+	return t.partitionKey
+}
+
+func (t tableEntry) RowKey() string {
+	return t.rowKey
+}
+
+func (t *tableEntry) SetPartitionKey(v string) error {
+	t.partitionKey = v
+	return nil
+}
+
+func (t *tableEntry) SetRowKey(v string) error {
+	t.rowKey = v
+	return nil
+}
+
+func queryTableRowKeyStartsWith(t *storage.TableServiceClient, tableName storage.AzureTable, previousContinuationToken *storage.ContinuationToken, retType reflect.Type, top int, startsWithPattern string) ([]storage.TableEntity, *storage.ContinuationToken, error) {
+	length := len(startsWithPattern) - 1
+	lastChar := startsWithPattern[length]
+	nextLastChar := lastChar + 1
+	startsWithEndPattern := string(startsWithPattern[:length]) + string(nextLastChar)
+	query := fmt.Sprintf("RowKey ge '%v' and RowKey lt '%v'", startsWithPattern, startsWithEndPattern)
+	log.Debug(fmt.Sprintf("Query: %#v", query))
+	return t.QueryTableEntities(tableName, previousContinuationToken, retType, top, query)
+}
+
+var slashReplacer = strings.NewReplacer("|", "/")
+var pipeReplacer = strings.NewReplacer("/", "|")
+
 // Client provides a shell for the azuretablestorage client
 type Client struct {
 	client *storage.Client
 	table  storage.AzureTable
 }
 
-type TableEntry struct {
-	partitionKey string
-	rowKey       string
-	Value        string
-}
-
-func (t TableEntry) PartitionKey() string {
-	return t.partitionKey
-}
-
-func (t TableEntry) RowKey() string {
-	return t.rowKey
-}
-
-func (t *TableEntry) SetPartitionKey(v string) error {
-	t.partitionKey = v
-	return nil
-}
-
-func (t *TableEntry) SetRowKey(v string) error {
-	t.rowKey = v
-	return nil
-}
-
-var replacer = strings.NewReplacer("-", "/")
-
 // NewAzureTableStorageClient returns a new client
-func NewAzureTableStorageClient() (*Client, error) {
-	client, err := storage.NewBasicClient("devbnntemp", "YXbC2OZEJK17BTjEz6hMUpHzyegqZeHFi+DVIrP7simQURu12YYJMaj7vnQbxLGe8JxKzgShXPH9R93GrZCmFA==")
+func NewAzureTableStorageClient(tableName string, account string, key string) (*Client, error) {
+	// bin/confd -onetime -backend azuretablestorage -noop -confdir ~/etc/confd/ -log-level debug -table confdtest -storage-account devbnntemp -client-key xxxxx==
+	log.Debug(fmt.Sprintf("table: %#v", tableName))
+	log.Debug(fmt.Sprintf("account: %#v", account))
+	log.Debug(fmt.Sprintf("key: %#v", key))
+
+	client, err := storage.NewBasicClient(account, key)
 
 	if err != nil {
 		return nil, err
 	}
 
-	table := storage.AzureTable("confdtest")
+	table := storage.AzureTable(tableName)
 
 	return &Client{&client, table}, nil
 }
@@ -57,27 +73,26 @@ func NewAzureTableStorageClient() (*Client, error) {
 // GetValues queries the environment for keys
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
-	var te = reflect.TypeOf((*TableEntry)(nil))
+	var te = reflect.TypeOf((*tableEntry)(nil))
 	log.Debug(fmt.Sprintf("Type: %#v", te))
 
 	vars := make(map[string]string)
 	t := c.client.GetTableService()
-	//var cToken storage.ContinuationToken
 
-	var entities, cToken, err = t.QueryTableEntities(c.table, nil, te, 100, "")
-
-	log.Debug(fmt.Sprintf("Entities: %#v", entities))
-	log.Debug(fmt.Sprintf("CToken: %#v", cToken))
-
-	if err != nil {
-		return vars, err
-	}
-
-	for _, e := range entities {
-		en := e.(*TableEntry)
-		k := replacer.Replace(en.RowKey())
-		log.Debug(fmt.Sprintf("Entity: %#v", en))
-		vars[k] = en.Value
+	for _, key := range keys {
+		startsWithPattern := pipeReplacer.Replace(key)
+		var entities, cToken, err = queryTableRowKeyStartsWith(&t, c.table, nil, te, 1000, startsWithPattern)
+		log.Debug(fmt.Sprintf("(Key: %v)Entities: %#v", startsWithPattern, entities))
+		log.Debug(fmt.Sprintf("CToken: %#v", cToken))
+		if err != nil {
+			return vars, err
+		}
+		for _, e := range entities {
+			en := e.(*tableEntry)
+			ek := slashReplacer.Replace(en.RowKey())
+			log.Debug(fmt.Sprintf("Entity: %#v", en))
+			vars[ek] = en.Value
+		}
 	}
 
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
