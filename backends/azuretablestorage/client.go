@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/kelseyhightower/confd/log"
 )
 
 type tableEntry struct {
@@ -39,7 +38,6 @@ func queryTableRowKeyStartsWith(t *storage.TableServiceClient, tableName storage
 	nextLastChar := lastChar + 1
 	startsWithEndPattern := string(startsWithPattern[:length]) + string(nextLastChar)
 	query := fmt.Sprintf("RowKey ge '%v' and RowKey lt '%v'", startsWithPattern, startsWithEndPattern)
-	log.Debug(fmt.Sprintf("Query: %#v", query))
 	return t.QueryTableEntities(tableName, previousContinuationToken, retType, top, query)
 }
 
@@ -54,13 +52,7 @@ type Client struct {
 
 // NewAzureTableStorageClient returns a new client
 func NewAzureTableStorageClient(tableName string, account string, key string) (*Client, error) {
-	// bin/confd -onetime -backend azuretablestorage -noop -confdir ~/etc/confd/ -log-level debug -table confdtest -storage-account devbnntemp -client-key xxxxx==
-	log.Debug(fmt.Sprintf("table: %#v", tableName))
-	log.Debug(fmt.Sprintf("account: %#v", account))
-	log.Debug(fmt.Sprintf("key: %#v", key))
-
 	client, err := storage.NewBasicClient(account, key)
-
 	if err != nil {
 		return nil, err
 	}
@@ -74,28 +66,30 @@ func NewAzureTableStorageClient(tableName string, account string, key string) (*
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 	var te = reflect.TypeOf((*tableEntry)(nil))
-	log.Debug(fmt.Sprintf("Type: %#v", te))
 
 	vars := make(map[string]string)
 	t := c.client.GetTableService()
+	var cToken *storage.ContinuationToken
 
 	for _, key := range keys {
 		startsWithPattern := pipeReplacer.Replace(key)
-		var entities, cToken, err = queryTableRowKeyStartsWith(&t, c.table, nil, te, 1000, startsWithPattern)
-		log.Debug(fmt.Sprintf("(Key: %v)Entities: %#v", startsWithPattern, entities))
-		log.Debug(fmt.Sprintf("CToken: %#v", cToken))
-		if err != nil {
-			return vars, err
-		}
-		for _, e := range entities {
-			en := e.(*tableEntry)
-			ek := slashReplacer.Replace(en.RowKey())
-			log.Debug(fmt.Sprintf("Entity: %#v", en))
-			vars[ek] = en.Value
+		for {
+			entities, cToken, err := queryTableRowKeyStartsWith(&t, c.table, cToken, te, 100, startsWithPattern)
+			if err != nil {
+				return vars, err
+			}
+
+			for _, e := range entities {
+				en := e.(*tableEntry)
+				ek := slashReplacer.Replace(en.RowKey())
+				vars[ek] = en.Value
+			}
+
+			if cToken == nil {
+				break
+			}
 		}
 	}
-
-	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 
 	return vars, nil
 }
