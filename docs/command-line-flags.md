@@ -28,6 +28,8 @@ Usage of confd:
       confd conf directory (default "/etc/confd")
   -config-file string
       the confd config file
+  -dry-run
+      show pending changes and run check_cmd.
   -interval int
       backend polling interval (default 600)
   -keep-stage-file

@@ -29,6 +29,7 @@ var (
 	clientKey         string
 	confdir           string
 	config            Config // holds the global confd config.
+	dryRun            bool
 	interval          int
 	keepStageFile     bool
 	logLevel          string
@@ -62,6 +63,7 @@ type Config struct {
 	ClientCert   string   `toml:"client_cert"`
 	ClientKey    string   `toml:"client_key"`
 	ConfDir      string   `toml:"confdir"`
+	DryRun       bool     `toml:"dry-run"`
 	Interval     int      `toml:"interval"`
 	Noop         bool     `toml:"noop"`
 	Password     string   `toml:"password"`
@@ -87,6 +89,7 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
+	flag.BoolVar(&dryRun, "dry-run", false, "perform execution without modifying target file")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -224,6 +227,7 @@ func initConfig() error {
 	templateConfig = template.Config{
 		ConfDir:       config.ConfDir,
 		ConfigDir:     filepath.Join(config.ConfDir, "conf.d"),
+		DryRun:        config.DryRun,
 		KeepStageFile: keepStageFile,
 		Noop:          config.Noop,
 		Prefix:        config.Prefix,
@@ -290,6 +294,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.ClientCaKeys = clientCaKeys
 	case "confdir":
 		config.ConfDir = confdir
+	case "dry-run":
+		config.DryRun = dryRun
 	case "node":
 		config.BackendNodes = nodes
 	case "interval":

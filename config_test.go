@@ -16,6 +16,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		ClientCert:   "",
 		ClientKey:    "",
 		ConfDir:      "/etc/confd",
+		DryRun:       false,
 		Interval:     600,
 		Noop:         false,
 		Prefix:       "",
