@@ -32,6 +32,30 @@ func (t *tableEntry) SetRowKey(v string) error {
 	return nil
 }
 
+type tableEntryBroken struct {
+	partitionKey string
+	rowKey       string
+	Value        int
+}
+
+func (t tableEntryBroken) PartitionKey() string {
+	return t.partitionKey
+}
+
+func (t tableEntryBroken) RowKey() string {
+	return t.rowKey
+}
+
+func (t *tableEntryBroken) SetPartitionKey(v string) error {
+	t.partitionKey = v
+	return nil
+}
+
+func (t *tableEntryBroken) SetRowKey(v string) error {
+	t.rowKey = v
+	return nil
+}
+
 func containsTable(list []storage.AzureTable, elem storage.AzureTable) bool {
 	for _, t := range list {
 		if t == elem {
@@ -98,7 +122,7 @@ func main() {
 	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|database|username", Value: "confd"})
 	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|upstream|app1", Value: "10.0.1.10:8080"})
 	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|upstream|app2", Value: "10.0.1.11:8080"})
-	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|upstream|broken", Value: "4711"})
+	ts.InsertEntity(table, &tableEntryBroken{partitionKey: "1", rowKey: "|upstream|broken", Value: 4711})
 	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|prefix|database|host", Value: "127.0.0.1"})
 	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|prefix|database|password", Value: "p@sSw0rd"})
 	ts.InsertEntity(table, &tableEntry{partitionKey: "1", rowKey: "|prefix|database|port", Value: "3306"})

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Note there isn't a storage emulator for *nix, so this integration test is not enabled for CI currently
 export AZURE_STORAGE_ACCESS_KEY=YourAzureKeyGoesHere===
 export AZURE_STORAGE_ACCOUNT=yourazurestorageaccount
 export AZURE_STORAGE_TABLE=confd # Note: if this exists all data will be deleted
