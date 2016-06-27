@@ -60,7 +60,7 @@ type TemplateResource struct {
 var ErrEmptySrc = errors.New("empty src template")
 
 // NewTemplateResource creates a TemplateResource.
-func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
+func NewTemplateResource(src string, config Config) (*TemplateResource, error) {
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
@@ -69,10 +69,10 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	// unset from configuration.
 	tc := &TemplateResourceConfig{TemplateResource{Uid: -1, Gid: -1}}
 
-	log.Debug("Loading template resource from " + path)
-	_, err := toml.DecodeFile(path, &tc)
+	log.Debug("Loading template resource from " + src)
+	_, err := toml.DecodeFile(src, &tc)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
+		return nil, fmt.Errorf("Cannot process template resource %s - %s", src, err.Error())
 	}
 
 	tr := tc.TemplateResource
@@ -87,7 +87,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.Prefix != "" {
 		tr.Prefix = config.Prefix
 	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
+	tr.Prefix = path.Join("/", tr.Prefix)
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -101,7 +101,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		tr.Gid = os.Getegid()
 	}
 
-	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
+	tr.Src = path.Join(config.TemplateDir, tr.Src)
 	return &tr, nil
 }
 
@@ -119,7 +119,7 @@ func (t *TemplateResource) setVars() error {
 	t.store.Purge()
 
 	for k, v := range result {
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
+		t.store.Set(path.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
 }

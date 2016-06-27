@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"syscall"
 
 	"github.com/kelseyhightower/confd/log"
 )
@@ -46,8 +45,8 @@ func fileStat(name string) (fi fileInfo, err error) {
 		}
 		defer f.Close()
 		stats, _ := f.Stat()
-		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
-		fi.Gid = stats.Sys().(*syscall.Stat_t).Gid
+		fi.Uid = uid(stats)
+		fi.Gid = gid(stats)
 		fi.Mode = stats.Mode()
 		h := md5.New()
 		io.Copy(h, f)
@@ -102,7 +101,7 @@ func recursiveFindFiles(root string, pattern string) ([]string, error) {
 		if f.IsDir() {
 			return
 		} else if match, innerr := filepath.Match(pattern, f.Name()); innerr == nil && match {
-			files = append(files, path)
+			files = append(files, filepath.ToSlash(path))
 		}
 		return
 	}
