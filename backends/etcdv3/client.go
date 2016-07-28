@@ -26,6 +26,11 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 		DialTimeout: 5 * time.Second,
 	}
 
+	if basicAuth {
+		cfg.Username = username
+		cfg.Password = password
+	}
+
 	tlsEnabled := false
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: false,
