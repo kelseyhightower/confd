@@ -8,6 +8,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
+	"github.com/kelseyhightower/confd/backends/json"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
@@ -47,6 +48,8 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes, config.ClientKey)
 	case "env":
 		return env.NewEnvClient()
+	case "json":
+		return json.NewJsonClient(config.FilePath)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,
