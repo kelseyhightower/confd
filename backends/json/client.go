@@ -3,6 +3,7 @@ package json
 import (
 	"encoding/json"
 	"io/ioutil"
+	"strings"
 )
 
 // Client provides a shell for the json client
@@ -19,7 +20,7 @@ func NewJsonClient(filePath string) (*Client, error) {
 		return &Client{allJsonVars}, err
 	}
 
-	err = json.Unmarshal(fileContents, allJsonVars)
+	err = json.Unmarshal(fileContents, &allJsonVars)
 	if err != nil {
 		return &Client{allJsonVars}, err
 	}
@@ -33,10 +34,46 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 
 	for _, key := range keys {
-		vars[key] = c.data[key].(string)
+		jsonWalk(c.data, key, vars)
 	}
 
 	return vars, nil
+}
+
+// iterate over a json interface searching for key and add key/value to vars
+func jsonWalk(json map[string]interface{}, key string, vars map[string]string) {
+	keyPath := strings.Split(strings.TrimPrefix(key, "/"), "/")
+
+	for index, level := range keyPath {
+		if val, ok := json[level]; ok {
+			if index == len(keyPath)-1 {
+				if str, ok := val.(string); ok {
+					vars[key] = str
+				} else {
+					jsonAddAll(
+						vars,
+						strings.TrimPrefix(key, "/"),
+						val.(map[string]interface{}))
+				}
+			} else {
+				json = val.(map[string]interface{})
+			}
+		}
+	}
+}
+
+// iterate over a json interface adding all data and adding to vars
+func jsonAddAll(vars map[string]string, keyPrefix string, json map[string]interface{}) {
+	for objkey, objvalue := range json {
+		if str, ok := objvalue.(string); ok {
+			vars[keyPrefix+"/"+objkey] = str
+		} else {
+			jsonAddAll(
+				vars,
+				keyPrefix+"/"+objkey,
+				objvalue.(map[string]interface{}))
+		}
+	}
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
