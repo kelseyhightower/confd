@@ -44,12 +44,16 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 func jsonWalk(json map[string]interface{}, key string, vars map[string]string) {
 	keyPath := strings.Split(strings.TrimPrefix(key, "/"), "/")
 
-	for index, level := range keyPath {
-		if val, ok := json[level]; ok {
+	for index, component := range keyPath {
+		if val, ok := json[component]; ok {
+			// last component of key path
 			if index == len(keyPath)-1 {
 				if str, ok := val.(string); ok {
+					// we have matched the key
 					vars[key] = str
 				} else {
+					// we've hit the end of the key to match
+					// but still have more object to traverse
 					jsonAddAll(
 						vars,
 						strings.TrimPrefix(key, "/"),
@@ -64,10 +68,14 @@ func jsonWalk(json map[string]interface{}, key string, vars map[string]string) {
 
 // iterate over a json interface adding all data and adding to vars
 func jsonAddAll(vars map[string]string, keyPrefix string, json map[string]interface{}) {
+
 	for objkey, objvalue := range json {
+
 		if str, ok := objvalue.(string); ok {
+			// stop at strings and add a new entry to vars
 			vars[keyPrefix+"/"+objkey] = str
 		} else {
+			// recurse
 			jsonAddAll(
 				vars,
 				keyPrefix+"/"+objkey,
