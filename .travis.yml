@@ -44,6 +44,7 @@ install:
 script:
   - ./test
   - bash integration/consul/test.sh
+  - bash integration/env/test.sh
   - bash integration/etcd/test.sh
   - bash integration/redis/test.sh
   - bash integration/rancher/test.sh
