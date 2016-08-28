@@ -395,6 +395,22 @@ ip: 127.0.0.1
 			tr.store.Set("/test/data/def", "child")
 		},
 	},
+	templateTest{
+		desc: "system test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = []
+`,
+		tmpl: `
+{{system "echo test"}}
+`,
+		expected: `
+test
+`,
+		updateStore: func(tr *TemplateResource) {},
+	},
 }
 
 // TestTemplates runs all tests in templateTests
