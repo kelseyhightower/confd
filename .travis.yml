@@ -37,9 +37,9 @@ before_install:
   - mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-3.4.8/conf/zoo.cfg
   - zookeeper-3.4.8/bin/zkServer.sh start
   # Install metad
-  - wget https://github.com/yunify/metad/releases/download/v1.0-alpha.5/metad-linux-amd64
-  - sudo mv metad-linux-amd64 /bin/metad
-  - sudo chmod +x /bin/metad
+  - wget https://github.com/yunify/metad/releases/download/v1.0-alpha.6/metad-linux-amd64.tar.gz
+  - tar -zxvf metad-linux-amd64.tar.gz
+  - sudo mv metad /bin/
 install:
   - sudo pip install awscli
   - go get golang.org/x/tools/cmd/cover
