@@ -139,10 +139,11 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}()
 
 	// just ignore resp, notify confd to reload metadata from metad
-	_, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return c.waitIndex, err
 	}
+	resp.Body.Close()
 	c.waitIndex = c.waitIndex + 1
 	return c.waitIndex, nil
 
