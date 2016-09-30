@@ -104,8 +104,15 @@ service Lease {
     };
   }
 
+  // LeaseTimeToLive retrieves lease information.
+  rpc LeaseTimeToLive(LeaseTimeToLiveRequest) returns (LeaseTimeToLiveResponse) {
+      option (google.api.http) = {
+        post: "/v3alpha/kv/lease/timetolive"
+        body: "*"
+    };
+  }
+
   // TODO(xiangli) List all existing Leases?
-  // TODO(xiangli) Get details information (expirations, leased keys, etc.) of a lease?
 }
 
 service Cluster {
@@ -375,6 +382,22 @@ message RangeRequest {
  
   // count_only when set returns only the count of the keys in the range.
   bool count_only = 9;
+
+  // min_mod_revision is the lower bound for returned key mod revisions; all keys with
+  // lesser mod revisions will be filtered away.
+  int64 min_mod_revision = 10;
+
+  // max_mod_revision is the upper bound for returned key mod revisions; all keys with
+  // greater mod revisions will be filtered away.
+  int64 max_mod_revision = 11;
+
+  // min_create_revision is the lower bound for returned key create revisions; all keys with
+  // lesser create trevisions will be filtered away.
+  int64 min_create_revision = 12;
+
+  // max_create_revision is the upper bound for returned key create revisions; all keys with
+  // greater create revisions will be filtered away.
+  int64 max_create_revision = 13;
 }
 
 message RangeResponse {
@@ -567,6 +590,8 @@ message WatchCreateRequest {
   // range_end is the end of the range [key, range_end) to watch. If range_end is not given,
   // only the key argument is watched. If range_end is equal to '\0', all keys greater than
   // or equal to the key argument are watched.
+  // If the range_end is one bit larger than the given key,
+  // then all keys with the prefix (the given key) will be watched.
   bytes range_end = 2;
   // start_revision is an optional revision to watch from (inclusive). No start_revision is "now".
   int64 start_revision = 3;
@@ -656,6 +681,25 @@ message LeaseKeepAliveResponse {
   int64 ID = 2;
   // TTL is the new time-to-live for the lease.
   int64 TTL = 3;
+}
+
+message LeaseTimeToLiveRequest {
+  // ID is the lease ID for the lease.
+  int64 ID = 1;
+  // keys is true to query all the keys attached to this lease.
+  bool keys = 2;
+}
+
+message LeaseTimeToLiveResponse {
+  ResponseHeader header = 1;
+  // ID is the lease ID from the keep alive request.
+  int64 ID = 2;
+  // TTL is the remaining TTL in seconds for the lease; the lease will expire in under TTL+1 seconds.
+  int64 TTL = 3;
+  // GrantedTTL is the initial granted time in seconds upon lease creation/renewal.
+  int64 grantedTTL = 4;
+  // Keys is the list of keys attached to this lease.
+  repeated bytes keys = 5;
 }
 
 message Member {

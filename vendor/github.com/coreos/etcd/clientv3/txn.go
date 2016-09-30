@@ -153,7 +153,12 @@ func (txn *txn) Commit() (*TxnResponse, error) {
 
 func (txn *txn) commit() (*TxnResponse, error) {
 	r := &pb.TxnRequest{Compare: txn.cmps, Success: txn.sus, Failure: txn.fas}
-	resp, err := txn.kv.remote.Txn(txn.ctx, r, grpc.FailFast(false))
+
+	var opts []grpc.CallOption
+	if !txn.isWrite {
+		opts = []grpc.CallOption{grpc.FailFast(false)}
+	}
+	resp, err := txn.kv.remote.Txn(txn.ctx, r, opts...)
 	if err != nil {
 		return nil, err
 	}
