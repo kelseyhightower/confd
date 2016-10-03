@@ -3,5 +3,6 @@ mode = "0644"
 src = "service.conf.tmpl"
 dest = "/tmp/confd-service-test.conf"
 keys = [
-  "/_consul",
+  "/_consul/service/rails/v1",
+  "/_consul/service/test"
 ]
