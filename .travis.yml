@@ -37,6 +37,10 @@ before_install:
   - tar xzf zookeeper-3.4.8.tar.gz
   - mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-3.4.8/conf/zoo.cfg
   - zookeeper-3.4.8/bin/zkServer.sh start
+  # Install metad
+  - wget https://github.com/yunify/metad/releases/download/v1.0-alpha.6/metad-linux-amd64.tar.gz
+  - tar -zxvf metad-linux-amd64.tar.gz
+  - sudo mv metad /bin/
 install:
   - sudo pip install awscli
   - go get golang.org/x/tools/cmd/cover
@@ -54,3 +58,4 @@ script:
   - bash integration/file/test.sh
   - bash integration/zookeeper/test.sh
   - bash integration/dynamodb/test.sh
+  - bash integration/metad/test.sh
