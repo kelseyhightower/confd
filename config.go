@@ -50,6 +50,7 @@ var (
 	appID             string
 	userID            string
 	yamlFile          string
+	filePath          string
 )
 
 // A Config structure is used to configure confd.
@@ -78,6 +79,7 @@ type Config struct {
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
 	YAMLFile     string   `toml:"file"`
+	FilePath     string   `toml:"file_path"`
 }
 
 func init() {
@@ -109,6 +111,7 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&filePath, "file", "", "file containing data")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -160,7 +163,7 @@ func initConfig() error {
 	}
 
 	// Update BackendNodes from SRV records.
-	if config.Backend != "env" && config.SRVRecord != "" {
+	if config.Backend != "env" && config.Backend != "json" && config.SRVRecord != "" {
 		log.Info("SRV record set to " + config.SRVRecord)
 		srvNodes, err := getBackendNodesFromSRV(config.SRVRecord, config.Scheme)
 		if err != nil {
@@ -225,6 +228,7 @@ func initConfig() error {
 		AppID:        config.AppID,
 		UserID:       config.UserID,
 		YAMLFile:     config.YAMLFile,
+		FilePath:     config.FilePath,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -326,7 +330,9 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
-	case "file":
+	case "yaml":
 		config.YAMLFile = yamlFile
+	case "file":
+		config.FilePath = filePath
 	}
 }

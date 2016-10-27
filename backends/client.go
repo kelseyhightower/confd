@@ -10,6 +10,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
+	"github.com/kelseyhightower/confd/backends/json"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
@@ -59,6 +60,8 @@ func New(config Config) (StoreClient, error) {
 		return env.NewEnvClient()
 	case "file":
 		return file.NewFileClient(config.YAMLFile)
+	case "json":
+		return json.NewJsonClient(config.FilePath)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,
