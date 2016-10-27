@@ -7,13 +7,13 @@ Currently confd ships binaries for OS X and Linux 64bit systems. You can downloa
 #### OS X
 
 ```
-$ wget https://github.com/bacongobbler/confd/releases/download/v0.12.0/confd-0.12.0-darwin-amd64
+$ wget https://github.com/bacongobbler/confd/releases/download/v0.12.1/confd-0.12.1-darwin-amd64
 ```
 
 #### Linux
 
 ```
-$ wget https://github.com/bacongobbler/confd/releases/download/v0.12.0/confd-0.12.0-linux-amd64
+$ wget https://github.com/bacongobbler/confd/releases/download/v0.12.1/confd-0.12.1-linux-amd64
 ```
 
 #### Building from Source

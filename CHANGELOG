@@ -1,3 +1,9 @@
+### v0.12.1
+
+17e1d2a Revert "json-backend: initial pass of json backend"
+c91406c Revert "json-backend: tests and support for nested objects"
+0df8af7 Revert "json-backend: cleanup"
+
 ### v0.12.0
 
 7ac1091 Upgrade Dockerfile to use latest stable Alpine which has Go 1.6
