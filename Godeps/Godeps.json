@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/kelseyhightower/confd",
+	"ImportPath": "github.com/bacongobbler/confd",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Deps": [

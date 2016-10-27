@@ -6,7 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/bacongobbler/confd/log"
 )
 
 // fileInfo describes a configuration file and is returned by fileStat.
