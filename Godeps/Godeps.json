@@ -162,6 +162,11 @@
 			"Rev": "a924a2250d1033753512e95dce41dca3fd793ad9"
 		},
 		{
+			"ImportPath": "github.com/fsnotify/fsnotify",
+			"Comment": "v1.2.9-1-g9297c46",
+			"Rev": "9297c46340639aebbb6820f260c699465528fb60"
+		},
+		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
 			"Rev": "836b6e58b3358112c8291565d01c35b8764070d7"
 		},
@@ -349,6 +354,10 @@
 			"ImportPath": "google.golang.org/grpc/transport",
 			"Comment": "v1.0.0-60-g711a24c",
 			"Rev": "711a24cde281460b847b211686c2e4e8f4671131"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
 		}
 	]
 }
