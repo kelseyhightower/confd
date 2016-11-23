@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -148,6 +149,31 @@ func initConfig() error {
 	// Update config from commandline flags.
 	processFlags()
 
+	// the new etcd client library needs the full qualified node urls with scheme
+	if config.Backend == "etcd" {
+		var machines []string
+		for _, node := range config.BackendNodes {
+			if !strings.HasPrefix(node, "http") {
+				node = config.Scheme + "://" + node
+			}
+			u, err := url.Parse(node)
+			if err != nil {
+				return err
+			}
+			host, port, err := net.SplitHostPort(u.Host)
+			if err != nil {
+				host = u.Host
+				port = "4001"
+			}
+
+			if u.Scheme == "" {
+				u.Scheme = config.Scheme
+			}
+			machines = append(machines, u.Scheme+"://"+net.JoinHostPort(host, port))
+		}
+		config.BackendNodes = machines
+	}
+
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
 	}
@@ -174,7 +200,7 @@ func initConfig() error {
 			if len(peerstr) > 0 {
 				config.BackendNodes = strings.Split(peerstr, ",")
 			} else {
-				config.BackendNodes = []string{"http://127.0.0.1:4001"}
+				config.BackendNodes = []string{config.Scheme + "://127.0.0.1:4001"}
 			}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
