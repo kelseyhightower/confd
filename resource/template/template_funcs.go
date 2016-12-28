@@ -30,7 +30,12 @@ func newFuncMap() map[string]interface{} {
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
+	m["mathAdd"] = MathAdd
 	return m
+}
+
+func MathAdd(a int, b int)int {
+        return a + b
 }
 
 func addFuncs(out, in map[string]interface{}) {
