@@ -9,6 +9,9 @@
   [vault](https://vaultproject.io), [zookeeper](https://zookeeper.apache.org) or env vars and processing [template resources](docs/template-resources.md).
 * reloading applications to pick up new config file changes
 
+## this fork version
+* Only some user-defined contents, such as template funcs
+
 ## Community
 
 * IRC: `#confd` on Freenode
@@ -20,9 +23,9 @@
 Go 1.6 is required to build confd, which uses the new vendor directory.
 
 ```
-$ mkdir -p $GOPATH/src/github.com/kelseyhightower
-$ git clone https://github.com/kelseyhightower/confd.git $GOPATH/src/github.com/kelseyhightower/confd
-$ cd $GOPATH/src/github.com/kelseyhightower/confd
+$ mkdir -p $GOPATH/src/github.com/mafengwo
+$ git clone https://github.com/mafengwo/confd.git $GOPATH/src/github.com/mafengwo/confd
+$ cd $GOPATH/src/github.com/mafengwo/confd
 $ ./build
 ```
 
