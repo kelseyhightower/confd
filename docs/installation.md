@@ -1,6 +1,6 @@
 # Installation
 
-### Binary Download
+### Binary Download (Original)
 
 Currently confd ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/kelseyhightower/confd/releases)
 
