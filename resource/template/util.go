@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/mfengwo/confd/log"
 )
 
 // fileInfo describes a configuration file and is returned by fileStat.

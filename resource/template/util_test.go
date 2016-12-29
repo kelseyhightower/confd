@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/mfengwo/confd/log"
 )
 
 // createRecursiveDirs is a helper function which creates temporary directorie
