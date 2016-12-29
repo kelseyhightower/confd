@@ -4,16 +4,16 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/mfengwo/confd/backends/consul"
-	"github.com/mfengwo/confd/backends/dynamodb"
-	"github.com/mfengwo/confd/backends/env"
-	"github.com/mfengwo/confd/backends/etcd"
-	"github.com/mfengwo/confd/backends/rancher"
-	"github.com/mfengwo/confd/backends/redis"
-	"github.com/mfengwo/confd/backends/stackengine"
-	"github.com/mfengwo/confd/backends/vault"
-	"github.com/mfengwo/confd/backends/zookeeper"
-	"github.com/mfengwo/confd/log"
+	"github.com/mafengwo/confd/backends/consul"
+	"github.com/mafengwo/confd/backends/dynamodb"
+	"github.com/mafengwo/confd/backends/env"
+	"github.com/mafengwo/confd/backends/etcd"
+	"github.com/mafengwo/confd/backends/rancher"
+	"github.com/mafengwo/confd/backends/redis"
+	"github.com/mafengwo/confd/backends/stackengine"
+	"github.com/mafengwo/confd/backends/vault"
+	"github.com/mafengwo/confd/backends/zookeeper"
+	"github.com/mafengwo/confd/log"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve

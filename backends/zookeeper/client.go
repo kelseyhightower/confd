@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mfengwo/confd/log"
+	"github.com/mafengwo/confd/log"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
 

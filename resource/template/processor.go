@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mfengwo/confd/log"
+	"github.com/mafengwo/confd/log"
 )
 
 type Processor interface {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/mfengwo/confd/log"
+	log "github.com/mafengwo/confd/log"
 )
 
 const (

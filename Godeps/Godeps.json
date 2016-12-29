@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/mfengwo/confd",
+	"ImportPath": "github.com/mafengwo/confd",
 	"GoVersion": "go1.6",
 	"Packages": [
 		"backends/.."

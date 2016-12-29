@@ -11,7 +11,7 @@ import (
 	"path"
 
 	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/mfengwo/confd/log"
+	"github.com/mafengwo/confd/log"
 )
 
 // Client is a wrapper around the vault client
