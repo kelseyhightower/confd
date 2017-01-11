@@ -2,4 +2,4 @@
 
 echo "Building confd..."
 mkdir -p bin
-go build -o bin/confd .
+/usr/local/go/bin/go build -o bin/confd .

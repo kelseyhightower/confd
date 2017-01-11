@@ -232,7 +232,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
-		RedisConf:	    	
+		RedisConf:	   config.Redis,	  	
 	}
 	return nil
 }

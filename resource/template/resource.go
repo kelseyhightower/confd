@@ -17,7 +17,7 @@ import (
 	"github.com/mafengwo/confd/backends"
 	"github.com/mafengwo/confd/log"
 	"github.com/kelseyhightower/memkv"
-	"github.com/kelseyhightower/message"
+	"github.com/mafengwo/confd/message"
 )
 
 type Config struct {
