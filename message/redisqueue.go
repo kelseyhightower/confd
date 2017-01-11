@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"time"
+	"strconv"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/mafengwo/confd/log"
@@ -28,13 +29,13 @@ func SendMessage(redisconf, dest string) bool {
 		for i = 1; i <= 3; i++ {
 			RedisModel, err = newRedisClient(redisconf)
 			if err != nil {
-				log.Info("reconnected redis " + redisconf + " failed! " + string(i) + " times")	
+				log.Info("reconnected redis " + redisconf + " failed! " + strconv.Itoa(i) + " times")	
 				time.Sleep(1*time.Second)	
 			} else {
 				break
 			}
 		}
-		if i == 3 {
+		if i == 4 {
 			log.Info("reconnected redis " + redisconf + " all failed!")
 			return false
 		}
