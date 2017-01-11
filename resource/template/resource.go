@@ -224,7 +224,11 @@ func (t *TemplateResource) sync() error {
 		}
 		log.Info("Target config " + t.Dest + " has been updated")
 		if t.redisconf != "" {
-			message.SendMessage(t.redisconf, t.Dest)
+			if message.SendMessage(t.redisconf, t.Dest) {
+				log.Info("send message successful!")
+			} else {
+				log.Info("send message failed!")
+			}
 		}
 	} else {
 		log.Debug("Target config " + t.Dest + " in sync")

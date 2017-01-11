@@ -12,32 +12,47 @@ import (
 )
 
 //init redis client
-func newRedisClient(redisconf string) redis.Conn {
+func newRedisClient(redisconf string) (redis.Conn, error) {
 	RedisModel, err := redis.Dial("tcp", redisconf)
-	RedisModel.Do("select", "0")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	log.Info("connect redis " + redisconf + ":0")
-	return RedisModel
+	return RedisModel, err
 }
 
 //send message
-func SendMessage(redisconf, dest string) {
-	RedisModel := newRedisClient(redisconf)
+func SendMessage(redisconf, dest string) bool {
+	RedisModel, err := newRedisClient(redisconf)
+	if err != nil {
+		var i int
+		log.Info("connected redis " + redisconf + " failed!")
+		time.Sleep(1*time.Second)
+		//retry connect redis
+		for i = 1; i <= 3; i++ {
+			RedisModel, err = newRedisClient(redisconf)
+			if err != nil {
+				log.Info("reconnected redis " + redisconf + " failed! " + string(i) + " times")	
+				time.Sleep(1*time.Second)	
+			} else {
+				break
+			}
+		}
+		if i == 3 {
+			log.Info("reconnected redis " + redisconf + " all failed!")
+			return false
+		}
+	} 
+	log.Info("connected redis " + redisconf + " successful!")
 	defer RedisModel.Close()
-
 	key := "server_config_queue"
 	body := body(dest)
 	if body == "" {
 		log.Info("redis value is empty!")
 	}
 	//send message to redis
-	_, err := RedisModel.Do("lpush", key, body)
+	_, err = RedisModel.Do("lpush", key, body)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	log.Info("value is " + body)
+	return true
 }
 
 //json message
@@ -47,8 +62,7 @@ func body(dest string) string {
 
 	file, err := os.Open(dest)
     if err!= nil {
-     	log.Fatal(err.Error())
-        return ""
+    	log.Info("open dest file failed!")
     }
     defer file.Close()
     reader := bufio.NewReader(file)
@@ -64,8 +78,7 @@ func body(dest string) string {
     output["timestamp"] = time.Now().Unix()
     output_json, err := json.Marshal(output)
     if err != nil {
-    	log.Fatal(err.Error())
-    	return ""
+    	log.Info("json_encode failed!")
     }
     return string(output_json)
 }
