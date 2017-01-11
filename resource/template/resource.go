@@ -17,6 +17,7 @@ import (
 	"github.com/mafengwo/confd/backends"
 	"github.com/mafengwo/confd/log"
 	"github.com/kelseyhightower/memkv"
+	"github.com/kelseyhightower/message"
 )
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 	StoreClient   backends.StoreClient
 	SyncOnly      bool
 	TemplateDir   string
+	RedisConf	  string	
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -55,6 +57,7 @@ type TemplateResource struct {
 	store         memkv.Store
 	storeClient   backends.StoreClient
 	syncOnly      bool
+	redisconf     string
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -82,6 +85,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
+	tr.redisconf = config.RedisConf
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 
 	if config.Prefix != "" {
@@ -219,6 +223,9 @@ func (t *TemplateResource) sync() error {
 			}
 		}
 		log.Info("Target config " + t.Dest + " has been updated")
+		if t.redisconf != "" {
+			message.SendMessage(t.redisconf, t.Dest)
+		}
 	} else {
 		log.Debug("Target config " + t.Dest + " in sync")
 	}

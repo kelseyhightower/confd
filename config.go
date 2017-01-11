@@ -49,6 +49,7 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	redis			  string	
 )
 
 // A Config structure is used to configure confd.
@@ -76,6 +77,7 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
+	Redis        string   `toml:"redis"`
 }
 
 func init() {
@@ -106,6 +108,7 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&redis, "redisqueue", "", "redis to use")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -229,6 +232,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
+		RedisConf:	    	
 	}
 	return nil
 }
@@ -320,5 +324,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "redisqueue":
+		config.Redis = redis
 	}
 }
