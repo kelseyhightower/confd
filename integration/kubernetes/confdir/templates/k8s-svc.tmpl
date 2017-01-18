@@ -1,0 +1,14 @@
+--BEGIN-ALLIPS--
+# There should be two lines here
+{{ $port := getv "/endpoints/test-app/port/http" "this-should-be-8080" -}}
+{{ range getvs "/endpoints/test-app/allips/*" -}}
+host: {{ . }}:{{ $port }}
+{{ end -}}
+--END--
+
+--BEGIN-IPS--
+# There should be one line here because only one of the pods is ready
+{{ range getvs "/endpoints/test-app/ips/*" -}}
+host: {{ . }}:{{ $port }}
+{{- end }}
+--END--

@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: confd-test
+---
+# Create two pods manually, one listening so it will be ready, one not.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-app-ready
+  namespace: confd-test
+  labels:
+    app: test-app
+spec:
+  containers:
+    - image: alpine
+      name: test-app
+      command: ["nc", "-lk", "-p", "8080", "-v",  "-e", "date"]
+      readinessProbe:
+        tcpSocket:
+          port: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-app-notready
+  namespace: confd-test
+  labels:
+    app: test-app
+spec:
+  containers:
+    - image: alpine
+      name: test-app
+      # Use 'sh' as the command so that we can trap SIGINT and exit cleanly
+      command: ["sh", "-c", "trap 'exit 0' SIGTERM; while true; do sleep 0.5; done"]
+      readinessProbe:
+        tcpSocket:
+          port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app
+  namespace: confd-test
+spec:
+  selector:
+    app: test-app
+  ports:
+  - name: http
+    port: 8080
+
