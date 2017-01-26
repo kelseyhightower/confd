@@ -52,7 +52,11 @@ value. Ports with numbers only names are not present.
 	/endpoints/mysvc/ips/0: 172.17.0.6
 	/endpoints/mysvc/ips/1: 172.17.07
 
-— A set of keys under "allips" that combines ready and notready pods
+- A set of keys under "notreadyips" for each not-ready pod
+
+	/endpoints/mysvc/notreadyips/0: 172.17.0.5
+
+— A set of keys under "allips" that combines ready and not-ready pods
 
 	/endpoints/mysvc/allips/0: 172.17.0.6
 	/endpoints/mysvc/allips/1: 172.17.0.7
@@ -66,6 +70,7 @@ A complete listing of all the variables created in this example service are
 	/endpoints/mysvc/allips/0: 172.17.0.6
 	/endpoints/mysvc/allips/1: 172.17.0.7
 	/endpoints/mysvc/allips/2: 172.17.0.5
+	/endpoints/mysvc/notreadyips/0: 172.17.0.5
 
 */
 package kubernetes
@@ -220,6 +225,7 @@ func varsFromV1Endpoint(e v1.Endpoints) map[string]string {
 		}
 		for n, node := range subset.NotReadyAddresses {
 			addHostVars(n+len(subset.Addresses), "allips", node)
+			addHostVars(n, "notreadyips", node)
 		}
 	}
 	return vars
@@ -358,6 +364,7 @@ func (k *Client) WatchPrefix(prefix string, keys []string, lastIndex uint64, sto
 				// watch again
 				k.endpointResourceVersion = ""
 				if obj.Status == unversioned.StatusFailure && obj.Reason == unversioned.StatusReasonGone {
+					// This happens every so often and is not an error.
 					log.Info("Restarting watch after getting Gone reason: %s", obj.Message)
 					return lastIndex, nil
 				} else {
