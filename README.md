@@ -35,7 +35,11 @@ You should now have confd in your `bin/` directory:
 $ ls bin/
 confd
 ```
+## Starting
 
+```
+/usr/local/go/src/github.com/mafengwo/confd/bin/confd -backend etcd -interval 10 -node http://127.0.0.1:10001 -redisqueue 192.168.3.40:6379 &
+```
 ## Getting Started
 
 Before we begin be sure to [download and install confd](docs/installation.md).
