@@ -113,3 +113,28 @@ func recursiveFindFiles(root string, pattern string) ([]string, error) {
 		return files, err
 	}
 }
+
+// 比较两个没有重复元素slice是否相同
+func sameSlice(oneslice, otherslice []string) bool {
+	if len(oneslice) != len(otherslice) {
+		return false
+	}
+	for _, item := range oneslice {
+		if inSlice(item, otherslice) {
+			continue
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+// 判断一个元素是否在slice中
+func inSlice(needle string, haystack []string) bool {
+	for _, item := range haystack {
+		if item == needle {
+			return true
+		}
+	}
+	return false
+}

@@ -1,12 +1,16 @@
 package template
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/mafengwo/confd/log"
+	"github.com/mafengwo/confd/predo"
 )
+
+var configNamespace []string
 
 type Processor interface {
 	Process()
@@ -46,6 +50,7 @@ func IntervalProcessor(config Config, stopChan, doneChan chan bool, errChan chan
 func (p *intervalProcessor) Process() {
 	defer close(p.doneChan)
 	for {
+		p.PreHandle()
 		ts, err := getTemplateResources(p.config)
 		if err != nil {
 			log.Fatal(err.Error())
@@ -59,6 +64,26 @@ func (p *intervalProcessor) Process() {
 			continue
 		}
 	}
+}
+
+func (p *intervalProcessor) PreHandle() {
+	out, _ := p.config.StoreClient.GetValues([]string{"/registry/pods/"})
+	var namespace []string
+	for _, v := range out {
+		var ret map[string]interface{}
+		json.Unmarshal([]byte(v), &ret)
+		item, _ := ret["metadata"].(map[string]interface{})["namespace"]
+		namespace = append(namespace, item.(string))
+	}
+	namespace = predo.Rmduplicate(&namespace)
+	if !sameSlice(namespace, configNamespace) {
+		log.Info("namespace is not same. need to update!")
+		predo.MainProcess(p.config.ConfigDir, p.config.TemplateDir, namespace)
+	} else {
+		log.Info("namespace is same!")
+	}
+	configNamespace = []string{}
+	configNamespace = namespace
 }
 
 type watchProcessor struct {
