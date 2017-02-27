@@ -21,7 +21,7 @@ func NewFileClient(filepath string) (*Client, error) {
 	return &Client{filepath}, nil
 }
 
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	yamlMap := make(map[interface{}]interface{})
 	vars := make(map[string]string)
 
