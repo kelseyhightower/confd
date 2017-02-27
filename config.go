@@ -37,6 +37,7 @@ var (
 	onetime           bool
 	prefix            string
 	printVersion      bool
+	secretKeyring     string
 	scheme            string
 	srvDomain         string
 	srvRecord         string
@@ -64,6 +65,7 @@ type Config struct {
 	ClientKey    string   `toml:"client_key"`
 	ConfDir      string   `toml:"confdir"`
 	Interval     int      `toml:"interval"`
+	SecretKeyring string   `toml:"secret_keyring"`
 	Noop         bool     `toml:"noop"`
 	Password     string   `toml:"password"`
 	Prefix       string   `toml:"prefix"`
@@ -78,6 +80,7 @@ type Config struct {
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
 	YAMLFile     string   `toml:"file"`
+	PGPPrivateKey []byte
 }
 
 func init() {
@@ -99,6 +102,8 @@ func init() {
 	flag.StringVar(&prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
+	flag.StringVar(&secretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
+	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
@@ -150,6 +155,17 @@ func initConfig() error {
 
 	// Update config from commandline flags.
 	processFlags()
+	if config.SecretKeyring != "" {
+		kr, err := os.Open(config.SecretKeyring)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer kr.Close()
+		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
 
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
@@ -235,6 +251,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
+		PGPPrivateKey: config.PGPPrivateKey,
 	}
 	return nil
 }
@@ -308,6 +325,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Prefix = prefix
 	case "scheme":
 		config.Scheme = scheme
+	case "secret-keyring":
+		config.SecretKeyring = secretKeyring
 	case "srv-domain":
 		config.SRVDomain = srvDomain
 	case "srv-record":
