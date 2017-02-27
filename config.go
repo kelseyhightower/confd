@@ -45,6 +45,7 @@ var (
 	storageAccount    string
 	syncOnly          bool
 	table             string
+	endpoint          string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	username          string
@@ -78,6 +79,7 @@ type Config struct {
 	StorageAccount string   `toml:"storage_account"`
 	SyncOnly     bool     `toml:"sync-only"`
 	Table        string   `toml:"table"`
+	Endpoint     string   `toml:"endpoint"`
 	Username     string   `toml:"username"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
@@ -117,6 +119,7 @@ func init() {
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
 	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
+	flag.StringVar(&endpoint, "endpoint", "", "override auto-resolved DynamoDB endpoint (E.g. http://localhost:8000) (only used with -backend=dynamodb)")
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
@@ -258,6 +261,7 @@ func initConfig() error {
 		Scheme:       config.Scheme,
 		StorageAccount: config.StorageAccount,
 		Table:        config.Table,
+		Endpoint:     config.Endpoint,
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
@@ -361,6 +365,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SyncOnly = syncOnly
 	case "table":
 		config.Table = table
+	case "endpoint":
+		config.Endpoint = endpoint
 	case "username":
 		config.Username = username
 	case "log-level":
