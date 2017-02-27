@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/kelseyhightower/confd/backends/azuretablestorage"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
@@ -39,6 +40,8 @@ func New(config Config) (StoreClient, error) {
 	}
 
 	switch config.Backend {
+	case "azuretablestorage":
+		return azuretablestorage.NewAzureTableStorageClient(config.Table, config.StorageAccount, config.ClientKey)
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
