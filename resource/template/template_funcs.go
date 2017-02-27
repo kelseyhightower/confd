@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mattn/go-shellwords"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"sort"
 	"strings"
@@ -60,6 +62,7 @@ func newFuncMap() map[string]interface{} {
 	m["reverse"] = Reverse
 	m["sortByLength"] = SortByLength
 	m["sortKVByLength"] = SortKVByLength
+	m["system"] = System
 	return m
 }
 
@@ -206,4 +209,29 @@ func LookupSRV(service, proto, name string) []*net.SRV {
 	}
 	sort.Sort(sortSRV(addrs))
 	return addrs
+}
+
+func System(line string) string {
+	cmd, err := shellwords.Parse(line)
+
+	if err != nil {
+		return ""
+	}
+
+	var out []byte
+
+	switch len(cmd) {
+	case 0:
+		out = []byte{}
+	case 1:
+		out, err = exec.Command(cmd[0]).Output()
+	default:
+		out, err = exec.Command(cmd[0], cmd[1:]...).Output()
+	}
+
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimRight(string(out), "\n")
 }
