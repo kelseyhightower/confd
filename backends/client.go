@@ -10,6 +10,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
+	"github.com/kelseyhightower/confd/backends/fallback"
 	"github.com/kelseyhightower/confd/backends/file"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
@@ -32,11 +33,28 @@ func New(config Config) (StoreClient, error) {
 		config.Backend = "etcd"
 	}
 	backendNodes := config.BackendNodes
-
 	if config.Backend == "file" {
 		log.Info("Backend source(s) set to " + config.YAMLFile)
 	} else {
 		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
+	}
+
+	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
+	if config.BackendFallback != "" {
+		mainConfig := config
+		fallbackConfig := config
+		mainConfig.BackendFallback = ""
+		fallbackConfig.Backend = config.BackendFallback
+		fallbackConfig.BackendFallback = ""
+		backendMain, err := New(mainConfig)
+		if err != nil {
+			return nil, err
+		}
+		backendFallback, err := New(fallbackConfig)
+		if err != nil {
+			return nil, err
+		}
+		return fallback.NewFallbackClient(backendMain, backendFallback)
 	}
 
 	switch config.Backend {
