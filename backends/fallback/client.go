@@ -3,7 +3,7 @@ package fallback
 import (
 	"fmt"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/frostyslav/confd/log"
 )
 
 type StoreClient interface {

@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
+	"github.com/frostyslav/confd/backends"
+	"github.com/frostyslav/confd/log"
+	"github.com/frostyslav/confd/resource/template"
 )
 
 var (

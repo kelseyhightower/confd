@@ -5,7 +5,7 @@ In order to cut a new release, a few things must be done:
 1. auto-generate the CHANGELOG using the provided script
 2. bump version.go and docs/installation.md to the new release
 3. push a tag for the new release
-4. draft a [new release](https://github.com/kelseyhightower/confd/releases/new)
+4. draft a [new release](https://github.com/frostyslav/confd/releases/new)
 5. bump version.go to the next release, appending `-dev`
 
 For the former, you can use the following script:

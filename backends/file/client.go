@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/frostyslav/confd/log"
 	"gopkg.in/yaml.v2"
 )
 
