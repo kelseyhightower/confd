@@ -1,8 +1,15 @@
 {
 	"ImportPath": "github.com/kelseyhightower/confd",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
+	"Packages": [
+		"backends/.."
+	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/Azure/azure-sdk-for-go/storage",
+			"Comment": "v2.1.1-beta-8-gca4d906",
+			"Rev": "ca4d906d1c0973ae3022588df7dfa13d53b5b476"
+		},
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-25-g312db06",
