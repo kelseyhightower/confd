@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/kelseyhightower/memkv"
 )
 
 // loop take the number of elements to generate as well as the starting element. So loop(3, 5) will generate [5,6,7]
@@ -54,6 +56,9 @@ func newFuncMap() map[string]interface{} {
 	m["modBool"] = func(a, b int) bool { return a%b == 0 }
 	m["loop"] = loop
 	m["loop1to"] = func(n int) []int { return loop(n, 1) }
+	m["reverse"] = Reverse
+	m["sortByLength"] = SortByLength
+	m["sortKVByLength"] = SortKVByLength
 	return m
 }
 
@@ -61,6 +66,60 @@ func addFuncs(out, in map[string]interface{}) {
 	for name, fn := range in {
 		out[name] = fn
 	}
+}
+
+type byLengthKV []memkv.KVPair
+
+func (s byLengthKV) Len() int {
+	return len(s)
+}
+
+func (s byLengthKV) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s byLengthKV) Less(i, j int) bool {
+	return len(s[i].Key) < len(s[j].Key)
+}
+
+func SortKVByLength(values []memkv.KVPair) []memkv.KVPair {
+	sort.Sort(byLengthKV(values))
+	return values
+}
+
+type byLength []string
+
+func (s byLength) Len() int {
+	return len(s)
+}
+func (s byLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byLength) Less(i, j int) bool {
+	return len(s[i]) < len(s[j])
+}
+
+func SortByLength(values []string) []string {
+	sort.Sort(byLength(values))
+	return values
+}
+
+//Reverse returns the array in reversed order
+//works with []string and []KVPair
+func Reverse(values interface{}) interface{} {
+	switch values.(type) {
+	case []string:
+		v := values.([]string)
+		for left, right := 0, len(v)-1; left < right; left, right = left+1, right-1 {
+			v[left], v[right] = v[right], v[left]
+		}
+	case []memkv.KVPair:
+		v := values.([]memkv.KVPair)
+		for left, right := 0, len(v)-1; left < right; left, right = left+1, right-1 {
+			v[left], v[right] = v[right], v[left]
+		}
+	}
+	return values
 }
 
 // Getenv retrieves the value of the environment variable named by the key.
