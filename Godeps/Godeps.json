@@ -365,6 +365,11 @@
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
 			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-shellwords",
+			"Comment": "v1.0.0-1-g525bede",
+			"Rev": "525bedee691b5a8df547cb5cf9f86b7fb1883e24"
 		}
 	]
 }
