@@ -5,11 +5,12 @@ type Config struct {
 	AuthType        string
 	Backend         string
 	BackendFallback string
+	BackendNodes    []string
 	BasicAuth       bool
 	ClientCaKeys    string
 	ClientCert      string
 	ClientKey       string
-	BackendNodes    []string
+	Endpoint        string
 	Password        string
 	Scheme          string
 	StorageAccount  string

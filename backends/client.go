@@ -93,9 +93,9 @@ func New(config Config) (StoreClient, error) {
 		}
 		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
 	case "dynamodb":
-		table := config.Table
-		log.Info("DynamoDB table set to " + table)
-		return dynamodb.NewDynamoDBClient(table)
+		log.Info("DynamoDB table set to " + config.Table)
+		log.Info("DynamoDB endpoint set to " + config.Endpoint)
+		return dynamodb.NewDynamoDBClient(config.Table, config.Endpoint)
 	case "stackengine":
 		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
 	}
