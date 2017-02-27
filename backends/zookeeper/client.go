@@ -56,7 +56,7 @@ func nodeWalk(prefix string, c *Client, vars map[string]string) error {
 	return nil
 }
 
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, v := range keys {
 		v = strings.Replace(v, "/*", "", -1)
@@ -115,7 +115,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}
 
 	// List the childrens first
-	entries, err := c.GetValues([]string{prefix})
+	entries, err := c.GetValues([]string{prefix}, "")
 	if err != nil {
 		return 0, err
 	}

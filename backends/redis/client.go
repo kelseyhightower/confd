@@ -86,7 +86,7 @@ func NewRedisClient(machines []string, password string) (*Client, error) {
 }
 
 // GetValues queries redis for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	// Ensure we have a connected redis client
 	rClient, err := c.connectedClient()
 	if err != nil && err != redis.ErrNil {
