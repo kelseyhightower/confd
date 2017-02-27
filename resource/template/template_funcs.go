@@ -45,6 +45,7 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["trimSuffix"] = strings.TrimSuffix
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
