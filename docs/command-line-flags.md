@@ -28,6 +28,8 @@ Usage of confd:
       confd conf directory (default "/etc/confd")
   -config-file string
       the confd config file
+  -env-sep string
+      the char that backend 'env' will replace for slashes ('/') (default "_")
   -interval int
       backend polling interval (default 600)
   -keep-stage-file

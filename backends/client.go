@@ -46,7 +46,7 @@ func New(config Config) (StoreClient, error) {
 	case "redis":
 		return redis.NewRedisClient(backendNodes, config.ClientKey)
 	case "env":
-		return env.NewEnvClient()
+		return env.NewEnvClient(config.EnvSep)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,
