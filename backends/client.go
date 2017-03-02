@@ -4,16 +4,19 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/dynamodb"
-	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcd"
-	"github.com/kelseyhightower/confd/backends/rancher"
-	"github.com/kelseyhightower/confd/backends/redis"
-	"github.com/kelseyhightower/confd/backends/stackengine"
-	"github.com/kelseyhightower/confd/backends/vault"
-	"github.com/kelseyhightower/confd/backends/zookeeper"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/bacongobbler/confd/backends/consul"
+	"github.com/bacongobbler/confd/backends/dynamodb"
+	"github.com/bacongobbler/confd/backends/env"
+	"github.com/bacongobbler/confd/backends/etcd"
+	"github.com/bacongobbler/confd/backends/etcdv3"
+	"github.com/bacongobbler/confd/backends/file"
+	"github.com/bacongobbler/confd/backends/metad"
+	"github.com/bacongobbler/confd/backends/rancher"
+	"github.com/bacongobbler/confd/backends/redis"
+	"github.com/bacongobbler/confd/backends/stackengine"
+	"github.com/bacongobbler/confd/backends/vault"
+	"github.com/bacongobbler/confd/backends/zookeeper"
+	"github.com/bacongobbler/confd/log"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve
@@ -29,7 +32,13 @@ func New(config Config) (StoreClient, error) {
 		config.Backend = "etcd"
 	}
 	backendNodes := config.BackendNodes
-	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
+
+	if config.Backend == "file" {
+		log.Info("Backend source(s) set to " + config.YAMLFile)
+	} else {
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
+	}
+
 	switch config.Backend {
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
@@ -39,6 +48,8 @@ func New(config Config) (StoreClient, error) {
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
 		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
+	case "etcdv3":
+		return etcdv3.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
 	case "zookeeper":
 		return zookeeper.NewZookeeperClient(backendNodes)
 	case "rancher":
@@ -47,6 +58,8 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes, config.ClientKey)
 	case "env":
 		return env.NewEnvClient(config.EnvSep)
+	case "file":
+		return file.NewFileClient(config.YAMLFile)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,
@@ -65,6 +78,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "stackengine":
 		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
+	case "metad":
+		return metad.NewMetadClient(backendNodes[0])
 	}
 	return nil, errors.New("Invalid backend")
 }

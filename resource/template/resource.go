@@ -14,8 +14,8 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/bacongobbler/confd/backends"
+	"github.com/bacongobbler/confd/log"
 	"github.com/kelseyhightower/memkv"
 )
 
@@ -87,7 +87,10 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.Prefix != "" {
 		tr.Prefix = config.Prefix
 	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
+
+	if !strings.HasPrefix(tr.Prefix, "/") {
+		tr.Prefix = "/" + tr.Prefix
+	}
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -119,7 +122,7 @@ func (t *TemplateResource) setVars() error {
 	t.store.Purge()
 
 	for k, v := range result {
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
+		t.store.Set(path.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
 }
@@ -136,7 +139,8 @@ func (t *TemplateResource) createStageFile() error {
 	}
 
 	log.Debug("Compiling source template " + t.Src)
-	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
+
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}

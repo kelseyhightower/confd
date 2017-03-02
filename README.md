@@ -1,6 +1,6 @@
 # confd
 
-[![Build Status](https://travis-ci.org/kelseyhightower/confd.svg?branch=master)](https://travis-ci.org/kelseyhightower/confd)
+[![Build Status](https://travis-ci.org/bacongobbler/confd.svg?branch=master)](https://travis-ci.org/bacongobbler/confd)
 
 `confd` is a lightweight configuration management tool focused on:
 
@@ -20,9 +20,9 @@
 Go 1.6 is required to build confd, which uses the new vendor directory.
 
 ```
-$ mkdir -p $GOPATH/src/github.com/kelseyhightower
-$ git clone https://github.com/kelseyhightower/confd.git $GOPATH/src/github.com/kelseyhightower/confd
-$ cd $GOPATH/src/github.com/kelseyhightower/confd
+$ mkdir -p $GOPATH/src/github.com/bacongobbler
+$ git clone https://github.com/bacongobbler/confd.git $GOPATH/src/github.com/bacongobbler/confd
+$ cd $GOPATH/src/github.com/bacongobbler/confd
 $ ./build
 ```
 
