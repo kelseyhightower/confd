@@ -17,8 +17,8 @@ import (
  *
  * 命令规范:
  * namespace - es-XXX-data, es-XXX-master, redis, memcached. (注：es-XXX-data和es-XXX-master只需生成一对配置文件和模版文件)(服务-业务-data || 服务-业务-master)
- * 标准配置文件 - es-tomlx, redis.tomlx
- * 标准模版文件 - es-tmplx, redis.tmplx
+ * 标准配置文件 - es.tomlx, redis.tomlx(命名空间的替换词为 __NS__)
+ * 标准模版文件 - es.tmplx, redis.tmplx(命名空间的替换词为 __NS__)
  * 配置文件 - es-XXX.toml
  * 模版文件 - es-XXX-tmpl
  */
