@@ -2,10 +2,11 @@ package template
 
 import (
 	"fmt"
+	"github.com/kelseyhightower/confd/log"
+	"os"
+	"strings"
 	"sync"
 	"time"
-
-	"github.com/kelseyhightower/confd/log"
 )
 
 type Processor interface {
@@ -51,7 +52,19 @@ func (p *intervalProcessor) Process() {
 			log.Fatal(err.Error())
 			break
 		}
-		process(ts)
+
+		// deal the error
+		er := process(ts)
+		fileName := []string{p.config.ConfigDir, "/errlog.log"}
+		errLog := strings.Join(fileName, "")
+		f, createErr := os.Create(errLog)
+		if createErr != nil {
+			log.Fatal(createErr.Error())
+			break
+		}
+		defer f.Close()
+		f.WriteString("Error time : ", time.Now().String()[:strings.LastIndex(time.Now().String(), "+")-11], "Error : ", er.Error())
+
 		select {
 		case <-p.stopChan:
 			break
