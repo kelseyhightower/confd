@@ -63,7 +63,7 @@ func (p *intervalProcessor) Process() {
 			break
 		}
 		defer f.Close()
-		f.WriteString("Error time : ", time.Now().String()[:strings.LastIndex(time.Now().String(), "+")-11], "Error : ", er.Error())
+		f.WriteString("Error time : ", time.Now().String()[:strings.LastIndex(time.Now().String(), "+")-11], "Error : ", er.Error(), "\n")
 
 		select {
 		case <-p.stopChan:
