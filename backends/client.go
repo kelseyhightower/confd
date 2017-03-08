@@ -8,6 +8,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
+	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/stackengine"
@@ -39,6 +40,8 @@ func New(config Config) (StoreClient, error) {
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
 		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
+	case "etcdv3":
+		return etcdv3.NewEtcdClientv3(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
 	case "zookeeper":
 		return zookeeper.NewZookeeperClient(backendNodes)
 	case "rancher":

@@ -7,6 +7,7 @@ Before we begin be sure to [download and install confd](installation.md).
 confd supports the following backends:
 
 * etcd
+* etcdv3
 * consul
 * vault
 * environment variables
@@ -25,6 +26,14 @@ This guide assumes you have a working [etcd](https://github.com/coreos/etcd#gett
 ```
 etcdctl set /myapp/database/url db.example.com
 etcdctl set /myapp/database/user rob
+```
+
+#### etcdv3
+
+```
+export ETCDCTL_API=3
+etcdctl put /myapp/database/url db.example.com
+etcdctl put /myapp/database/user rob
 ```
 
 #### consul
