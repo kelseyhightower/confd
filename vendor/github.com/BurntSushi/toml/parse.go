@@ -81,7 +81,7 @@ func (p *parser) next() item {
 }
 
 func (p *parser) bug(format string, v ...interface{}) {
-	log.Panicf("BUG: %s\n\n", fmt.Sprintf(format, v...))
+	log.Fatalf("BUG: %s\n\n", fmt.Sprintf(format, v...))
 }
 
 func (p *parser) expect(typ itemType) item {

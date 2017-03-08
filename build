@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+GOPATH=$(pwd)
 echo "Building confd..."
 mkdir -p bin
 go build -o bin/confd .
