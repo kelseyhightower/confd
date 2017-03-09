@@ -159,7 +159,7 @@ func handleNamespace(dir, configSuffix, namespcae, standardFile, ext string) {
 
 // 替换变量 生成配置文件和模版文件
 func replace2File(tempFile, file, namespace string) error {
-	cmd := `sed "s/${NS}/` + namespace + `/g" ` + file + ` > ` + tempFile
+	cmd := `sed "s/\${NS}/` + namespace + `/g" ` + file + ` > ` + tempFile
 	_, err := run(cmd)
 	return err
 }
