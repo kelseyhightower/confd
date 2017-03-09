@@ -49,7 +49,7 @@ var (
 	watch             bool
 	appID             string
 	userID            string
-	redis			  string	
+	redis             string
 )
 
 // A Config structure is used to configure confd.
@@ -232,7 +232,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
-		RedisConf:	   config.Redis,	  	
+		RedisConf:     config.Redis,
 	}
 	return nil
 }
