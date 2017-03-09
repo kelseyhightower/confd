@@ -134,7 +134,7 @@ func handleNamespace(dir, configSuffix, namespcae, standardFile, ext string) {
 	configPath := filepath.Join(dir, namespcae+"-"+ext+configSuffix)
 	err = replace2File(tempConfigFile.Name(), defaultConfigPath, namespcae)
 	if err != nil {
-		log.Info("predo: replace2File error")
+		log.Info("predo: replace2File error(%s)", err.Error())
 		return
 	}
 	if !pathExists(configPath) {
