@@ -53,11 +53,11 @@ func MainProcess(configDir, templateDir string, namespcae []string) {
 
 	_, err := toml.DecodeFile(filepath.Join(configDir, "batch.ini"), &config)
 	if err != nil {
-		log.Info("predo: 解析batch.ini文件出错 error= %s", err.Error())
+		log.Info("predo: parse batch.ini faild error= %s", err.Error())
 	}
 	//进行验证 要保证tompx和tmplx是成对出现的
 	if len(config.Ini.Tmplx) != len(config.Ini.Tomlx) || len(config.Nginx.Tmplx) != len(config.Nginx.Tomlx) {
-		log.Info("predo: batch.ini 配置文件出问题了 toplx和tmplx没有成对出现")
+		log.Info("predo: batch.ini toplx and tmplx number is wrong! ")
 		return
 	}
 	//处理Ini模块
@@ -67,9 +67,9 @@ func MainProcess(configDir, templateDir string, namespcae []string) {
 		for _, item := range newNamespace {
 			if check(configDir, templateDir, tomlxFile, tmplxFile, item) {
 				//处理配置文件
-				handleNamespace(configDir, ".toml", item, tomlxFile)
+				handleNamespace(configDir, ".toml", item, tomlxFile, "ini")
 				//处理模版文件
-				handleNamespace(templateDir, ".tmpl", item, tmplxFile)
+				handleNamespace(templateDir, ".tmpl", item, tmplxFile, "ini")
 			}
 		}
 	}
@@ -80,9 +80,9 @@ func MainProcess(configDir, templateDir string, namespcae []string) {
 		for _, item := range newNamespace {
 			if check(configDir, templateDir, tomlxFile, tmplxFile, item) {
 				//处理配置文件
-				handleNamespace(configDir, ".toml", item, tomlxFile)
+				handleNamespace(configDir, ".toml", item, tomlxFile, "nginx")
 				//处理模版文件
-				handleNamespace(templateDir, ".tmpl", item, tmplxFile)
+				handleNamespace(templateDir, ".tmpl", item, tmplxFile, "nginx")
 			}
 		}
 	}
@@ -94,7 +94,7 @@ func check(configDir, templateDir, tomlxFile, tmplxFile, namespace string) bool 
 	tomlxPath := filepath.Join(configDir, tomlxFile)
 	tmplxPath := filepath.Join(templateDir, tmplxFile)
 	if !pathExists(tomlxPath) || !pathExists(tmplxPath) {
-		log.Info("predo: 标准配置文件不存在 tomlxPath=%s, tmplxPath=%s, namespace=%s", tomlxPath, tmplxPath, namespace)
+		log.Info("predo: not Exists tomlxPath=%s, tmplxPath=%s, namespace=%s", tomlxPath, tmplxPath, namespace)
 		return false
 	}
 
@@ -122,7 +122,7 @@ func isExists(configDir, templateDir, namespcae string) bool {
 }
 
 // 用namespace替换变量生成一对临时的配置文件和模版文件，判断是否一样。如果不一样，替换成新的配置文件和模版文件
-func handleNamespace(dir, configSuffix, namespcae, standardFile string) {
+func handleNamespace(dir, configSuffix, namespcae, standardFile, ext string) {
 	tempConfigFile, err := ioutil.TempFile(dir, "temp")
 	if err != nil {
 		log.Info("predo: create temp config(%s) faild ", namespcae)
@@ -131,7 +131,7 @@ func handleNamespace(dir, configSuffix, namespcae, standardFile string) {
 	defer os.Remove(tempConfigFile.Name())
 
 	defaultConfigPath := filepath.Join(dir, standardFile)
-	configPath := filepath.Join(dir, namespcae+configSuffix)
+	configPath := filepath.Join(dir, namespcae+"-"+ext+configSuffix)
 	err = replace2File(tempConfigFile.Name(), defaultConfigPath, namespcae)
 	if err != nil {
 		log.Info("predo: replace2File error")
@@ -159,7 +159,7 @@ func handleNamespace(dir, configSuffix, namespcae, standardFile string) {
 
 // 替换变量 生成配置文件和模版文件
 func replace2File(tempFile, file, namespace string) error {
-	cmd := `sed "s/__NS__/` + namespace + `/g" ` + file + ` > ` + tempFile
+	cmd := `sed "s/${NS}/` + namespace + `/g" ` + file + ` > ` + tempFile
 	_, err := run(cmd)
 	return err
 }
