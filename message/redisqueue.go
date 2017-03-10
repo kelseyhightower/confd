@@ -50,7 +50,7 @@ func SendMessage(redisconf, dest string) bool {
 	//send message to redis
 	_, err = RedisModel.Do("lpush", key, body)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error("lpush failed reason=%s", err.Error())
 	}
 	log.Info("value is " + body)
 	return true
