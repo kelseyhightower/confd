@@ -34,7 +34,7 @@ curl -X PUT -d 'db.example.com' http://localhost:8500/v1/kv/myapp/database/url
 curl -X PUT -d 'rob' http://localhost:8500/v1/kv/myapp/database/user
 ```
 
-####vault
+#### vault
 ```
 vault mount -path myapp generic
 vault write myapp/database url=db.example.com user=rob
