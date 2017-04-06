@@ -191,7 +191,6 @@ func initConfig() error {
 		unsupportedBackends := map[string]bool{
 			"redis":    true,
 			"dynamodb": true,
-			"rancher":  true,
 		}
 
 		if unsupportedBackends[config.Backend] {
