@@ -1,0 +1,5 @@
+confd (0.7.0~beta1) unstable; urgency=medium
+
+  * Initial packaging.
+
+ -- Tristan Colgate-McFarlane  <tcolgate@gmail.com>  Thu, 27 Oct 2014 10:39:42 +0000

@@ -1,0 +1,13 @@
+Source: confd
+Section: utils
+Priority: extra
+Maintainer: Tristan Colgate-McFarlane <tcolgate@gmail.com>
+Build-Depends: debhelper (>= 7), go, git, ca-certificates, mercurial
+Standards-Version: 3.8.3
+
+Package: confd
+Architecture: amd64
+Depends: libc6
+Description: confd configuration manager
+  confd is a template driven configuration management tool
+

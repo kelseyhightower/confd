@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+#
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# Go binaries cannot be stripped
+.PHONY: override_dh_strip
+override_dh_strip:
+
+%:
+	dh $@
+
