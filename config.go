@@ -50,6 +50,7 @@ var (
 	appID             string
 	userID            string
 	yamlFile          string
+	kubeconfig        string
 )
 
 // A Config structure is used to configure confd.
@@ -78,6 +79,7 @@ type Config struct {
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
 	YAMLFile     string   `toml:"file"`
+	KubeConfig   string   `toml:"kubeconfig"`
 }
 
 func init() {
@@ -109,6 +111,7 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&kubeconfig, "kubeconfig", "", "Kubernetes kubeconfig file path")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -197,6 +200,7 @@ func initConfig() error {
 			"redis":    true,
 			"dynamodb": true,
 			"rancher":  true,
+			"k8s":  true,
 		}
 
 		if unsupportedBackends[config.Backend] {
@@ -225,6 +229,7 @@ func initConfig() error {
 		AppID:        config.AppID,
 		UserID:       config.UserID,
 		YAMLFile:     config.YAMLFile,
+		Kubeconfig:   config.KubeConfig,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -328,5 +333,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.UserID = userID
 	case "file":
 		config.YAMLFile = yamlFile
+	case "kubeconfig":
+		config.KubeConfig = kubeconfig
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
+	"github.com/kelseyhightower/confd/backends/k8s"
 	"github.com/kelseyhightower/confd/backends/metad"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
@@ -80,6 +81,9 @@ func New(config Config) (StoreClient, error) {
 		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
 	case "metad":
 		return metad.NewMetadClient(backendNodes[0])
+	case "k8s":
+		log.Info("Backend set to k8s")
+		return k8s.NewK8sClient(config.Kubeconfig)
 	}
 	return nil, errors.New("Invalid backend")
 }
