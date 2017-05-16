@@ -1,0 +1,148 @@
+package: github.com/kelseyhightower/confd
+import:
+- package: github.com/BurntSushi/toml
+  version: 312db06c6c6dbfa9899e58564bacfaa584f18ab7
+- package: github.com/Sirupsen/logrus
+  version: 3455d89ac9652295c85db2a98ea32f1d61c380bc
+- package: github.com/aws/aws-sdk-go
+  version: 2a34ea8812f32aae75b43400f9424a0559840659
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/request
+  - aws/session
+  - private/endpoints
+  - private/protocol/json/jsonutil
+  - private/protocol/jsonrpc
+  - private/protocol/rest
+  - private/signer/v4
+  - private/waiter
+  - service/dynamodb
+- package: github.com/cloudfoundry-incubator/candiedyaml
+  version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
+- package: github.com/coreos/etcd
+  version: c349e089b168e28629d0db6ac2819000abbaf6a7
+  subpackages:
+  - auth/authpb
+  - client
+  - clientv3
+  - etcdserver/api/v3rpc/rpctypes
+  - etcdserver/etcdserverpb
+  - mvcc/mvccpb
+  - pkg/pathutil
+  - pkg/tlsutil
+  - pkg/types
+- package: github.com/fatih/structs
+  version: a924a2250d1033753512e95dce41dca3fd793ad9
+- package: github.com/fsnotify/fsnotify
+  version: 9297c46340639aebbb6820f260c699465528fb60
+- package: github.com/garyburd/redigo
+  version: 836b6e58b3358112c8291565d01c35b8764070d7
+  subpackages:
+  - internal
+  - redis
+- package: github.com/ghodss/yaml
+  version: aa0c862057666179de291b67d9f093d12b5a8473
+- package: github.com/go-ini/ini
+  version: 193d1ecb466bf97aae8b454a5cfc192941c64809
+- package: github.com/golang/protobuf
+  version: c3cefd437628a0b7d31b34fe44b3a7a540e98527
+  subpackages:
+  - jsonpb
+  - proto
+- package: github.com/grpc-ecosystem/grpc-gateway
+  version: c8ec92d0481dd77d9b8c1808eb6476d190aa039a
+  subpackages:
+  - runtime
+  - runtime/internal
+  - utilities
+- package: github.com/hashicorp/consul
+  version: 09e60af97c5512ed57980931b314658611254ce0
+  subpackages:
+  - api
+- package: github.com/hashicorp/go-cleanhttp
+  version: 875fb671b3ddc66f8e2f0acc33829c8cb989a38d
+- package: github.com/hashicorp/hcl
+  version: 1c284ec98f4b398443cbabb0d9197f7f4cc0077c
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
+- package: github.com/hashicorp/serf
+  version: c4c55f16bae1aed9b355ad655d3ebf0215734461
+  subpackages:
+  - coordinate
+- package: github.com/hashicorp/vault
+  version: 35d2976caefdd7b3a26c4d8720880d8344fd60c6
+  subpackages:
+  - api
+- package: github.com/jmespath/go-jmespath
+  version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
+- package: github.com/kelseyhightower/memkv
+  version: 71620c547230ad53777a00e2ebd3bbab8353370e
+- package: github.com/mitchellh/mapstructure
+  version: d2dd0262208475919e1a362f675cfc0e7c10e905
+- package: github.com/samuel/go-zookeeper
+  version: 218e9c81c0dd8b3b18172b2bbfad92cc7d6db55f
+  subpackages:
+  - zk
+- package: github.com/ugorji/go
+  version: 3487a5545b3d480987dfb0492035299077fab33a
+  subpackages:
+  - codec
+- package: golang.org/x/net
+  version: 6a513affb38dc9788b449d59ffed099b8de18fa0
+  subpackages:
+  - context
+  - http2
+  - http2/hpack
+  - internal/timeseries
+  - lex/httplex
+  - trace
+- package: golang.org/x/sys
+  version: 20457ee8ea8546920d3f4e19e405da45250dc5a5
+  subpackages:
+  - unix
+- package: google.golang.org/grpc
+  version: 711a24cde281460b847b211686c2e4e8f4671131
+  subpackages:
+  - codes
+  - credentials
+  - grpclog
+  - internal
+  - metadata
+  - naming
+  - peer
+  - transport
+- package: gopkg.in/yaml.v2
+  version: f7716cbe52baa25d2e9b0d0da546fcf909fc16b4
+- package: github.com/projectcalico/libcalico-go
+  subpackages:
+  - lib/backend/k8s/resources
+  - lib/backend/k8s/thirdparty
+  - lib/backend/model
+- package: k8s.io/client-go
+  subpackages:
+  - kubernetes
+  - pkg/api
+  - pkg/api/errors
+  - pkg/api/v1
+  - pkg/apis/meta/v1
+  - pkg/runtime
+  - pkg/runtime/schema
+  - pkg/runtime/serializer
+  - rest
+  - tools/clientcmd
