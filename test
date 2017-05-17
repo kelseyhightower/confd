@@ -2,3 +2,4 @@
 
 echo "Running tests..."
 go test
+go test ./resource/template
