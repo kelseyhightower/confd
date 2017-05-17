@@ -1,0 +1,8 @@
+{{if exists "key"}}
+    value: {{getv "key"}}
+{{end}}
+
+{{if exists "doesnotexist"}}
+    This line will not be printed
+    value: {{getv "key"}}
+{{end}}

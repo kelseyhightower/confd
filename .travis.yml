@@ -36,6 +36,8 @@ before_install:
   - tar xzf zookeeper-3.4.8.tar.gz
   - mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-3.4.8/conf/zoo.cfg
   - zookeeper-3.4.8/bin/zkServer.sh start
+  # Run AWS SSM mocking server
+  - go run ./integration/ssm/main.go &
 install:
   - sudo pip install awscli
   - go get golang.org/x/tools/cmd/cover
@@ -51,3 +53,4 @@ script:
   - bash integration/vault/test.sh
   - bash integration/zookeeper/test.sh
   - bash integration/dynamodb/test.sh
+  - bash integration/ssm/test.sh

@@ -1,0 +1,11 @@
+[template]
+mode = "0644"
+src = "basic.conf.tmpl"
+dest = "/tmp/confd-basic-test.conf"
+separator = "."
+keys = [
+  "database.host",
+  "database.password",
+  "database.port",
+  "database.username",
+]
