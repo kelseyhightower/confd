@@ -1,7 +1,6 @@
 package ssm
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -52,12 +51,11 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	var err error
 	for _, key := range keys {
 		if isKeyValid(key) == true {
-			return vars, errors.New(fmt.Sprintf("Key=%s is invalid", key))
+			return vars, fmt.Errorf("Key=%s is invalid", key)
 		}
 		log.Debug("Processing key=%s", key)
 		var resp map[string]string
 		resp, err = c.getParametersWithPrefix(key)
-		log.Debug("getParametersWithPrefix response=%s", resp)
 		if err != nil {
 			return vars, err
 		}
@@ -65,11 +63,11 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			vars[k] = v
 		}
 	}
-	log.Debug("Result vars=%s", vars)
 	return vars, nil
 }
 
 func (c *Client) getParametersWithPrefix(prefix string) (map[string]string, error) {
+	var err error
 	parameters := make(map[string]string)
 	params := &ssm.DescribeParametersInput{
 		Filters: []*ssm.ParametersFilter{
@@ -82,16 +80,21 @@ func (c *Client) getParametersWithPrefix(prefix string) (map[string]string, erro
 		},
 		MaxResults: aws.Int64(50),
 	}
-	resp, err := c.client.DescribeParameters(params)
-	if err != nil {
-		return parameters, err
-	}
-	// if *resp.NextToken != "" {
-	// 	params.SetNextToken(*aws.String(*resp.NextToken))
-	// }
 	var names []string
-	for _, p := range resp.Parameters {
-		names = append(names, *p.Name)
+	resp := &ssm.DescribeParametersOutput{
+		NextToken: aws.String(""),
+	}
+	for resp.NextToken != nil {
+		resp, err = c.client.DescribeParameters(params)
+		if err != nil {
+			return parameters, err
+		}
+		if resp.NextToken != nil {
+			params.SetNextToken(*aws.String(*resp.NextToken))
+		}
+		for _, p := range resp.Parameters {
+			names = append(names, *p.Name)
+		}
 	}
 	parameters, err = c.getParametersValues(names)
 	return parameters, err
