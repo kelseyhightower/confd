@@ -1,0 +1,10 @@
+FROM golang:1.8
+
+ENV GOPATH /go
+
+RUN mkdir -p "$GOPATH/src/" "$GOPATH/bin" && chmod -R 777 "$GOPATH" && \
+    mkdir -p /go/src/github.com/kelseyhightower/confd
+
+RUN ln -s /go/src/github.com/kelseyhightower/confd /app
+
+WORKDIR /app
