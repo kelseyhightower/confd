@@ -5,6 +5,8 @@ ROOT_TOKEN=$(vault read -field id auth/token/lookup-self)
 vault mount -path database generic
 vault mount -path key generic
 vault mount -path upstream generic
+vault mount -path with_under_scores generic
+vault mount -path path_here generic
 
 vault write key value=foobar
 vault write database/host value=127.0.0.1
