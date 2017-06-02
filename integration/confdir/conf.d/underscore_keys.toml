@@ -1,0 +1,8 @@
+[template]
+mode = "0644"
+src = "underscore_keys.conf.tmpl"
+dest = "/tmp/confd-underscore_keys-test.conf"
+keys = [
+  "/with_under_scores",
+  "/path_here/with/under_scores",
+]

@@ -57,6 +57,13 @@ aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/prefix/upstream/app2" }, "value": {"S": "10.0.1.11:8080"}}' \
     --endpoint-url http://localhost:8000
 
+aws dynamodb put-item --table-name confd --region eu-west-1 \
+    --item '{ "key": { "S": "/with_under_scores" }, "value": {"S": "value_with_underscores"}}' \
+    --endpoint-url http://localhost:8000
+aws dynamodb put-item --table-name confd --region eu-west-1 \
+    --item '{ "key": { "S": "/path_here/with/under_scores" }, "value": {"S": "value_path_with_underscores"}}' \
+    --endpoint-url http://localhost:8000
+
 # Run confd, expect it to work
 confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend dynamodb --table confd
 if [ $? -ne 0 ]
