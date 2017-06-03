@@ -89,12 +89,11 @@ func (c *ConsulClient) WatchPrefix(prefix string, keys []string, waitIndex uint6
 		}
 		respChan <- watchResponse{meta.LastIndex, err}
 	}()
-	for {
-		select {
-		case <-stopChan:
-			return waitIndex, nil
-		case r := <-respChan:
-			return r.waitIndex, r.err
-		}
+
+	select {
+	case <-stopChan:
+		return waitIndex, nil
+	case r := <-respChan:
+		return r.waitIndex, r.err
 	}
 }
