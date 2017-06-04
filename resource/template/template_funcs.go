@@ -1,6 +1,7 @@
 package template
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,6 +31,8 @@ func newFuncMap() map[string]interface{} {
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
+	m["base64Encode"] = Base64Encode
+	m["base64Decode"] = Base64Decode
 	return m
 }
 
@@ -122,4 +125,13 @@ func LookupSRV(service, proto, name string) []*net.SRV {
 	}
 	sort.Sort(sortSRV(addrs))
 	return addrs
+}
+
+func Base64Encode(data string) string {
+	return base64.StdEncoding.EncodeToString([]byte(data))
+}
+
+func Base64Decode(data string) (string, error) {
+	s, err := base64.StdEncoding.DecodeString(data)
+	return string(s), err
 }

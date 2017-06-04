@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
+	"github.com/bacongobbler/confd/backends"
+	"github.com/bacongobbler/confd/log"
+	"github.com/bacongobbler/confd/resource/template"
 )
 
 var (
@@ -49,6 +49,8 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	envSep            string
+	yamlFile          string
 )
 
 // A Config structure is used to configure confd.
@@ -76,6 +78,8 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
+	EnvSep       string   `toml:"env_sep"`
+	YAMLFile     string   `toml:"file"`
 }
 
 func init() {
@@ -87,6 +91,7 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
+	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -102,6 +107,7 @@ func init() {
 	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
 	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
+	flag.StringVar(&envSep, "env-sep", "_", "the char that backend 'env' will replace for slashes ('/')")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
@@ -176,6 +182,8 @@ func initConfig() error {
 			} else {
 				config.BackendNodes = []string{"http://127.0.0.1:4001"}
 			}
+		case "etcdv3":
+			config.BackendNodes = []string{"127.0.0.1:2379"}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
 		case "vault":
@@ -219,6 +227,8 @@ func initConfig() error {
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
+		EnvSep:       config.EnvSep,
+		YAMLFile:     config.YAMLFile,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -320,5 +330,9 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "env-sep":
+		config.EnvSep = envSep
+	case "file":
+		config.YAMLFile = yamlFile
 	}
 }

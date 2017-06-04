@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kelseyhightower/confd/backends"
+	"github.com/bacongobbler/confd/backends"
 )
 
 const (
@@ -393,6 +393,50 @@ ip: 127.0.0.1
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", "parent")
 			tr.store.Set("/test/data/def", "child")
+		},
+	},
+	templateTest{
+		desc: "base64Encode test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data/",
+]
+`,
+		tmpl: `
+{{$data := base64Encode (getv "/test/data") }}
+key: {{$data}}
+`,
+		expected: `
+
+key: VmFsdWU=
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", `Value`)
+		},
+	},
+	templateTest{
+		desc: "base64Decode test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data/",
+]
+`,
+		tmpl: `
+{{$data := base64Decode (getv "/test/data") }}
+key: {{$data}}
+`,
+		expected: `
+
+key: Value
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", `VmFsdWU=`)
 		},
 	},
 }

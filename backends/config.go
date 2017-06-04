@@ -15,4 +15,6 @@ type Config struct {
 	Username     string
 	AppID        string
 	UserID       string
+	EnvSep       string
+	YAMLFile     string
 }
