@@ -4,13 +4,33 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mattn/go-shellwords"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/kelseyhightower/memkv"
 )
+
+// loop take the number of elements to generate as well as the starting element. So loop(3, 5) will generate [5,6,7]
+// It's helpful as it allow you to write templates like:
+// {{range $index, $val := loop1to 2}}
+// cpu-map {{ $val }} {{ $index }}
+// {{end}}
+// =>
+// cpu-map 1 0
+// cpu-map 2 1
+func loop(n, s int) (arr []int) {
+	arr = make([]int, n)
+	for i := 0; i < n; i++ {
+		arr[i] = i + s
+	}
+	return
+}
 
 func newFuncMap() map[string]interface{} {
 	m := make(map[string]interface{})
@@ -27,9 +47,22 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["trimSuffix"] = strings.TrimSuffix
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
+	m["add"] = func(a, b int) int { return a + b }
+	m["sub"] = func(a, b int) int { return a - b }
+	m["div"] = func(a, b int) int { return a / b }
+	m["mod"] = func(a, b int) int { return a % b }
+	m["mul"] = func(a, b int) int { return a * b }
+	m["modBool"] = func(a, b int) bool { return a%b == 0 }
+	m["loop"] = loop
+	m["loop1to"] = func(n int) []int { return loop(n, 1) }
+	m["reverse"] = Reverse
+	m["sortByLength"] = SortByLength
+	m["sortKVByLength"] = SortKVByLength
+	m["system"] = System
 	return m
 }
 
@@ -37,6 +70,60 @@ func addFuncs(out, in map[string]interface{}) {
 	for name, fn := range in {
 		out[name] = fn
 	}
+}
+
+type byLengthKV []memkv.KVPair
+
+func (s byLengthKV) Len() int {
+	return len(s)
+}
+
+func (s byLengthKV) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s byLengthKV) Less(i, j int) bool {
+	return len(s[i].Key) < len(s[j].Key)
+}
+
+func SortKVByLength(values []memkv.KVPair) []memkv.KVPair {
+	sort.Sort(byLengthKV(values))
+	return values
+}
+
+type byLength []string
+
+func (s byLength) Len() int {
+	return len(s)
+}
+func (s byLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byLength) Less(i, j int) bool {
+	return len(s[i]) < len(s[j])
+}
+
+func SortByLength(values []string) []string {
+	sort.Sort(byLength(values))
+	return values
+}
+
+//Reverse returns the array in reversed order
+//works with []string and []KVPair
+func Reverse(values interface{}) interface{} {
+	switch values.(type) {
+	case []string:
+		v := values.([]string)
+		for left, right := 0, len(v)-1; left < right; left, right = left+1, right-1 {
+			v[left], v[right] = v[right], v[left]
+		}
+	case []memkv.KVPair:
+		v := values.([]memkv.KVPair)
+		for left, right := 0, len(v)-1; left < right; left, right = left+1, right-1 {
+			v[left], v[right] = v[right], v[left]
+		}
+	}
+	return values
 }
 
 // Getenv retrieves the value of the environment variable named by the key.
@@ -122,4 +209,29 @@ func LookupSRV(service, proto, name string) []*net.SRV {
 	}
 	sort.Sort(sortSRV(addrs))
 	return addrs
+}
+
+func System(line string) string {
+	cmd, err := shellwords.Parse(line)
+
+	if err != nil {
+		return ""
+	}
+
+	var out []byte
+
+	switch len(cmd) {
+	case 0:
+		out = []byte{}
+	case 1:
+		out, err = exec.Command(cmd[0]).Output()
+	default:
+		out, err = exec.Command(cmd[0], cmd[1:]...).Output()
+	}
+
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimRight(string(out), "\n")
 }

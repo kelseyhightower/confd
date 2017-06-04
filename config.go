@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
+	"github.com/frostyslav/confd/backends"
+	"github.com/frostyslav/confd/log"
+	"github.com/frostyslav/confd/resource/template"
 )
 
 var (
@@ -23,6 +23,7 @@ var (
 	authToken         string
 	authType          string
 	backend           string
+        backendFallback   string
 	basicAuth         bool
 	clientCaKeys      string
 	clientCert        string
@@ -37,11 +38,14 @@ var (
 	onetime           bool
 	prefix            string
 	printVersion      bool
+	secretKeyring     string
 	scheme            string
 	srvDomain         string
 	srvRecord         string
+	storageAccount    string
 	syncOnly          bool
 	table             string
+	endpoint          string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	username          string
@@ -49,6 +53,7 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	yamlFile          string
 )
 
 // A Config structure is used to configure confd.
@@ -56,6 +61,7 @@ type Config struct {
 	AuthToken    string   `toml:"auth_token"`
 	AuthType     string   `toml:"auth_type"`
 	Backend      string   `toml:"backend"`
+	BackendFallback  string   `toml:"backend_fallback"`
 	BasicAuth    bool     `toml:"basic_auth"`
 	BackendNodes []string `toml:"nodes"`
 	ClientCaKeys string   `toml:"client_cakeys"`
@@ -63,30 +69,37 @@ type Config struct {
 	ClientKey    string   `toml:"client_key"`
 	ConfDir      string   `toml:"confdir"`
 	Interval     int      `toml:"interval"`
+	SecretKeyring string   `toml:"secret_keyring"`
 	Noop         bool     `toml:"noop"`
 	Password     string   `toml:"password"`
 	Prefix       string   `toml:"prefix"`
 	SRVDomain    string   `toml:"srv_domain"`
 	SRVRecord    string   `toml:"srv_record"`
 	Scheme       string   `toml:"scheme"`
+	StorageAccount string   `toml:"storage_account"`
 	SyncOnly     bool     `toml:"sync-only"`
 	Table        string   `toml:"table"`
+	Endpoint     string   `toml:"endpoint"`
 	Username     string   `toml:"username"`
 	LogLevel     string   `toml:"log-level"`
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
+	YAMLFile     string   `toml:"file"`
+	PGPPrivateKey []byte
 }
 
 func init() {
 	flag.StringVar(&authToken, "auth-token", "", "Auth bearer token to use")
 	flag.StringVar(&backend, "backend", "etcd", "backend to use")
+	flag.StringVar(&backendFallback, "backend-fallback", "", "backend to fallback to on none existing keys")
 	flag.BoolVar(&basicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=etcd)")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
+	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -96,13 +109,17 @@ func init() {
 	flag.StringVar(&prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
+	flag.StringVar(&secretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
+	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
+	flag.StringVar(&storageAccount, "storage-account", "", "the Storage account name for Azure table storage back ends")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
 	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
 	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
+	flag.StringVar(&endpoint, "endpoint", "", "override auto-resolved DynamoDB endpoint (E.g. http://localhost:8000) (only used with -backend=dynamodb)")
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
@@ -147,6 +164,17 @@ func initConfig() error {
 
 	// Update config from commandline flags.
 	processFlags()
+	if config.SecretKeyring != "" {
+		kr, err := os.Open(config.SecretKeyring)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer kr.Close()
+		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
 
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
@@ -176,6 +204,8 @@ func initConfig() error {
 			} else {
 				config.BackendNodes = []string{"http://127.0.0.1:4001"}
 			}
+		case "etcdv3":
+			config.BackendNodes = []string{"127.0.0.1:2379"}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
 		case "vault":
@@ -189,9 +219,10 @@ func initConfig() error {
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
-			"redis":    true,
-			"dynamodb": true,
-			"rancher":  true,
+			"redis":        true,
+			"dynamodb":     true,
+			"azurestorage": true,
+			"rancher":      true,
 		}
 
 		if unsupportedBackends[config.Backend] {
@@ -204,10 +235,23 @@ func initConfig() error {
 		return errors.New("No DynamoDB table configured")
 	}
 
+	if config.Backend == "azuretablestorage" && config.Table == "" {
+		return errors.New("No Azure Table Storage table configured")
+	}
+
+	if config.Backend == "azuretablestorage" && config.StorageAccount == "" {
+		return errors.New("No Azure Table Storage account configured")
+	}
+
+	if config.Backend == "azuretablestorage" && config.ClientKey == "" {
+		return errors.New("No Azure Table Storage client key configured")
+	}
+
 	backendsConfig = backends.Config{
 		AuthToken:    config.AuthToken,
 		AuthType:     config.AuthType,
 		Backend:      config.Backend,
+                BackendFallback: config.BackendFallback,
 		BasicAuth:    config.BasicAuth,
 		ClientCaKeys: config.ClientCaKeys,
 		ClientCert:   config.ClientCert,
@@ -215,10 +259,14 @@ func initConfig() error {
 		BackendNodes: config.BackendNodes,
 		Password:     config.Password,
 		Scheme:       config.Scheme,
+		StorageAccount: config.StorageAccount,
 		Table:        config.Table,
+		Endpoint:     config.Endpoint,
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
+		YAMLFile:     config.YAMLFile,
+
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -229,6 +277,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
+		PGPPrivateKey: config.PGPPrivateKey,
 	}
 	return nil
 }
@@ -280,6 +329,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AuthType = authType
 	case "backend":
 		config.Backend = backend
+        case "backend-fallback":
+                config.BackendFallback = backendFallback
 	case "basic-auth":
 		config.BasicAuth = basicAuth
 	case "client-cert":
@@ -302,14 +353,20 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Prefix = prefix
 	case "scheme":
 		config.Scheme = scheme
+	case "secret-keyring":
+		config.SecretKeyring = secretKeyring
 	case "srv-domain":
 		config.SRVDomain = srvDomain
 	case "srv-record":
 		config.SRVRecord = srvRecord
+	case "storage-account":
+		config.StorageAccount = storageAccount
 	case "sync-only":
 		config.SyncOnly = syncOnly
 	case "table":
 		config.Table = table
+	case "endpoint":
+		config.Endpoint = endpoint
 	case "username":
 		config.Username = username
 	case "log-level":
@@ -320,5 +377,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "file":
+		config.YAMLFile = yamlFile
 	}
 }

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export DYNAMODB_LOCAL=1
 export AWS_ACCESS_KEY_ID=foo
 export AWS_SECRET_ACCESS_KEY=bar
 export AWS_REGION=eu-west-1
@@ -58,7 +57,7 @@ aws dynamodb put-item --table-name confd --region eu-west-1 \
     --endpoint-url http://localhost:8000
 
 # Run confd, expect it to work
-confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend dynamodb --table confd
+confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend dynamodb --table confd --endpoint http://localhost:8000
 if [ $? -ne 0 ]
 then
         exit 1

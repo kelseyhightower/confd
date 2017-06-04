@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/kelseyhightower/confd/log"
+	log "github.com/frostyslav/confd/log"
 )
 
 const (
@@ -39,7 +39,7 @@ func NewRancherClient(backendNodes []string) (*Client, error) {
 
 }
 
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := map[string]string{}
 
 	for _, key := range keys {

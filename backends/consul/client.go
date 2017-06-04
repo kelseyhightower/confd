@@ -56,11 +56,12 @@ func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error
 }
 
 // GetValues queries Consul for keys
-func (c *ConsulClient) GetValues(keys []string) (map[string]string, error) {
+func (c *ConsulClient) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
+	qo := &api.QueryOptions{Token: token}
 	for _, key := range keys {
 		key := strings.TrimPrefix(key, "/")
-		pairs, _, err := c.client.List(key, nil)
+		pairs, _, err := c.client.List(key, qo)
 		if err != nil {
 			return vars, err
 		}

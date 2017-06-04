@@ -173,6 +173,11 @@ confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.16
 ```
 confd -onetime -backend redis -node 192.168.255.210:6379
 ```
+or if you want to connect to a specific redis database (4 in this example):
+
+```
+confd -onetime -backend redis -node 192.168.255.210:6379/4
+```
 
 =======
 #### rancher
@@ -201,6 +206,14 @@ Output:
 [myconfig]
 database_url = db.example.com
 database_user = rob
+```
+
+## Fallback to env
+
+Fallback to env on key that aren't defined in etcd/consul or others backends:
+
+```
+confd -onetime -backend consul -backend-fallback env -node 127.0.0.0:8500
 ```
 
 ## Advanced Example

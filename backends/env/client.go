@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/frostyslav/confd/log"
 )
 
 var replacer = strings.NewReplacer("/", "_")
@@ -19,7 +19,7 @@ func NewEnvClient() (*Client, error) {
 }
 
 // GetValues queries the environment for keys
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	allEnvVars := os.Environ()
 	envMap := make(map[string]string)
 	for _, e := range allEnvVars {

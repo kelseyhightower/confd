@@ -14,9 +14,10 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/frostyslav/confd/backends"
+	"github.com/frostyslav/confd/log"
 	"github.com/kelseyhightower/memkv"
+	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 	StoreClient   backends.StoreClient
 	SyncOnly      bool
 	TemplateDir   string
+	PGPPrivateKey []byte
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -45,6 +47,7 @@ type TemplateResource struct {
 	Mode          string
 	Prefix        string
 	ReloadCmd     string `toml:"reload_cmd"`
+	Token         string
 	Src           string
 	StageFile     *os.File
 	Uid           int
@@ -55,6 +58,7 @@ type TemplateResource struct {
 	store         memkv.Store
 	storeClient   backends.StoreClient
 	syncOnly      bool
+	PGPPrivateKey []byte
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -83,12 +87,18 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
-
 	if config.Prefix != "" {
 		tr.Prefix = config.Prefix
 	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
 
+	if !strings.HasPrefix(tr.Prefix, "/") {
+		tr.Prefix = "/" + tr.Prefix
+	}
+
+	if len(config.PGPPrivateKey) > 0 {
+		tr.PGPPrivateKey = config.PGPPrivateKey
+		addCryptFuncs(&tr)
+	}
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
 	}
@@ -105,13 +115,66 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	return &tr, nil
 }
 
+func addCryptFuncs(tr *TemplateResource) {
+	addFuncs(tr.funcMap, map[string]interface{}{
+		"cget": func(key string) (memkv.KVPair, error) {
+			kv, err := tr.funcMap["get"].(func(string) (memkv.KVPair, error))(key)
+			if err == nil {
+				var b []byte
+				b, err = secconf.Decode([]byte(kv.Value), bytes.NewBuffer(tr.PGPPrivateKey))
+				if err == nil {
+					kv.Value = string(b)
+				}
+			}
+			return kv, err
+		},
+		"cgets": func(pattern string) (memkv.KVPairs, error) {
+			kvs, err := tr.funcMap["gets"].(func(string) (memkv.KVPairs, error))(pattern)
+			if err == nil {
+				for i := range kvs {
+					b, err := secconf.Decode([]byte(kvs[i].Value), bytes.NewBuffer(tr.PGPPrivateKey))
+					if err != nil {
+						return memkv.KVPairs(nil), err
+					}
+					kvs[i].Value = string(b)
+				}
+			}
+			return kvs, err
+		},
+		"cgetv": func(key string) (string, error) {
+			v, err := tr.funcMap["getv"].(func(string) (string, error))(key)
+			if err == nil {
+				var b []byte
+				b, err = secconf.Decode([]byte(v), bytes.NewBuffer(tr.PGPPrivateKey))
+				if err == nil {
+					return string(b), nil
+				}
+			}
+			return v, err
+		},
+		"cgetvs": func(pattern string) ([]string, error) {
+			vs, err := tr.funcMap["getvs"].(func(string) ([]string, error))(pattern)
+			if err == nil {
+				for i := range vs {
+					b, err := secconf.Decode([]byte(vs[i]), bytes.NewBuffer(tr.PGPPrivateKey))
+					if err != nil {
+						return []string(nil), err
+					}
+					vs[i] = string(b)
+				}
+			}
+			return vs, err
+		},
+	})
+}
+
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
+	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys), t.Token)
 	if err != nil {
 		return err
 	}
@@ -119,7 +182,7 @@ func (t *TemplateResource) setVars() error {
 	t.store.Purge()
 
 	for k, v := range result {
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
+		t.store.Set(path.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
 }
@@ -136,7 +199,8 @@ func (t *TemplateResource) createStageFile() error {
 	}
 
 	log.Debug("Compiling source template " + t.Src)
-	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
+
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}

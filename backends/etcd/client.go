@@ -81,7 +81,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		resp, err := c.client.Get(context.Background(), key, &client.GetOptions{
@@ -121,24 +121,24 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		return 1, nil
 	}
 
+	// Setting AfterIndex to 0 (default) means that the Watcher
+	// should start watching for events starting at the current
+	// index, whatever that may be.
+	watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelRoutine := make(chan bool)
+	defer close(cancelRoutine)
+
+	go func() {
+		select {
+		case <-stopChan:
+			cancel()
+		case <-cancelRoutine:
+			return
+		}
+	}()
+
 	for {
-		// Setting AfterIndex to 0 (default) means that the Watcher
-		// should start watching for events starting at the current
-		// index, whatever that may be.
-		watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
-		ctx, cancel := context.WithCancel(context.Background())
-		cancelRoutine := make(chan bool)
-		defer close(cancelRoutine)
-
-		go func() {
-			select {
-			case <-stopChan:
-				cancel()
-			case <-cancelRoutine:
-				return
-			}
-		}()
-
 		resp, err := watcher.Next(ctx)
 		if err != nil {
 			switch e := err.(type) {

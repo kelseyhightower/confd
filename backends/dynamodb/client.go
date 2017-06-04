@@ -1,12 +1,10 @@
 package dynamodb
 
 import (
-	"os"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/frostyslav/confd/log"
 )
 
 // Client is a wrapper around the DynamoDB client
@@ -18,12 +16,12 @@ type Client struct {
 
 // NewDynamoDBClient returns an *dynamodb.Client with a connection to the region
 // configured via the AWS_REGION environment variable.
+// if endpoint is not equal to an emtpy string it overrides the aws config endpoint
 // It returns an error if the connection cannot be made or the table does not exist.
-func NewDynamoDBClient(table string) (*Client, error) {
+func NewDynamoDBClient(table, endpoint string) (*Client, error) {
 	var c *aws.Config
-	if os.Getenv("DYNAMODB_LOCAL") != "" {
-		log.Debug("DYNAMODB_LOCAL is set")
-		endpoint := "http://localhost:8000"
+	if endpoint != "" {
+		log.Debug("local development endpoint is set")
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}
@@ -50,7 +48,7 @@ func NewDynamoDBClient(table string) (*Client, error) {
 }
 
 // GetValues retrieves the values for the given keys from DynamoDB
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		// Check if we can find the single item

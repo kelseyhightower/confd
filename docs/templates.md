@@ -53,12 +53,35 @@ Returns the KVPair where key matches its argument. Returns an error if key is no
 {{end}}
 ```
 
+### cget
+
+Returns the KVPair where key matches its argument and the value has been *encrypted*. Returns an error if key is not found.
+
+```
+{{with cget "/key"}}
+    key: {{.Key}}
+    value: {{.Value}}
+{{end}}
+```
+
 ### gets
 
 Returns all KVPair, []KVPair, where key matches its argument. Returns an error if key is not found.
 
 ```
 {{range gets "/*"}}
+    key: {{.Key}}
+    value: {{.Value}}
+{{end}}
+```
+
+### cgets
+
+Returns all KVPair, []KVPair, where key matches its argument and the values have been *encrypted*.
+Returns an error if key is not found.
+
+```
+{{range cgets "/*"}}
     key: {{.Key}}
     value: {{.Value}}
 {{end}}
@@ -79,12 +102,30 @@ value: {{getv "/key"}}
 value: {{getv "/key" "default_value"}}
 ```
 
+### cgetv
+
+Returns the *encrypted* value as a string where key matches its argument. Returns an error if key is not found.
+
+```
+value: {{cgetv "/key"}}
+```
+
 ### getvs
 
 Returns all values, []string, where key matches its argument. Returns an error if key is not found.
 
 ```
 {{range getvs "/*"}}
+    value: {{.}}
+{{end}}
+```
+
+### cgetvs
+
+Returns all *encrypted* values, []string, where key matches its argument. Returns an error if key is not found.
+
+```
+{{range cgetvs "/*"}}
     value: {{.}}
 {{end}}
 ```

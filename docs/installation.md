@@ -2,19 +2,28 @@
 
 ### Binary Download
 
-Currently confd ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/kelseyhightower/confd/releases)
+Currently confd ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/frostyslav/confd/releases)
 
 #### OS X
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-0.11.0-darwin-amd64
+$ wget https://github.com/frostyslav/confd/releases/download/v0.11.0/confd-0.11.0-darwin-amd64
 ```
 
 #### Linux
 
+Download the binary
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-0.11.0-linux-amd64
+$ wget https://github.com/frostyslav/confd/releases/download/v0.11.0/confd-0.11.0-linux-amd64
 ```
+Move the binary to an installation path, make it executable, and add to path
+```
+mkdir -p /opt/confd/bin
+mv confd-0.11.0-linux-amd64 /opt/confd/bin/confd
+chmod 755 /opt/confd/bin/confd 
+export PATH="/opt/confd/bin:$PATH"
+```
+Now run confd command!
 
 #### Building from Source
 

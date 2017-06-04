@@ -2,11 +2,13 @@ package redis
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"os"
+	"strconv"
 	"strings"
 	"time"
-	"github.com/kelseyhightower/confd/log"
+
+	"github.com/garyburd/redigo/redis"
+	"github.com/frostyslav/confd/log"
 )
 
 // Client is a wrapper around the redis client
@@ -23,16 +25,28 @@ func tryConnect(machines []string, password string) (redis.Conn, error) {
 	var err error
 	for _, address := range machines {
 		var conn redis.Conn
+		var db int
+
+		idx := strings.Index(address, "/")
+		if idx != -1 {
+			// a database is provided
+			db, err = strconv.Atoi(address[idx+1:])
+			if err == nil {
+				address = address[:idx]
+			}
+		}
+
 		network := "tcp"
 		if _, err = os.Stat(address); err == nil {
 			network = "unix"
 		}
 		log.Debug(fmt.Sprintf("Trying to connect to redis node %s", address))
-		
+
 		dialops := []redis.DialOption{
 			redis.DialConnectTimeout(time.Second),
 			redis.DialReadTimeout(time.Second),
 			redis.DialWriteTimeout(time.Second),
+			redis.DialDatabase(db),
 		}
 
 		if password != "" {
@@ -58,8 +72,8 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 
 		resp, err := c.client.Do("PING")
 		if (err != nil && err == redis.ErrNil) || resp != "PONG" {
-			log.Error(fmt.Sprintf("Existing redis connection no longer usable. " +
-			    "Will try to re-establish. Error: %s", err.Error()))
+			log.Error(fmt.Sprintf("Existing redis connection no longer usable. "+
+				"Will try to re-establish. Error: %s", err.Error()))
 			c.client = nil
 		}
 	}
@@ -80,13 +94,13 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 // It returns an error if a connection to the cluster cannot be made.
 func NewRedisClient(machines []string, password string) (*Client, error) {
 	var err error
-	clientWrapper := &Client{ machines : machines, password: password, client: nil }
+	clientWrapper := &Client{machines: machines, password: password, client: nil}
 	clientWrapper.client, err = tryConnect(machines, password)
 	return clientWrapper, err
 }
 
 // GetValues queries redis for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	// Ensure we have a connected redis client
 	rClient, err := c.connectedClient()
 	if err != nil && err != redis.ErrNil {

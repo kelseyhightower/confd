@@ -11,7 +11,7 @@ import (
 	"path"
 
 	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/frostyslav/confd/log"
 )
 
 // Client is a wrapper around the vault client
@@ -143,7 +143,7 @@ func New(address, authType string, params map[string]string) (*Client, error) {
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string, token string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		log.Debug("getting %s from vault", key)
