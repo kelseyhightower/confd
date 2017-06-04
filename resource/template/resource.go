@@ -14,7 +14,7 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends/commons"
+	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/memkv"
 )
@@ -25,7 +25,7 @@ type Config struct {
 	KeepStageFile bool
 	Noop          bool
 	Prefix        string
-	StoreClient   commons.StoreClient
+	Database      confd.Database
 	SyncOnly      bool
 	TemplateDir   string
 }
@@ -53,7 +53,7 @@ type TemplateResource struct {
 	keepStageFile bool
 	noop          bool
 	store         memkv.Store
-	storeClient   commons.StoreClient
+	database      confd.Database
 	syncOnly      bool
 }
 
@@ -61,8 +61,8 @@ var ErrEmptySrc = errors.New("empty src template")
 
 // NewTemplateResource creates a TemplateResource.
 func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
-	if config.StoreClient == nil {
-		return nil, errors.New("A valid StoreClient is required.")
+	if config.Database == nil {
+		return nil, errors.New("A valid Database is required.")
 	}
 
 	// Set the default uid and gid so we can determine if it was
@@ -78,7 +78,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr := tc.TemplateResource
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
-	tr.storeClient = config.StoreClient
+	tr.database = config.Database
 	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
@@ -111,7 +111,7 @@ func (t *TemplateResource) setVars() error {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
+	result, err := t.database.GetValues(appendPrefix(t.Prefix, t.Keys))
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kelseyhightower/confd/backends/env/util"
+	"github.com/kelseyhightower/confd/builtin/databases/env/util"
 	"github.com/kelseyhightower/confd/log"
 )
 

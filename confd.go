@@ -23,12 +23,12 @@ func main() {
 
 	log.Info("Starting confd")
 
-	storeClient, err := backends.New(backendsConfig)
+	database, err := backends.New(backendsConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	templateConfig.StoreClient = storeClient
+	templateConfig.Database = database
 	if onetime {
 		if err := template.Process(templateConfig); err != nil {
 			log.Fatal(err.Error())

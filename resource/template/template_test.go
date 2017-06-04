@@ -466,7 +466,7 @@ func templateResource() (*TemplateResource, error) {
 	}
 
 	config := Config{
-		StoreClient: client, // not used but must be set
+		Database:    client, // not used but must be set
 		TemplateDir: "./test/templates",
 	}
 

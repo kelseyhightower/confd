@@ -12,3 +12,9 @@ How plugins should be configured?
 I prefer number 2 for now, as it's easier to implement and maintain. But it can be changed later on.
 
 Plugin systems is implemented using https://github.com/hashicorp/go-plugin, which is successfully used in Terraform, Packer, Nomad and Vault. It's based on network RPC over local network. Plugins are Go interface implementations, which maps quite good to the current backends implementation.
+
+The core set of plugins is defined in builtin/ directory. They are compiled in the main binary.
+To add a new plugin:
+
+Builtin plugins are called using special cli command:
+confd internal-plugin <pluginType> <pluginName>
