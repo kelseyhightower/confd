@@ -15,4 +15,6 @@ type Config struct {
 	Username     string
 	AppID        string
 	UserID       string
+	YAMLFile     string
+	Kubeconfig   string
 }

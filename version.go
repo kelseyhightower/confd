@@ -1,3 +1,3 @@
 package main
 
-const Version = "0.12.0-dev"
+const Version = "0.12.1-calico"

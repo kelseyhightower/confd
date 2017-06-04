@@ -13,6 +13,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+var (
+	etcdGetOpts             = &client.GetOptions{Quorum: true, Recursive: true}
+	etcdGetOptsNonRecursive = &client.GetOptions{Quorum: true}
+)
+
 // Client is a wrapper around the etcd client
 type Client struct {
 	client client.KeysAPI
@@ -84,11 +89,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
-		resp, err := c.client.Get(context.Background(), key, &client.GetOptions{
-			Recursive: true,
-			Sort:      true,
-			Quorum:    true,
-		})
+		resp, err := c.client.Get(context.Background(), key, etcdGetOpts)
 		if err != nil {
 			return vars, err
 		}
@@ -116,29 +117,30 @@ func nodeWalk(node *client.Node, vars map[string]string) error {
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	// return something > 0 to trigger a key retrieval from the store
 	if waitIndex == 0 {
-		return 1, nil
+		resp, err := c.client.Get(context.Background(), prefix, etcdGetOptsNonRecursive)
+		if err != nil {
+			return 0, err
+		}
+		return resp.Index, nil
 	}
 
+	// Create the watcher.
+	watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: waitIndex, Recursive: true})
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelRoutine := make(chan bool)
+	defer close(cancelRoutine)
+
+	go func() {
+		select {
+		case <-stopChan:
+			cancel()
+		case <-cancelRoutine:
+			return
+		}
+	}()
+
 	for {
-		// Setting AfterIndex to 0 (default) means that the Watcher
-		// should start watching for events starting at the current
-		// index, whatever that may be.
-		watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
-		ctx, cancel := context.WithCancel(context.Background())
-		cancelRoutine := make(chan bool)
-		defer close(cancelRoutine)
-
-		go func() {
-			select {
-			case <-stopChan:
-				cancel()
-			case <-cancelRoutine:
-				return
-			}
-		}()
-
 		resp, err := watcher.Next(ctx)
 		if err != nil {
 			switch e := err.(type) {
@@ -154,9 +156,10 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		// This is not an exact match on the key so there is a chance
 		// we will still pickup on false positives. The net win here
 		// is reducing the scope of keys that can trigger updates.
+		waitIndex = resp.Node.ModifiedIndex
 		for _, k := range keys {
 			if strings.HasPrefix(resp.Node.Key, k) {
-				return resp.Node.ModifiedIndex, err
+				return waitIndex, err
 			}
 		}
 	}

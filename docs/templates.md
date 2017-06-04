@@ -177,6 +177,22 @@ Wrapper for [net.LookupSRV](https://golang.org/pkg/net/#LookupSRV). The wrapper 
 {{end}}
 ```
 
+### base64Encode
+
+Returns a base64 encoded string of the value.
+
+```
+key: {{base64Encode "Value"}}
+```
+
+### base64Decode
+
+Returns the string representing the decoded base64 value.
+
+```
+key: {{base64Decode "VmFsdWU="}}
+```
+
 #### Add keys to etcd
 
 ```

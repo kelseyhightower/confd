@@ -1,1 +1,4 @@
 bin/
+.idea
+vendor
+.go-pkg-cache

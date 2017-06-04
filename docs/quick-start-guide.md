@@ -15,6 +15,7 @@ confd supports the following backends:
 * dynamodb
 * stackengine
 * rancher
+* metad
 
 ### Add keys
 
@@ -91,6 +92,11 @@ curl -k -X PUT -d 'value' https://mesh-01:8443/api/kv/key --header "Authorizatio
 #### Rancher
 
 This backend consumes the [Rancher](https://www.rancher.com) metadata service. For available keys, see the [Rancher Metadata Service docs](http://docs.rancher.com/rancher/rancher-services/metadata-service/).
+
+#### Metad
+```
+curl http://127.0.0.1:9611/v1/data -X PUT -d '{"myapp":{"database":{"url":"db.example.com","user":"rob"}}}'
+```
 
 ### Create the confdir
 
@@ -174,12 +180,18 @@ confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.16
 confd -onetime -backend redis -node 192.168.255.210:6379
 ```
 
-=======
 #### rancher
 
 ```
 confd -onetime -backend rancher -prefix /2015-07-25
 ```
+
+#### metad
+
+```
+confd --onetime --backend metad --node 127.0.0.1:80 --watch
+```
+=======
 
 *Note*: The metadata api prefix can be defined on the cli, or as part of your keys in the template toml file.
 

@@ -49,6 +49,8 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	yamlFile          string
+	kubeconfig        string
 )
 
 // A Config structure is used to configure confd.
@@ -76,6 +78,8 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
+	YAMLFile     string   `toml:"file"`
+	KubeConfig   string   `toml:"kubeconfig"`
 }
 
 func init() {
@@ -87,6 +91,7 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
+	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -106,6 +111,7 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&kubeconfig, "kubeconfig", "", "Kubernetes kubeconfig file path")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -176,6 +182,8 @@ func initConfig() error {
 			} else {
 				config.BackendNodes = []string{"http://127.0.0.1:4001"}
 			}
+		case "etcdv3":
+			config.BackendNodes = []string{"127.0.0.1:2379"}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
 		case "vault":
@@ -192,6 +200,7 @@ func initConfig() error {
 			"redis":    true,
 			"dynamodb": true,
 			"rancher":  true,
+			"k8s":  true,
 		}
 
 		if unsupportedBackends[config.Backend] {
@@ -219,6 +228,8 @@ func initConfig() error {
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
+		YAMLFile:     config.YAMLFile,
+		Kubeconfig:   config.KubeConfig,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -320,5 +331,9 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "file":
+		config.YAMLFile = yamlFile
+	case "kubeconfig":
+		config.KubeConfig = kubeconfig
 	}
 }

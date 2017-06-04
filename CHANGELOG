@@ -1,3 +1,46 @@
+### v0.12.1
+
+17e1d2a Revert "json-backend: initial pass of json backend"
+c91406c Revert "json-backend: tests and support for nested objects"
+0df8af7 Revert "json-backend: cleanup"
+
+### v0.12.0
+
+7ac1091 Upgrade Dockerfile to use latest stable Alpine which has Go 1.6
+20b3d37 add env backend integration tests
+c6622ed updated template docs
+9d57489 Specify default Vault backend node
+b34d223 Add simple redis example since one was missing from quickstart
+32d46e5 Fix typo in template-resources.md
+7c89004 Fix up Rancher metadata service description and links
+2a54c58 Fix missing braces and extra parenthesis on formatted datatime example
+6e198db Fix DynamoDB credentials handling
+705f2ee Fix dynamodb nil pointers
+e48e48f Use SVG for the build image
+1265714 Kelseyhightower master
+6bb3c21 Add file exists function to template functions
+57b649d zookeeper watch support
+59da585 extended getenv & map template functions
+d423123 updated README for vault
+e60c2e2 Add support for redis password authentication
+f3a02e7 Adding example goreman Procfile for etcd
+aae4190 updated Dockerfile.build.alpine
+cf62311 update some docs
+54f715c Add lookupSRV function.
+7afb8d6 fixed broken etcd watch support
+5a5af59 switched to new etcd client
+5d2955a Remove gb install
+1577855 Fix typos in docs/tomcat-sample.md
+d133c25 Added support for Vault backend
+071e6ab IP dns resolving function for templates
+ccf2486 redis: try to recover from closed connections
+66a31bf Add support for etcd BasicAuth
+d9ea46c Added documentation for stackengine as a backend
+a1dee21 add -sync-only flag
+c615c18 update checklist
+233ac99 Add more debugging output for onetime and env.
+d7f835d Create tomcat-sample.md
+
 ### v0.11.0
 
 46d3c69 load template resources every interval
