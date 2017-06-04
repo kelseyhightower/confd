@@ -2,4 +2,4 @@
 
 echo "Building confd..."
 mkdir -p bin
-go build -o bin/confd .
+CGO_ENABLED=1 go build -o bin/confd -a -installsuffix cgo -ldflags '-linkmode external -extldflags -static -w' -x .
