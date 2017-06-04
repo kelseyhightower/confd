@@ -40,6 +40,7 @@ var (
 	scheme            string
 	srvDomain         string
 	srvRecord         string
+	storageAccount    string
 	syncOnly          bool
 	table             string
 	templateConfig    template.Config
@@ -53,29 +54,30 @@ var (
 
 // A Config structure is used to configure confd.
 type Config struct {
-	AuthToken    string   `toml:"auth_token"`
-	AuthType     string   `toml:"auth_type"`
-	Backend      string   `toml:"backend"`
-	BasicAuth    bool     `toml:"basic_auth"`
-	BackendNodes []string `toml:"nodes"`
-	ClientCaKeys string   `toml:"client_cakeys"`
-	ClientCert   string   `toml:"client_cert"`
-	ClientKey    string   `toml:"client_key"`
-	ConfDir      string   `toml:"confdir"`
-	Interval     int      `toml:"interval"`
-	Noop         bool     `toml:"noop"`
-	Password     string   `toml:"password"`
-	Prefix       string   `toml:"prefix"`
-	SRVDomain    string   `toml:"srv_domain"`
-	SRVRecord    string   `toml:"srv_record"`
-	Scheme       string   `toml:"scheme"`
-	SyncOnly     bool     `toml:"sync-only"`
-	Table        string   `toml:"table"`
-	Username     string   `toml:"username"`
-	LogLevel     string   `toml:"log-level"`
-	Watch        bool     `toml:"watch"`
-	AppID        string   `toml:"app_id"`
-	UserID       string   `toml:"user_id"`
+	AuthToken      string   `toml:"auth_token"`
+	AuthType       string   `toml:"auth_type"`
+	Backend        string   `toml:"backend"`
+	BasicAuth      bool     `toml:"basic_auth"`
+	BackendNodes   []string `toml:"nodes"`
+	ClientCaKeys   string   `toml:"client_cakeys"`
+	ClientCert     string   `toml:"client_cert"`
+	ClientKey      string   `toml:"client_key"`
+	ConfDir        string   `toml:"confdir"`
+	Interval       int      `toml:"interval"`
+	Noop           bool     `toml:"noop"`
+	Password       string   `toml:"password"`
+	Prefix         string   `toml:"prefix"`
+	SRVDomain      string   `toml:"srv_domain"`
+	SRVRecord      string   `toml:"srv_record"`
+	Scheme         string   `toml:"scheme"`
+	StorageAccount string   `toml:"storage_account"`
+	SyncOnly       bool     `toml:"sync-only"`
+	Table          string   `toml:"table"`
+	Username       string   `toml:"username"`
+	LogLevel       string   `toml:"log-level"`
+	Watch          bool     `toml:"watch"`
+	AppID          string   `toml:"app_id"`
+	UserID         string   `toml:"user_id"`
 }
 
 func init() {
@@ -98,6 +100,7 @@ func init() {
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
+	flag.StringVar(&storageAccount, "storage-account", "", "the Storage account name for Azure table storage back ends")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
 	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
@@ -189,9 +192,10 @@ func initConfig() error {
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
-			"redis":    true,
-			"dynamodb": true,
-			"rancher":  true,
+			"redis":        true,
+			"dynamodb":     true,
+			"azurestorage": true,
+			"rancher":      true,
 		}
 
 		if unsupportedBackends[config.Backend] {
@@ -204,21 +208,34 @@ func initConfig() error {
 		return errors.New("No DynamoDB table configured")
 	}
 
+	if config.Backend == "azuretablestorage" && config.Table == "" {
+		return errors.New("No Azure Table Storage table configured")
+	}
+
+	if config.Backend == "azuretablestorage" && config.StorageAccount == "" {
+		return errors.New("No Azure Table Storage account configured")
+	}
+
+	if config.Backend == "azuretablestorage" && config.ClientKey == "" {
+		return errors.New("No Azure Table Storage client key configured")
+	}
+
 	backendsConfig = backends.Config{
-		AuthToken:    config.AuthToken,
-		AuthType:     config.AuthType,
-		Backend:      config.Backend,
-		BasicAuth:    config.BasicAuth,
-		ClientCaKeys: config.ClientCaKeys,
-		ClientCert:   config.ClientCert,
-		ClientKey:    config.ClientKey,
-		BackendNodes: config.BackendNodes,
-		Password:     config.Password,
-		Scheme:       config.Scheme,
-		Table:        config.Table,
-		Username:     config.Username,
-		AppID:        config.AppID,
-		UserID:       config.UserID,
+		AuthToken:      config.AuthToken,
+		AuthType:       config.AuthType,
+		Backend:        config.Backend,
+		BasicAuth:      config.BasicAuth,
+		ClientCaKeys:   config.ClientCaKeys,
+		ClientCert:     config.ClientCert,
+		ClientKey:      config.ClientKey,
+		BackendNodes:   config.BackendNodes,
+		Password:       config.Password,
+		Scheme:         config.Scheme,
+		StorageAccount: config.StorageAccount,
+		Table:          config.Table,
+		Username:       config.Username,
+		AppID:          config.AppID,
+		UserID:         config.UserID,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -306,6 +323,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SRVDomain = srvDomain
 	case "srv-record":
 		config.SRVRecord = srvRecord
+	case "storage-account":
+		config.StorageAccount = storageAccount
 	case "sync-only":
 		config.SyncOnly = syncOnly
 	case "table":
