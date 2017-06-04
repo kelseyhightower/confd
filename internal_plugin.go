@@ -40,14 +40,14 @@ func Run(args []string) int {
 
 	switch pluginType {
 	case "database":
-		pluginFunc, found := InternalProviders[pluginName]
+		pluginFunc, found := InternalDatabases[pluginName]
 		if !found {
 			log.Printf("[ERROR] Could not load provider: %s", pluginName)
 			return 1
 		}
 		log.Printf("[INFO] Starting provider plugin %s", pluginName)
 		plugin.Serve(&plugin.ServeOpts{
-			ProviderFunc: pluginFunc,
+			DatabaseFunc: pluginFunc,
 		})
 	default:
 		log.Printf("[ERROR] Invalid plugin type %s", pluginType)

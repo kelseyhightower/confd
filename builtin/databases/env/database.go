@@ -6,11 +6,16 @@ import (
 	"strings"
 
 	"github.com/kelseyhightower/confd/builtin/databases/env/util"
+	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/log"
 )
 
 // Client provides a shell for the env client
 type Client struct{}
+
+func Database() confd.Database {
+	return &Client{}
+}
 
 // NewEnvClient returns a new client
 func NewEnvClient() (*Client, error) {

@@ -2,19 +2,10 @@ package main
 
 import "testing"
 
-func TestInternalPlugin_InternalProviders(t *testing.T) {
-	// Note this is a randomish sample and does not check for all plugins
-	for _, name := range []string{"atlas", "consul", "docker", "template"} {
-		if _, ok := InternalProviders[name]; !ok {
-			t.Errorf("Expected to find %s in InternalProviders", name)
-		}
-	}
-}
-
-func TestInternalPlugin_InternalProvisioners(t *testing.T) {
-	for _, name := range []string{"chef", "file", "local-exec", "remote-exec"} {
-		if _, ok := InternalProvisioners[name]; !ok {
-			t.Errorf("Expected to find %s in InternalProvisioners", name)
+func TestInternalPlugin_InternalDatabases(t *testing.T) {
+	for _, name := range []string{"env"} {
+		if _, ok := InternalDatabases[name]; !ok {
+			t.Errorf("Expected to find %s in InternalDatabases", name)
 		}
 	}
 }
