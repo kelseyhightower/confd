@@ -176,6 +176,8 @@ func initConfig() error {
 			} else {
 				config.BackendNodes = []string{"http://127.0.0.1:4001"}
 			}
+		case "etcdv3":
+			config.BackendNodes = []string{"127.0.0.1:2379"}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
 		case "vault":
