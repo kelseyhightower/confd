@@ -14,7 +14,7 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
+	"github.com/kelseyhightower/confd/backends/commons"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/memkv"
 )
@@ -25,7 +25,7 @@ type Config struct {
 	KeepStageFile bool
 	Noop          bool
 	Prefix        string
-	StoreClient   backends.StoreClient
+	StoreClient   commons.StoreClient
 	SyncOnly      bool
 	TemplateDir   string
 }
@@ -53,7 +53,7 @@ type TemplateResource struct {
 	keepStageFile bool
 	noop          bool
 	store         memkv.Store
-	storeClient   backends.StoreClient
+	storeClient   commons.StoreClient
 	syncOnly      bool
 }
 

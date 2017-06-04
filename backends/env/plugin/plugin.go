@@ -5,10 +5,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kelseyhightower/confd/backends/env/util"
 	"github.com/kelseyhightower/confd/log"
 )
-
-var replacer = strings.NewReplacer("/", "_")
 
 // Client provides a shell for the env client
 type Client struct{}
@@ -28,10 +27,10 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 	vars := make(map[string]string)
 	for _, key := range keys {
-		k := transform(key)
+		k := util.Transform(key)
 		for envKey, envValue := range envMap {
 			if strings.HasPrefix(envKey, k) {
-				vars[clean(envKey)] = envValue
+				vars[util.Clean(envKey)] = envValue
 			}
 		}
 	}
@@ -39,18 +38,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 
 	return vars, nil
-}
-
-func transform(key string) string {
-	k := strings.TrimPrefix(key, "/")
-	return strings.ToUpper(replacer.Replace(k))
-}
-
-var cleanReplacer = strings.NewReplacer("_", "/")
-
-func clean(key string) string {
-	newKey := "/" + key
-	return cleanReplacer.Replace(strings.ToLower(newKey))
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {

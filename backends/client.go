@@ -1,70 +1,50 @@
 package backends
 
 import (
-	"errors"
-	"strings"
+	"os/exec"
 
-	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/dynamodb"
-	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcd"
-	"github.com/kelseyhightower/confd/backends/rancher"
-	"github.com/kelseyhightower/confd/backends/redis"
-	"github.com/kelseyhightower/confd/backends/stackengine"
-	"github.com/kelseyhightower/confd/backends/vault"
-	"github.com/kelseyhightower/confd/backends/zookeeper"
+	plugin "github.com/hashicorp/go-plugin"
+	"github.com/kelseyhightower/confd/backends/commons"
 	"github.com/kelseyhightower/confd/log"
 )
 
-// The StoreClient interface is implemented by objects that can retrieve
-// key/value pairs from a backend store.
-type StoreClient interface {
-	GetValues(keys []string) (map[string]string, error)
-	WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error)
+// handshakeConfigs are used to just do a basic handshake between
+// a plugin and host. If the handshake fails, a user friendly error is shown.
+// This prevents users from executing bad plugins or executing a plugin
+// directory. It is a UX feature, not a security feature.
+var handshakeConfig = plugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "BASIC_PLUGIN",
+	MagicCookieValue: "hello",
+}
+
+// pluginMap is the map of plugins we can dispense.
+var pluginMap = map[string]plugin.Plugin{
+	"env": &commons.StoreClientPlugin{},
 }
 
 // New is used to create a storage client based on our configuration.
-func New(config Config) (StoreClient, error) {
-	if config.Backend == "" {
-		config.Backend = "etcd"
+func New(config Config) (commons.StoreClient, error) {
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: handshakeConfig,
+		Plugins:         pluginMap,
+		Cmd:             exec.Command("/Users/oleksa/go/src/github.com/kelseyhightower/confd/bin/plugins"),
+	})
+	defer client.Kill()
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-	backendNodes := config.BackendNodes
-	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
-	switch config.Backend {
-	case "consul":
-		return consul.New(config.BackendNodes, config.Scheme,
-			config.ClientCert, config.ClientKey,
-			config.ClientCaKeys)
-	case "etcd":
-		// Create the etcd client upfront and use it for the life of the process.
-		// The etcdClient is an http.Client and designed to be reused.
-		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
-	case "zookeeper":
-		return zookeeper.NewZookeeperClient(backendNodes)
-	case "rancher":
-		return rancher.NewRancherClient(backendNodes)
-	case "redis":
-		return redis.NewRedisClient(backendNodes, config.ClientKey)
-	case "env":
-		return env.NewEnvClient()
-	case "vault":
-		vaultConfig := map[string]string{
-			"app-id":   config.AppID,
-			"user-id":  config.UserID,
-			"username": config.Username,
-			"password": config.Password,
-			"token":    config.AuthToken,
-			"cert":     config.ClientCert,
-			"key":      config.ClientKey,
-			"caCert":   config.ClientCaKeys,
-		}
-		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
-	case "dynamodb":
-		table := config.Table
-		log.Info("DynamoDB table set to " + table)
-		return dynamodb.NewDynamoDBClient(table)
-	case "stackengine":
-		return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense("env")
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-	return nil, errors.New("Invalid backend")
+
+	// We should have a Greeter now! This feels like a normal interface
+	// implementation but is in fact over an RPC connection.
+	return raw.(commons.StoreClient), nil
 }

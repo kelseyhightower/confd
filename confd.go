@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +14,7 @@ import (
 func main() {
 	flag.Parse()
 	if printVersion {
-		fmt.Printf("confd %s\n", Version)
+		log.Info("confd %s", version)
 		os.Exit(0)
 	}
 	if err := initConfig(); err != nil {
@@ -58,7 +57,7 @@ func main() {
 		case err := <-errChan:
 			log.Error(err.Error())
 		case s := <-signalChan:
-			log.Info(fmt.Sprintf("Captured %v. Exiting...", s))
+			log.Info("Captured %v. Exiting...", s)
 			close(doneChan)
 		case <-doneChan:
 			os.Exit(0)

@@ -389,6 +389,8 @@ ip: {{.}}
 
 ip: 127.0.0.1
 
+ip: ::1
+
 `,
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", "parent")

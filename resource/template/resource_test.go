@@ -7,7 +7,7 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/kelseyhightower/confd/backends/env"
+	env "github.com/kelseyhightower/confd/backends/env/plugin"
 	"github.com/kelseyhightower/confd/log"
 )
 
