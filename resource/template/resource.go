@@ -25,7 +25,9 @@ type Config struct {
 	KeepStageFile bool
 	Noop          bool
 	Prefix        string
+	Prefix2       string
 	StoreClient   backends.StoreClient
+	StoreClient2  backends.StoreClient
 	SyncOnly      bool
 	TemplateDir   string
 }
@@ -42,18 +44,22 @@ type TemplateResource struct {
 	FileMode      os.FileMode
 	Gid           int
 	Keys          []string
+	Keys2          []string
 	Mode          string
 	Prefix        string
+	Prefix2        string
 	ReloadCmd     string `toml:"reload_cmd"`
 	Src           string
 	StageFile     *os.File
 	Uid           int
 	funcMap       map[string]interface{}
 	lastIndex     uint64
+	lastIndex2     uint64
 	keepStageFile bool
 	noop          bool
 	store         memkv.Store
 	storeClient   backends.StoreClient
+	storeClient2  backends.StoreClient
 	syncOnly      bool
 }
 
@@ -79,6 +85,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
 	tr.storeClient = config.StoreClient
+	tr.storeClient2 = config.StoreClient2
 	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
@@ -88,6 +95,11 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		tr.Prefix = config.Prefix
 	}
 	tr.Prefix = filepath.Join("/", tr.Prefix)
+
+	if config.Prefix2 != "" {
+		tr.Prefix2 = config.Prefix2
+	}
+	tr.Prefix2 = filepath.Join("/", tr.Prefix2)
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -108,8 +120,9 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
-	log.Debug("Retrieving keys from store")
-	log.Debug("Key prefix set to " + t.Prefix)
+
+	log.Debug("Retrieving keys from backend1 store")
+	log.Debug("Backend1 key prefix set to " + t.Prefix)
 
 	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
 	if err != nil {
@@ -118,8 +131,26 @@ func (t *TemplateResource) setVars() error {
 
 	t.store.Purge()
 
+	// add vars from 2nd backend
+	if t.storeClient2 != nil {
+
+		log.Debug("Retrieving keys from backend2 store")
+		log.Debug("Backend2 key prefix set to " + t.Prefix2)
+		result2, err2 := t.storeClient2.GetValues(appendPrefix(t.Prefix2, t.Keys2))
+
+		if err2 != nil {
+			return err
+		}
+		for k, v := range result2 {
+			t.store.Set(filepath.Join("backend2:/", strings.TrimPrefix(k, t.Prefix2)), v)
+		}
+
+	}
+
+
 	for k, v := range result {
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
+		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v) // we support the old way as well
+		t.store.Set(filepath.Join("backend1:/", strings.TrimPrefix(k, t.Prefix)), v) // we add the same patern for backend1 for consistancy
 	}
 	return nil
 }
@@ -273,6 +304,8 @@ func (t *TemplateResource) reload() error {
 // things up.
 // It returns an error if any.
 func (t *TemplateResource) process() error {
+
+
 	if err := t.setFileMode(); err != nil {
 		return err
 	}

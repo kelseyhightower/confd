@@ -14,9 +14,12 @@ type Processor interface {
 
 func Process(config Config) error {
 	ts, err := getTemplateResources(config)
+
+
 	if err != nil {
 		return err
 	}
+
 	return process(ts)
 }
 
@@ -77,6 +80,7 @@ func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan er
 func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
 	ts, err := getTemplateResources(p.config)
+
 	if err != nil {
 		log.Fatal(err.Error())
 		return
@@ -91,24 +95,71 @@ func (p *watchProcessor) Process() {
 
 func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 	defer p.wg.Done()
+
+	var keys2 []string
+
+	continueLoop := make(chan bool)
+
 	keys := appendPrefix(t.Prefix, t.Keys)
+
+	// if second backend is enabled
+	if t.storeClient2 != nil {
+		keys2 = appendPrefix(t.Prefix2, t.Keys2)
+	}
+
 	for {
-		index, err := t.storeClient.WatchPrefix(t.Prefix, keys, t.lastIndex, p.stopChan)
-		if err != nil {
-			p.errChan <- err
-			// Prevent backend errors from consuming all resources.
-			time.Sleep(time.Second * 2)
+
+
+		go func(p *watchProcessor,t *TemplateResource) {
+			index, err := t.storeClient.WatchPrefix(t.Prefix, keys, t.lastIndex, p.stopChan)
+			if err != nil {
+				p.errChan <- err
+				// Prevent backend errors from consuming all resources.
+				time.Sleep(time.Second * 2)
+
+				return
+			}
+			t.lastIndex = index
+
+			continueLoop<-true
+		}(p,t)
+
+		// if second backend is enabled
+		if t.storeClient2 != nil {
+
+			go func(p *watchProcessor, t *TemplateResource) {
+				log.Debug("b2 Watch Step2 iteration start ")
+				index, err := t.storeClient2.WatchPrefix(t.Prefix2, keys2, t.lastIndex2, p.stopChan)
+				log.Debug("b2 Watch Step2 iteration ")
+				if err != nil {
+					p.errChan <- err
+					// Prevent backend errors from consuming all resources.
+					time.Sleep(time.Second * 2)
+
+					return
+				}
+				t.lastIndex2 = index
+				continueLoop <- true
+			}(p, t)
+
+		}
+
+		select {
+		case <-continueLoop:
+
+			if err := t.process(); err != nil {
+				p.errChan <- err
+			}
 			continue
 		}
-		t.lastIndex = index
-		if err := t.process(); err != nil {
-			p.errChan <- err
-		}
+
 	}
+
 }
 
 func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	var lastError error
+
 	templates := make([]*TemplateResource, 0)
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
 	if !isFileExist(config.ConfDir) {

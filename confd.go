@@ -30,6 +30,19 @@ func main() {
 	}
 
 	templateConfig.StoreClient = storeClient
+
+	// 2nd backend setup
+	if backendsConfig2.Backend != "" {
+		log.Debug("Preparing 2nd Backend Config ")
+		storeClient2, err2 := backends.New(backendsConfig2)
+
+		if err2 != nil {
+			log.Fatal(err2.Error())
+		} else {
+			templateConfig.StoreClient2 = storeClient2
+		}
+	}
+
 	if onetime {
 		if err := template.Process(templateConfig); err != nil {
 			log.Fatal(err.Error())
