@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kelseyhightower/confd/backends"
+	"github.com/kelseyhightower/confd/builtin/databases/env"
 )
 
 const (
@@ -458,12 +458,7 @@ func setupDirectoriesAndFiles(tt templateTest, t *testing.T) {
 
 // templateResource creates a templateResource for creating a config file
 func templateResource() (*TemplateResource, error) {
-	backendConf := backends.Config{
-		Backend: "env"}
-	client, err := backends.New(backendConf)
-	if err != nil {
-		return nil, err
-	}
+	client, _ := env.NewEnvClient()
 
 	config := Config{
 		Database:    client, // not used but must be set

@@ -11,7 +11,7 @@ import (
 type DatabaseRPC struct{ client *rpc.Client }
 
 func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
-	args := DatabaseGetValuesArgs{
+	args := &DatabaseGetValuesArgs{
 		Keys: keys,
 	}
 	var resp DatabaseGetValuesResponse
@@ -24,7 +24,7 @@ func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
 }
 
 func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	args := DatabaseWatchPrefixArgs{
+	args := &DatabaseWatchPrefixArgs{
 		Prefix:    prefix,
 		Keys:      keys,
 		WaitIndex: waitIndex,
@@ -68,7 +68,7 @@ func (s *DatabaseRPCServer) GetValues(
 	args *DatabaseGetValuesArgs,
 	resp *DatabaseGetValuesResponse) error {
 	values, err := s.Database.GetValues(args.Keys)
-	resp = &DatabaseGetValuesResponse{
+	*resp = DatabaseGetValuesResponse{
 		Values: values,
 	}
 	return err
@@ -78,7 +78,7 @@ func (s *DatabaseRPCServer) WatchPrefix(
 	args *DatabaseWatchPrefixArgs,
 	resp *DatabaseWatchPrefixResponse) error {
 	index, err := s.Database.WatchPrefix(args.Prefix, args.Keys, args.WaitIndex, args.StopChan)
-	resp = &DatabaseWatchPrefixResponse{
+	*resp = DatabaseWatchPrefixResponse{
 		Index: index,
 	}
 	return err

@@ -119,6 +119,7 @@ func (t *TemplateResource) setVars() error {
 	t.store.Purge()
 
 	for k, v := range result {
+		log.Debug("Setting %s=%s", filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
