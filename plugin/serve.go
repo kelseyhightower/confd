@@ -51,8 +51,3 @@ func pluginMap(opts *ServeOpts) map[string]plugin.Plugin {
 		DatabasePluginName: &DatabasePlugin{Impl: opts.DatabaseFunc()},
 	}
 }
-
-// // pluginMap is the map of plugins we can dispense.
-// var pluginMap = map[string]plugin.Plugin{
-// 	DatabasePluginName: &DatabasePlugin{},
-// }

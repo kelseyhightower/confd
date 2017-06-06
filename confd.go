@@ -12,6 +12,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "internal-plugin" {
+		RunPlugin(os.Args[2:])
+	}
+	// plugins := Discover()
 	flag.Parse()
 	if printVersion {
 		log.Info("confd %s", version)
