@@ -10,38 +10,77 @@ import (
 // DatabaseRPC is an implementation that talks over RPC
 type DatabaseRPC struct{ client *rpc.Client }
 
-func (g *DatabaseRPC) GetValues(keys []string) (resp map[string]string, err error) {
-	err = g.client.Call("Plugin.GetValues", keys, &resp)
+func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
+	args := DatabaseGetValuesArgs{
+		Keys: keys,
+	}
+	var resp DatabaseGetValuesResponse
+	err := g.client.Call("Plugin.GetValues", args, &resp)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
 
-	return resp, nil
+	return resp.Values, nil
 }
 
-func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (resp uint64, err error) {
-	err = g.client.Call("Plugin.WatchPrefix", new(interface{}), &resp)
+func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+	args := DatabaseWatchPrefixArgs{
+		Prefix:    prefix,
+		Keys:      keys,
+		WaitIndex: waitIndex,
+		StopChan:  stopChan,
+	}
+	var resp DatabaseWatchPrefixResponse
+	err := g.client.Call("Plugin.WatchPrefix", args, &resp)
 	if err != nil {
-		return resp, err
+		return resp.Index, err
 	}
 
-	return resp, nil
+	return resp.Index, nil
 }
 
 // DatabaseRPCServer is the RPC server that DatabaseRPC talks to, conforming to
 // the requirements of net/rpc
 type DatabaseRPCServer struct {
-	// This is the real implementation
-	Impl confd.Database
+	Database confd.Database
 }
 
-func (s *DatabaseRPCServer) GetValues(keys []string, resp *map[string]string) (err error) {
-	*resp, err = s.Impl.GetValues(keys)
+type DatabaseGetValuesArgs struct {
+	Keys []string
+}
+
+type DatabaseGetValuesResponse struct {
+	Values map[string]string
+}
+
+type DatabaseWatchPrefixArgs struct {
+	Prefix    string
+	Keys      []string
+	WaitIndex uint64
+	StopChan  chan bool
+}
+
+type DatabaseWatchPrefixResponse struct {
+	Index uint64
+}
+
+func (s *DatabaseRPCServer) GetValues(
+	args *DatabaseGetValuesArgs,
+	resp *DatabaseGetValuesResponse) error {
+	values, err := s.Database.GetValues(args.Keys)
+	resp = &DatabaseGetValuesResponse{
+		Values: values,
+	}
 	return err
 }
 
-func (s *DatabaseRPCServer) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool, resp *uint64) (err error) {
-	*resp, err = s.Impl.WatchPrefix(prefix, keys, waitIndex, stopChan)
+func (s *DatabaseRPCServer) WatchPrefix(
+	args *DatabaseWatchPrefixArgs,
+	resp *DatabaseWatchPrefixResponse) error {
+	index, err := s.Database.WatchPrefix(args.Prefix, args.Keys, args.WaitIndex, args.StopChan)
+	resp = &DatabaseWatchPrefixResponse{
+		Index: index,
+	}
 	return err
 }
 
@@ -52,16 +91,13 @@ func (s *DatabaseRPCServer) WatchPrefix(prefix string, keys []string, waitIndex 
 //
 // Client must return an implementation of our interface that communicates
 // over an RPC client. We return GreeterRPC for this.
-//
-// Ignore MuxBroker. That is used to create more multiplexed streams on our
-// plugin connection and is a more advanced use case.
 type DatabasePlugin struct {
 	// Impl Injection
 	Impl confd.Database
 }
 
 func (p *DatabasePlugin) Server(*plugin.MuxBroker) (interface{}, error) {
-	return &DatabaseRPCServer{Impl: p.Impl}, nil
+	return &DatabaseRPCServer{Database: p.Impl}, nil
 }
 
 func (DatabasePlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {

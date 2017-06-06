@@ -1,4 +1,4 @@
-package main
+package backends
 
 import (
 	"fmt"
@@ -8,10 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-plugin"
 	"github.com/kardianos/osext"
 	"github.com/kelseyhightower/confd/builtin/databases/env"
-	"github.com/kelseyhightower/confd/confd"
 	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
@@ -24,7 +22,7 @@ const CONFDSPACE = "-CONFDSPACE-"
 // BuildPluginCommandString builds a special string for executing internal
 // plugins. It has the following format:
 //
-// 	/path/to/terraform-CONFDSPACE-internal-plugin-CONFDSPACE-terraform-provider-aws
+// 	/path/to/terraform-CONFDSPACE-internal-plugin-CONFDSPACE-terraform-database-aws
 //
 // We split the string on -CONFDSPACE- to build the command executor. The reason we
 // use -CONFDSPACE- is so we can support spaces in the /path/to/terraform part.
@@ -52,10 +50,10 @@ func RunPlugin(args []string) int {
 	case "database":
 		pluginFunc, found := InternalDatabases[pluginName]
 		if !found {
-			log.Printf("[ERROR] Could not load provider: %s", pluginName)
+			log.Printf("[ERROR] Could not load database: %s", pluginName)
 			return 1
 		}
-		log.Printf("[INFO] Starting provider plugin %s", pluginName)
+		log.Printf("[INFO] Starting database plugin %s", pluginName)
 		confdplugin.Serve(&confdplugin.ServeOpts{
 			DatabaseFunc: pluginFunc,
 		})
@@ -110,7 +108,7 @@ func Discover() (plugins map[string]string, err error) {
 					path, name)
 			}
 		} else {
-			cmd, err := BuildPluginCommandString("provider", name)
+			cmd, err := BuildPluginCommandString("database", name)
 			if err != nil {
 				return plugins, err
 			}
@@ -208,30 +206,4 @@ func pluginCmd(path string) *exec.Cmd {
 
 	// Build the command to execute the plugin
 	return exec.Command(cmdPath)
-}
-
-func DatabaseFactory(path string) confd.DatabaseFactory {
-	// Build the plugin client configuration and init the plugin
-	var config plugin.ClientConfig
-	config.Cmd = pluginCmd(path)
-	config.HandshakeConfig = confdplugin.HandshakeConfig
-	config.Managed = true
-	config.Plugins = confdplugin.PluginMap
-	client := plugin.NewClient(&config)
-
-	return func() (confd.Database, error) {
-		// Request the RPC client so we can get the provider
-		// so we can build the actual RPC-implemented provider.
-		rpcClient, err := client.Client()
-		if err != nil {
-			return nil, err
-		}
-
-		raw, err := rpcClient.Dispense(confdplugin.DatabasePluginName)
-		if err != nil {
-			return nil, err
-		}
-
-		return raw.(confd.Database), nil
-	}
 }

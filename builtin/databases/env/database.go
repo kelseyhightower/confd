@@ -1,13 +1,12 @@
 package env
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/kelseyhightower/confd/builtin/databases/env/util"
 	"github.com/kelseyhightower/confd/confd"
-	"github.com/kelseyhightower/confd/log"
 )
 
 // Client provides a shell for the env client
@@ -40,7 +39,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 	}
 
-	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
+	log.Printf("Key Map: %#v", vars)
 
 	return vars, nil
 }

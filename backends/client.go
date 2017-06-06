@@ -1,8 +1,6 @@
 package backends
 
 import (
-	"os/exec"
-
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/log"
@@ -11,9 +9,7 @@ import (
 
 // New is used to create a storage client based on our configuration.
 func New(config Config) (confd.Database, error) {
-	// if config.Backend == "" {
-	// 	config.Backend = "etcd"
-	// }
+	config.Backend = "env"
 	// backendNodes := config.BackendNodes
 	// log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	// switch config.Backend {
@@ -53,13 +49,17 @@ func New(config Config) (confd.Database, error) {
 	// 	return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
 	// }
 	// return nil, errors.New("Invalid backend")
-
+	plugins, err := Discover()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	log.Info("Discovered: %s", plugins)
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: confdplugin.HandshakeConfig,
 		Plugins:         confdplugin.PluginMap,
-		Cmd:             exec.Command("/Users/oleksa/go/src/github.com/kelseyhightower/confd/bin/plugins"),
+		Cmd:             pluginCmd(plugins[config.Backend]),
 	})
-	defer client.Kill()
+	// defer client.Kill()
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
@@ -68,10 +68,10 @@ func New(config Config) (confd.Database, error) {
 	}
 
 	// Request the plugin
-	raw, err := rpcClient.Dispense("env")
+	log.Info("Requesting plugin")
+	raw, err := rpcClient.Dispense("database")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	return raw.(confd.Database), nil
 }

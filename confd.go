@@ -13,9 +13,11 @@ import (
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "internal-plugin" {
-		RunPlugin(os.Args[2:])
+		log.Info("Plugin is about to start")
+		exitCode := backends.RunPlugin(os.Args[2:])
+		log.Info("Plugin is about to exit with %#v exit code", exitCode)
+		os.Exit(exitCode)
 	}
-	// plugins := Discover()
 	flag.Parse()
 	if printVersion {
 		log.Info("confd %s", version)
