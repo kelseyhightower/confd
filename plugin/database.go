@@ -10,6 +10,15 @@ import (
 // DatabaseRPC is an implementation that talks over RPC
 type DatabaseRPC struct{ client *rpc.Client }
 
+func (g *DatabaseRPC) Configure(config map[string]interface{}) error {
+	args := &DatabaseConfigureArgs{
+		Config: config,
+	}
+	var resp DatabaseConfigureResponse
+	err := g.client.Call("Plugin.Configure", args, &resp)
+	return err
+}
+
 func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
 	args := &DatabaseGetValuesArgs{
 		Keys: keys,
@@ -45,6 +54,12 @@ type DatabaseRPCServer struct {
 	Database confd.Database
 }
 
+type DatabaseConfigureArgs struct {
+	Config map[string]interface{}
+}
+
+type DatabaseConfigureResponse struct{}
+
 type DatabaseGetValuesArgs struct {
 	Keys []string
 }
@@ -62,6 +77,14 @@ type DatabaseWatchPrefixArgs struct {
 
 type DatabaseWatchPrefixResponse struct {
 	Index uint64
+}
+
+func (s *DatabaseRPCServer) Configure(
+	args *DatabaseConfigureArgs,
+	resp *DatabaseConfigureResponse) error {
+	err := s.Database.Configure(args.Config)
+	*resp = DatabaseConfigureResponse{}
+	return err
 }
 
 func (s *DatabaseRPCServer) GetValues(

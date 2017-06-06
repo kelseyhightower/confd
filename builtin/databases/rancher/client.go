@@ -3,13 +3,14 @@ package rancher
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
-	log "github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/confd"
 )
 
 const (
@@ -21,22 +22,23 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func NewRancherClient(backendNodes []string) (*Client, error) {
+// Database returns a new client to Rancher
+func Database() confd.Database {
+	return &Client{}
+}
+
+func (c *Client) Configure(config map[string]interface{}) error {
 	url := MetaDataURL
 
-	if len(backendNodes) > 0 {
-		url = "http://" + backendNodes[0]
+	if len(config["backendNodes"].([]string)) > 0 {
+		url = "http://" + config["backendNodes"].([]string)[0]
 	}
 
-	log.Info("Using Rancher Metadata URL: " + url)
-	client := &Client{
-		url:        url,
-		httpClient: &http.Client{},
-	}
-
-	err := client.testConnection()
-	return client, err
-
+	log.Printf("Using Rancher Metadata URL: " + url)
+	c.url = url
+	c.httpClient = &http.Client{}
+	err := c.testConnection()
+	return err
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
@@ -86,7 +88,7 @@ func treeWalk(root string, val interface{}, vars map[string]string) error {
 	case nil:
 		vars[root] = "null"
 	default:
-		log.Error("Unknown type: " + reflect.TypeOf(val).Name())
+		log.Printf("Unknown type: " + reflect.TypeOf(val).Name())
 	}
 	return nil
 }

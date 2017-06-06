@@ -12,13 +12,13 @@ import (
 // Client provides a shell for the env client
 type Client struct{}
 
+// Database returns a new client
 func Database() confd.Database {
 	return &Client{}
 }
 
-// NewEnvClient returns a new client
-func NewEnvClient() (*Client, error) {
-	return &Client{}, nil
+func (c *Client) Configure(map[string]interface{}) error {
+	return nil
 }
 
 // GetValues queries the environment for keys

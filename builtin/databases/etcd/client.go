@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/client"
+	"github.com/kelseyhightower/confd/confd"
 	"golang.org/x/net/context"
 )
 
@@ -19,10 +20,12 @@ type Client struct {
 }
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
-func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, username string, password string) (*Client, error) {
-	var c client.Client
-	var kapi client.KeysAPI
-	var err error
+func Database() confd.Database {
+	return &Client{}
+}
+
+// Configure configures etcd.Client with a connection to named machines.
+func (c *Client) Configure(config map[string]interface{}) (err error) {
 	var transport = &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
@@ -37,19 +40,19 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	}
 
 	cfg := client.Config{
-		Endpoints:               machines,
+		Endpoints:               config["machines"].([]string),
 		HeaderTimeoutPerRequest: time.Duration(3) * time.Second,
 	}
 
-	if basicAuth {
-		cfg.Username = username
-		cfg.Password = password
+	if config["basicAuth"].(bool) {
+		cfg.Username = config["username"].(string)
+		cfg.Password = config["password"].(string)
 	}
 
-	if caCert != "" {
-		certBytes, err := ioutil.ReadFile(caCert)
+	if config["caCert"].(string) != "" {
+		certBytes, err := ioutil.ReadFile(config["caCert"].(string))
 		if err != nil {
-			return &Client{kapi}, err
+			return err
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -60,10 +63,10 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 		}
 	}
 
-	if cert != "" && key != "" {
-		tlsCert, err := tls.LoadX509KeyPair(cert, key)
+	if config["cert"].(string) != "" && config["key"].(string) != "" {
+		tlsCert, err := tls.LoadX509KeyPair(config["cert"].(string), config["key"].(string))
 		if err != nil {
-			return &Client{kapi}, err
+			return err
 		}
 		tlsConfig.Certificates = []tls.Certificate{tlsCert}
 	}
@@ -71,13 +74,12 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	transport.TLSClientConfig = tlsConfig
 	cfg.Transport = transport
 
-	c, err = client.New(cfg)
+	etcdClient, err := client.New(cfg)
 	if err != nil {
-		return &Client{kapi}, err
+		return err
 	}
-
-	kapi = client.NewKeysAPI(c)
-	return &Client{kapi}, nil
+	c.client = client.NewKeysAPI(etcdClient)
+	return err
 }
 
 // GetValues queries etcd for keys prefixed by prefix.

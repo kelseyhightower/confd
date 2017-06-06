@@ -1,12 +1,13 @@
 package dynamodb
 
 import (
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/confd"
 )
 
 // Client is a wrapper around the DynamoDB client
@@ -16,37 +17,47 @@ type Client struct {
 	table  string
 }
 
-// NewDynamoDBClient returns an *dynamodb.Client with a connection to the region
+// Database returns a new client to DynamoDB
+func Database() confd.Database {
+	return &Client{}
+}
+
+// Configure configures *dynamodb.Client with a connection to the region
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
-func NewDynamoDBClient(table string) (*Client, error) {
-	var c *aws.Config
+func (c *Client) Configure(config map[string]interface{}) error {
+	c.table = config["table"].(string)
+	var awsConfig *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
-		log.Debug("DYNAMODB_LOCAL is set")
+		log.Println("DYNAMODB_LOCAL is set")
 		endpoint := "http://localhost:8000"
-		c = &aws.Config{
+		awsConfig = &aws.Config{
 			Endpoint: &endpoint,
 		}
 	} else {
-		c = nil
+		awsConfig = nil
 	}
 
-	session := session.New(c)
+	session := session.New(awsConfig)
 
 	// Fail early, if no credentials can be found
 	_, err := session.Config.Credentials.Get()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	d := dynamodb.New(session)
 
 	// Check if the table exists
-	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
+	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{
+		TableName: aws.String(c.table),
+	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &Client{d, table}, nil
+
+	c.client = d
+	return nil
 }
 
 // GetValues retrieves the values for the given keys from DynamoDB
@@ -66,7 +77,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				if val.S != nil {
 					vars[key] = *val.S
 				} else {
-					log.Warning("Skipping key '%s'. 'value' is not of type 'string'.", key)
+					log.Printf("Skipping key '%s'. 'value' is not of type 'string'.", key)
 				}
 				continue
 			}
@@ -95,7 +106,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				if val.S != nil {
 					vars[*item["key"].S] = *val.S
 				} else {
-					log.Warning("Skipping key '%s'. 'value' is not of type 'string'.", *item["key"].S)
+					log.Printf("Skipping key '%s'. 'value' is not of type 'string'.", *item["key"].S)
 				}
 				continue
 			}

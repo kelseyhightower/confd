@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/kelseyhightower/confd/confd"
 )
 
 // Client provides a wrapper around the consulkv client
@@ -16,29 +17,33 @@ type ConsulClient struct {
 	client *api.KV
 }
 
-// NewConsulClient returns a new client to Consul for the given address
-func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error) {
+// Database returns a new client to Consul
+func Database() confd.Database {
+	return &ConsulClient{}
+}
+
+func (c *ConsulClient) Configure(config map[string]interface{}) error {
 	conf := api.DefaultConfig()
 
-	conf.Scheme = scheme
+	conf.Scheme = config["scheme"].(string)
 
-	if len(nodes) > 0 {
-		conf.Address = nodes[0]
+	if len(config["nodes"].([]string)) > 0 {
+		conf.Address = config["nodes"].([]string)[0]
 	}
 
 	tlsConfig := &tls.Config{}
-	if cert != "" && key != "" {
-		clientCert, err := tls.LoadX509KeyPair(cert, key)
+	if config["cert"].(string) != "" && config["key"].(string) != "" {
+		clientCert, err := tls.LoadX509KeyPair(config["cert"].(string), config["key"].(string))
 		if err != nil {
-			return nil, err
+			return err
 		}
 		tlsConfig.Certificates = []tls.Certificate{clientCert}
 		tlsConfig.BuildNameToCertificate()
 	}
-	if caCert != "" {
-		ca, err := ioutil.ReadFile(caCert)
+	if config["caCert"].(string) != "" {
+		ca, err := ioutil.ReadFile(config["caCert"].(string))
 		if err != nil {
-			return nil, err
+			return err
 		}
 		caCertPool := x509.NewCertPool()
 		caCertPool.AppendCertsFromPEM(ca)
@@ -47,12 +52,12 @@ func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error
 	conf.HttpClient.Transport = &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}
-
 	client, err := api.NewClient(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &ConsulClient{client.KV()}, nil
+	c.client = client.KV()
+	return nil
 }
 
 // GetValues queries Consul for keys
