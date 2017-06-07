@@ -9,12 +9,28 @@ import (
 	"strings"
 
 	"github.com/kardianos/osext"
+	"github.com/kelseyhightower/confd/builtin/databases/consul"
+	"github.com/kelseyhightower/confd/builtin/databases/dynamodb"
 	"github.com/kelseyhightower/confd/builtin/databases/env"
+	"github.com/kelseyhightower/confd/builtin/databases/etcd"
+	"github.com/kelseyhightower/confd/builtin/databases/rancher"
+	"github.com/kelseyhightower/confd/builtin/databases/redis"
+	"github.com/kelseyhightower/confd/builtin/databases/stackengine"
+	"github.com/kelseyhightower/confd/builtin/databases/vault"
+	"github.com/kelseyhightower/confd/builtin/databases/zookeeper"
 	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
 var InternalDatabases = map[string]confdplugin.DatabaseFunc{
-	"env": env.Database,
+	"env":         env.Database,
+	"consul":      consul.Database,
+	"dynamodb":    dynamodb.Database,
+	"etcd":        etcd.Database,
+	"rancher":     rancher.Database,
+	"redis":       redis.Database,
+	"stackengine": stackengine.Database,
+	"zookeeper":   zookeeper.Database,
+	"vault":       vault.Database,
 }
 
 const CONFDSPACE = "-CONFDSPACE-"
@@ -47,7 +63,7 @@ func RunPlugin(args []string) int {
 	log.SetPrefix(fmt.Sprintf("%s-%s (internal) ", pluginName, pluginType))
 
 	switch pluginType {
-	case "database":
+	case confdplugin.DatabasePluginName:
 		pluginFunc, found := InternalDatabases[pluginName]
 		if !found {
 			log.Printf("[ERROR] Could not load database: %s", pluginName)
@@ -102,13 +118,13 @@ func Discover() (plugins map[string]string, err error) {
 	for name, _ := range InternalDatabases {
 		if path, found := plugins[name]; found {
 			// Allow these warnings to be suppressed via TF_PLUGIN_DEV=1 or similar
-			if os.Getenv("TF_PLUGIN_DEV") == "" {
+			if os.Getenv("CONFD_PLUGIN_DEV") == "" {
 				log.Printf("[WARN] %s overrides an internal plugin for %s-database.\n"+
 					"  If you did not expect to see this message you will need to remove the old plugin.\n",
 					path, name)
 			}
 		} else {
-			cmd, err := BuildPluginCommandString("database", name)
+			cmd, err := BuildPluginCommandString(confdplugin.DatabasePluginName, name)
 			if err != nil {
 				return plugins, err
 			}

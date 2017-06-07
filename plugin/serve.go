@@ -19,8 +19,7 @@ var HandshakeConfig = plugin.HandshakeConfig{
 	// The ProtocolVersion is the version that must match between TF core
 	// and Confd plugins. This should be bumped whenever a change happens in
 	// one or the other that makes it so that they can't safely communicate.
-	// This could be adding a new interface value, it could be how
-	// helper/schema computes diffs, etc.
+	// This could be e.g. adding a new interface value
 	ProtocolVersion: 1,
 
 	// The magic cookie values should NEVER be changed.

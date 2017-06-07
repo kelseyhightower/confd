@@ -1,9 +1,23 @@
 package backends
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/kelseyhightower/confd/plugin"
+)
 
 func TestInternalPlugin_InternalDatabases(t *testing.T) {
-	for _, name := range []string{"env"} {
+	for _, name := range []string{
+		"env",
+		"consul",
+		"dynamodb",
+		"etcd",
+		"rancher",
+		"redis",
+		"stackengine",
+		"zookeeper",
+		"vault",
+	} {
 		if _, ok := InternalDatabases[name]; !ok {
 			t.Errorf("Expected to find %s in InternalDatabases", name)
 		}
@@ -11,7 +25,7 @@ func TestInternalPlugin_InternalDatabases(t *testing.T) {
 }
 
 func TestInternalPlugin_BuildPluginCommandString(t *testing.T) {
-	actual, err := BuildPluginCommandString("database", "env")
+	actual, err := BuildPluginCommandString(plugin.DatabasePluginName, "env")
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

@@ -12,34 +12,42 @@ import (
 )
 
 func main() {
+	os.Exit(mainExitCode())
+}
+
+func mainExitCode() int {
 	if len(os.Args) > 1 && os.Args[1] == "internal-plugin" {
 		log.Info("Plugin is about to start")
 		exitCode := backends.RunPlugin(os.Args[2:])
 		log.Info("Plugin is about to exit with %#v exit code", exitCode)
-		os.Exit(exitCode)
+		return exitCode
 	}
 	flag.Parse()
 	if printVersion {
 		log.Info("confd %s", version)
-		os.Exit(0)
+		return 0
 	}
 	if err := initConfig(); err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
+		return 1
 	}
 
 	log.Info("Starting confd")
 
-	database, err := backends.New(backendsConfig)
+	database, client, err := backends.New(backendsConfig)
+	defer client.Kill()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
+		return 1
 	}
 
 	templateConfig.Database = database
 	if onetime {
 		if err := template.Process(templateConfig); err != nil {
-			log.Fatal(err.Error())
+			log.Error(err.Error())
+			return 1
 		}
-		os.Exit(0)
+		return 0
 	}
 
 	stopChan := make(chan bool)
@@ -66,7 +74,7 @@ func main() {
 			log.Info("Captured %v. Exiting...", s)
 			close(doneChan)
 		case <-doneChan:
-			os.Exit(0)
+			return 0
 		}
 	}
 }

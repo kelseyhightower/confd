@@ -10,8 +10,7 @@ import (
 )
 
 // New is used to create a storage client based on our configuration.
-func New(config Config) (confd.Database, error) {
-	config.Backend = "env"
+func New(config Config) (confd.Database, *plugin.Client, error) {
 	plugins, err := Discover()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -32,14 +31,14 @@ func New(config Config) (confd.Database, error) {
 
 	// Request the plugin
 	log.Info("Requesting plugin")
-	raw, err := rpcClient.Dispense("database")
+	raw, err := rpcClient.Dispense(confdplugin.DatabasePluginName)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	database := raw.(confd.Database)
 
 	// Configure each type of database
-	var c map[string]interface{}
+	c := make(map[string]interface{})
 	log.Info("Backend nodes set to " + strings.Join(config.BackendNodes, ", "))
 	switch config.Backend {
 	case "consul":
@@ -91,5 +90,5 @@ func New(config Config) (confd.Database, error) {
 	}
 	database.Configure(c)
 
-	return database, nil
+	return database, client, nil
 }
