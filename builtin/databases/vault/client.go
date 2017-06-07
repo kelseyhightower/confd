@@ -11,12 +11,54 @@ import (
 	"path"
 
 	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/log"
 )
 
 // Client is a wrapper around the vault client
 type Client struct {
 	client *vaultapi.Client
+}
+
+// Database returns a new client to Vault
+func Database() confd.Database {
+	return &Client{}
+}
+
+// Configure configures an *vault.Client with a connection to named machines.
+// It returns an error if a connection to the cluster cannot be made.
+func (c *Client) Configure(config map[string]interface{}) (err error) {
+	params := map[string]string{
+		"app-id":   config["app-id"].(string),
+		"user-id":  config["user-id"].(string),
+		"username": config["username"].(string),
+		"password": config["password"].(string),
+		"token":    config["token"].(string),
+		"cert":     config["cert"].(string),
+		"key":      config["key"].(string),
+		"caCert":   config["caCert"].(string),
+	}
+	authType := config["authType"].(string)
+	address := config["address"].(string)
+	if authType == "" {
+		return errors.New("you have to set the auth type when using the vault backend")
+	}
+	log.Info("Vault authentication backend set to %s", authType)
+	conf, err := getConfig(address, params["cert"], params["key"], params["caCert"])
+
+	if err != nil {
+		return err
+	}
+
+	c.client, err = vaultapi.NewClient(conf)
+	if err != nil {
+		return err
+	}
+
+	if err = authenticate(c.client, authType, params); err != nil {
+		return err
+	}
+	return nil
 }
 
 // get a
@@ -116,30 +158,6 @@ func getConfig(address, cert, key, caCert string) (*vaultapi.Config, error) {
 	}
 
 	return conf, nil
-}
-
-// New returns an *vault.Client with a connection to named machines.
-// It returns an error if a connection to the cluster cannot be made.
-func New(address, authType string, params map[string]string) (*Client, error) {
-	if authType == "" {
-		return nil, errors.New("you have to set the auth type when using the vault backend")
-	}
-	log.Info("Vault authentication backend set to %s", authType)
-	conf, err := getConfig(address, params["cert"], params["key"], params["caCert"])
-
-	if err != nil {
-		return nil, err
-	}
-
-	c, err := vaultapi.NewClient(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := authenticate(c, authType, params); err != nil {
-		return nil, err
-	}
-	return &Client{c}, nil
 }
 
 // GetValues queries etcd for keys prefixed by prefix.

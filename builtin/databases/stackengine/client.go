@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/kelseyhightower/confd/confd"
 )
 
 // Client is an empty wrapper around the StackEngine client
@@ -19,12 +21,24 @@ type Client struct {
 	transport *http.Transport
 }
 
-// NewStackEngineClient returns a client object with connection information.
-func NewStackEngineClient(nodes []string, scheme, cert, key, caCert string, authToken string) (*Client, error) {
+// Database returns a new client to StackEngine
+func Database() confd.Database {
+	return &Client{}
+}
+
+// Configure returns a client object with connection information.
+func (c *Client) Configure(config map[string]interface{}) error {
+	c.token = config["authToken"].(string)
 	var (
 		err  error
 		host string
 	)
+
+	nodes := config["nodes"].([]string)
+	cert := config["cert"].(string)
+	key := config["key"].(string)
+	caCert := config["caCert"].(string)
+	scheme := config["scheme"].(string)
 
 	if len(nodes) > 0 {
 		host = nodes[0]
@@ -32,13 +46,13 @@ func NewStackEngineClient(nodes []string, scheme, cert, key, caCert string, auth
 		host = "127.0.0.1:8443"
 	}
 
-	base := scheme + "://" + host
+	c.base = scheme + "://" + host
 
 	tlsConfig := &tls.Config{}
 	if cert != "" && key != "" {
 		clientCert, err := tls.LoadX509KeyPair(cert, key)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		tlsConfig.Certificates = []tls.Certificate{clientCert}
 		tlsConfig.BuildNameToCertificate()
@@ -46,20 +60,20 @@ func NewStackEngineClient(nodes []string, scheme, cert, key, caCert string, auth
 	if caCert != "" {
 		ca, err := ioutil.ReadFile(caCert)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		caCertPool := x509.NewCertPool()
 		caCertPool.AppendCertsFromPEM(ca)
 		tlsConfig.RootCAs = caCertPool
 	}
 	tlsConfig.InsecureSkipVerify = true
-	transport := &http.Transport{
+	c.transport = &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}
 
-	client := &http.Client{Transport: transport}
+	c.client = &http.Client{Transport: c.transport}
 
-	return &Client{client, authToken, base, transport}, err
+	return err
 }
 
 // KVPair is used to represent a single K/V entry

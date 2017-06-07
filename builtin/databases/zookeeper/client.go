@@ -1,11 +1,12 @@
 package zookeeper
 
 import (
+	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/confd"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
 
@@ -14,12 +15,15 @@ type Client struct {
 	client *zk.Conn
 }
 
-func NewZookeeperClient(machines []string) (*Client, error) {
-	c, _, err := zk.Connect(machines, time.Second) //*10)
-	if err != nil {
-		panic(err)
-	}
-	return &Client{c}, nil
+// Database returns a new client to Zookeeper
+func Database() confd.Database {
+	return &Client{}
+}
+
+func (c *Client) Configure(config map[string]interface{}) (err error) {
+	machines := config["machines"].([]string)
+	c.client, _, err = zk.Connect(machines, time.Second) //*10)
+	return err
 }
 
 func nodeWalk(prefix string, c *Client, vars map[string]string) error {
@@ -101,7 +105,7 @@ func (c *Client) watch(key string, respChan chan watchResponse, cancelRoutine ch
 				respChan <- watchResponse{1, e.Err}
 			}
 		case <-cancelRoutine:
-			log.Debug("Stop watching: " + key)
+			log.Printf("Stop watching: %s", key)
 			// There is no way to stop GetW/ChildrenW so just quit
 			return
 		}
@@ -132,7 +136,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 				for dir := filepath.Dir(k); dir != "/"; dir = filepath.Dir(dir) {
 					if _, ok := watchMap[dir]; !ok {
 						watchMap[dir] = ""
-						log.Debug("Watching: " + dir)
+						log.Printf("Watching: %s", dir)
 						go c.watch(dir, respChan, cancelRoutine)
 					}
 				}
@@ -145,7 +149,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	for k, _ := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
-				log.Debug("Watching: " + k)
+				log.Printf("Watching: %s", k)
 				go c.watch(k, respChan, cancelRoutine)
 				break
 			}

@@ -49,6 +49,7 @@ func New(config Config) (confd.Database, error) {
 		c["cert"] = config.ClientCert
 		c["caCert"] = config.ClientCaKeys
 	case "env":
+		break
 	case "etcd":
 		c["machines"] = config.BackendNodes
 		c["key"] = config.ClientKey
@@ -62,29 +63,33 @@ func New(config Config) (confd.Database, error) {
 		log.Info("DynamoDB table set to %s", config.Table)
 	case "rancher":
 		c["backendNodes"] = config.BackendNodes
+	case "zookeeper":
+		c["machines"] = config.BackendNodes
+	case "redis":
+		c["machines"] = config.BackendNodes
+		c["password"] = config.ClientKey
+	case "vault":
+		c["authType"] = config.AuthType
+		c["address"] = config.BackendNodes[0]
+		c["app-id"] = config.AppID
+		c["user-id"] = config.UserID
+		c["username"] = config.Username
+		c["password"] = config.Password
+		c["token"] = config.AuthToken
+		c["cert"] = config.ClientCert
+		c["key"] = config.ClientKey
+		c["caCert"] = config.ClientCaKeys
+	case "stackengine":
+		c["nodes"] = config.BackendNodes
+		c["cert"] = config.ClientCert
+		c["key"] = config.ClientKey
+		c["caCert"] = config.ClientCaKeys
+		c["scheme"] = config.Scheme
+		c["authToken"] = config.AuthToken
 	default:
 		panic("Invalid backend")
 	}
 	database.Configure(c)
-	// case "zookeeper":
-	// 	return zookeeper.NewZookeeperClient(backendNodes)
-	// case "redis":
-	// 	return redis.NewRedisClient(backendNodes, config.ClientKey)
-	// case "vault":
-	// 	vaultConfig := map[string]string{
-	// 		"app-id":   config.AppID,
-	// 		"user-id":  config.UserID,
-	// 		"username": config.Username,
-	// 		"password": config.Password,
-	// 		"token":    config.AuthToken,
-	// 		"cert":     config.ClientCert,
-	// 		"key":      config.ClientKey,
-	// 		"caCert":   config.ClientCaKeys,
-	// 	}
-	// 	return vault.New(backendNodes[0], config.AuthType, vaultConfig)
-	// case "stackengine":
-	// 	return stackengine.NewStackEngineClient(backendNodes, config.Scheme, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.AuthToken)
-	// }
 
 	return database, nil
 }
