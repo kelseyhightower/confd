@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Client is an empty wrapper around the StackEngine client
@@ -27,38 +28,30 @@ func Database() confd.Database {
 }
 
 // Configure returns a client object with connection information.
-func (c *Client) Configure(config map[string]interface{}) error {
-	c.token = config["authToken"].(string)
-	var (
-		err  error
-		host string
-	)
-
-	nodes := config["nodes"].([]string)
-	cert := config["cert"].(string)
-	key := config["key"].(string)
-	caCert := config["caCert"].(string)
-	scheme := config["scheme"].(string)
-
-	if len(nodes) > 0 {
-		host = nodes[0]
-	} else {
-		host = "127.0.0.1:8443"
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
 	}
 
-	c.base = scheme + "://" + host
+	host := "127.0.0.1:8443"
+	if len(config.Nodes) > 0 {
+		host = config.Nodes[0]
+	}
+	c.base = config.Scheme + "://" + host
+	c.token = config.AuthToken
 
 	tlsConfig := &tls.Config{}
-	if cert != "" && key != "" {
-		clientCert, err := tls.LoadX509KeyPair(cert, key)
+	if config.Cert != "" && config.Key != "" {
+		clientCert, err := tls.LoadX509KeyPair(config.Cert, config.Key)
 		if err != nil {
 			return err
 		}
 		tlsConfig.Certificates = []tls.Certificate{clientCert}
 		tlsConfig.BuildNameToCertificate()
 	}
-	if caCert != "" {
-		ca, err := ioutil.ReadFile(caCert)
+	if config.CaCert != "" {
+		ca, err := ioutil.ReadFile(config.CaCert)
 		if err != nil {
 			return err
 		}
@@ -72,8 +65,7 @@ func (c *Client) Configure(config map[string]interface{}) error {
 	}
 
 	c.client = &http.Client{Transport: c.transport}
-
-	return err
+	return nil
 }
 
 // KVPair is used to represent a single K/V entry

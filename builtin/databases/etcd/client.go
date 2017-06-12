@@ -11,6 +11,7 @@ import (
 
 	"github.com/coreos/etcd/client"
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 )
 
@@ -25,7 +26,12 @@ func Database() confd.Database {
 }
 
 // Configure configures etcd.Client with a connection to named machines.
-func (c *Client) Configure(config map[string]interface{}) (err error) {
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
+	}
+
 	var transport = &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
@@ -40,17 +46,17 @@ func (c *Client) Configure(config map[string]interface{}) (err error) {
 	}
 
 	cfg := client.Config{
-		Endpoints:               config["machines"].([]string),
+		Endpoints:               config.Machines,
 		HeaderTimeoutPerRequest: time.Duration(3) * time.Second,
 	}
 
-	if config["basicAuth"].(bool) {
-		cfg.Username = config["username"].(string)
-		cfg.Password = config["password"].(string)
+	if config.BasicAuth {
+		cfg.Username = config.Username
+		cfg.Password = config.Password
 	}
 
-	if config["caCert"].(string) != "" {
-		certBytes, err := ioutil.ReadFile(config["caCert"].(string))
+	if config.CaCert != "" {
+		certBytes, err := ioutil.ReadFile(config.CaCert)
 		if err != nil {
 			return err
 		}
@@ -63,8 +69,8 @@ func (c *Client) Configure(config map[string]interface{}) (err error) {
 		}
 	}
 
-	if config["cert"].(string) != "" && config["key"].(string) != "" {
-		tlsCert, err := tls.LoadX509KeyPair(config["cert"].(string), config["key"].(string))
+	if config.Cert != "" && config.Key != "" {
+		tlsCert, err := tls.LoadX509KeyPair(config.Cert, config.Key)
 		if err != nil {
 			return err
 		}

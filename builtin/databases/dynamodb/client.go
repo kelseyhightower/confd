@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Client is a wrapper around the DynamoDB client
@@ -25,8 +26,13 @@ func Database() confd.Database {
 // Configure configures *dynamodb.Client with a connection to the region
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
-func (c *Client) Configure(config map[string]interface{}) error {
-	c.table = config["table"].(string)
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
+	}
+
+	c.table = config.Table
 	var awsConfig *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Println("DYNAMODB_LOCAL is set")

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
 
@@ -20,9 +21,14 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(config map[string]interface{}) (err error) {
-	machines := config["machines"].([]string)
-	c.client, _, err = zk.Connect(machines, time.Second) //*10)
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
+	}
+
+	client, _, err := zk.Connect(config.Machines, time.Second) //*10)
+	c.client = client
 	return err
 }
 

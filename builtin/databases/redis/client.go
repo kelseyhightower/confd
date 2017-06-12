@@ -9,6 +9,7 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Client is a wrapper around the redis client
@@ -23,10 +24,16 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(config map[string]interface{}) (err error) {
-	c.machines = config["machines"].([]string)
-	c.password = config["password"].(string)
-	c.client, err = tryConnect(c.machines, c.password)
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
+	}
+
+	c.machines = config.Machines
+	c.password = config.Password
+	client, err := tryConnect(c.machines, c.password)
+	c.client = client
 	return err
 }
 

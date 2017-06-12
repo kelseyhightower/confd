@@ -10,38 +10,44 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Client provides a wrapper around the consulkv client
-type ConsulClient struct {
+type Client struct {
 	client *api.KV
 }
 
 // Database returns a new client to Consul
 func Database() confd.Database {
-	return &ConsulClient{}
+	return &Client{}
 }
 
-func (c *ConsulClient) Configure(config map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
+	}
+
 	conf := api.DefaultConfig()
 
-	conf.Scheme = config["scheme"].(string)
+	conf.Scheme = config.Scheme
 
-	if len(config["nodes"].([]string)) > 0 {
-		conf.Address = config["nodes"].([]string)[0]
+	if len(config.Nodes) > 0 {
+		conf.Address = config.Nodes[0]
 	}
 
 	tlsConfig := &tls.Config{}
-	if config["cert"].(string) != "" && config["key"].(string) != "" {
-		clientCert, err := tls.LoadX509KeyPair(config["cert"].(string), config["key"].(string))
+	if config.Cert != "" && config.Key != "" {
+		clientCert, err := tls.LoadX509KeyPair(config.Cert, config.Key)
 		if err != nil {
 			return err
 		}
 		tlsConfig.Certificates = []tls.Certificate{clientCert}
 		tlsConfig.BuildNameToCertificate()
 	}
-	if config["caCert"].(string) != "" {
-		ca, err := ioutil.ReadFile(config["caCert"].(string))
+	if config.CaCert != "" {
+		ca, err := ioutil.ReadFile(config.CaCert)
 		if err != nil {
 			return err
 		}
@@ -61,7 +67,7 @@ func (c *ConsulClient) Configure(config map[string]interface{}) error {
 }
 
 // GetValues queries Consul for keys
-func (c *ConsulClient) GetValues(keys []string) (map[string]string, error) {
+func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
 		key := strings.TrimPrefix(key, "/")
@@ -81,7 +87,7 @@ type watchResponse struct {
 	err       error
 }
 
-func (c *ConsulClient) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	respChan := make(chan watchResponse)
 	go func() {
 		opts := api.QueryOptions{

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/mitchellh/mapstructure"
 )
 
 const (
@@ -27,18 +28,21 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(config map[string]interface{}) error {
-	url := MetaDataURL
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
+	}
 
-	if len(config["backendNodes"].([]string)) > 0 {
-		url = "http://" + config["backendNodes"].([]string)[0]
+	url := MetaDataURL
+	if len(config.BackendNodes) > 0 {
+		url = "http://" + config.BackendNodes[0]
 	}
 
 	log.Printf("Using Rancher Metadata URL: " + url)
 	c.url = url
 	c.httpClient = &http.Client{}
-	err := c.testConnection()
-	return err
+	return c.testConnection()
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {

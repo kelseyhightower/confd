@@ -7,12 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"path"
 
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/kelseyhightower/confd/confd"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Client is a wrapper around the vault client
@@ -27,25 +28,18 @@ func Database() confd.Database {
 
 // Configure configures an *vault.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func (c *Client) Configure(config map[string]interface{}) (err error) {
-	params := map[string]string{
-		"app-id":   config["app-id"].(string),
-		"user-id":  config["user-id"].(string),
-		"username": config["username"].(string),
-		"password": config["password"].(string),
-		"token":    config["token"].(string),
-		"cert":     config["cert"].(string),
-		"key":      config["key"].(string),
-		"caCert":   config["caCert"].(string),
+func (c *Client) Configure(configRaw map[string]interface{}) error {
+	var config Config
+	if err := mapstructure.Decode(configRaw, &config); err != nil {
+		return err
 	}
-	authType := config["authType"].(string)
-	address := config["address"].(string)
-	if authType == "" {
+
+	if config.AuthType == "" {
 		return errors.New("you have to set the auth type when using the vault backend")
 	}
-	log.Info("Vault authentication backend set to %s", authType)
-	conf, err := getConfig(address, params["cert"], params["key"], params["caCert"])
+	log.Printf("[INFO] Vault authentication backend set to %s", config.AuthType)
 
+	conf, err := getConfig(config.Address, config.Cert, config.Key, config.CaCert)
 	if err != nil {
 		return err
 	}
@@ -55,61 +49,48 @@ func (c *Client) Configure(config map[string]interface{}) (err error) {
 		return err
 	}
 
-	if err = authenticate(c.client, authType, params); err != nil {
+	if err = authenticate(c.client, config); err != nil {
 		return err
 	}
 	return nil
 }
 
-// get a
-func getParameter(key string, parameters map[string]string) string {
-	value := parameters[key]
-	if value == "" {
-		// panic if a configuration is missing
-		panic(fmt.Sprintf("%s is missing from configuration", key))
-	}
-	return value
-}
-
-// panicToError converts a panic to an error
-func panicToError(err *error) {
-	if r := recover(); r != nil {
-		switch t := r.(type) {
-		case string:
-			*err = errors.New(t)
-		case error:
-			*err = t
-		default: // panic again if we don't know how to handle
-			panic(r)
-		}
-	}
-}
-
 // authenticate with the remote client
-func authenticate(c *vaultapi.Client, authType string, params map[string]string) (err error) {
+func authenticate(c *vaultapi.Client, config Config) (err error) {
 	var secret *vaultapi.Secret
 
-	// handle panics gracefully by creating an error
-	// this would happen when we get a parameter that is missing
-	defer panicToError(&err)
-
-	switch authType {
+	switch config.AuthType {
 	case "app-id":
+		if config.AppId == "" {
+			return errors.New("app-id is missing from configuration")
+		} else if config.UserId == "" {
+			return errors.New("user-id is missing from configuration")
+		}
 		secret, err = c.Logical().Write("/auth/app-id/login", map[string]interface{}{
-			"app_id":  getParameter("app-id", params),
-			"user_id": getParameter("user-id", params),
+			"app_id":  config.AppId,
+			"user_id": config.UserId,
 		})
 	case "github":
+		if config.Token == "" {
+			return errors.New("token is missing from configuration")
+		}
 		secret, err = c.Logical().Write("/auth/github/login", map[string]interface{}{
-			"token": getParameter("token", params),
+			"token": config.Token,
 		})
 	case "token":
-		c.SetToken(getParameter("token", params))
+		if config.Token == "" {
+			return errors.New("token is missing from configuration")
+		}
+		c.SetToken(config.Token)
 		secret, err = c.Logical().Read("/auth/token/lookup-self")
 	case "userpass":
-		username, password := getParameter("username", params), getParameter("password", params)
-		secret, err = c.Logical().Write(fmt.Sprintf("/auth/userpass/login/%s", username), map[string]interface{}{
-			"password": password,
+		if config.Username == "" {
+			return errors.New("username is missing from configuration")
+		} else if config.Password == "" {
+			return errors.New("password is missing from configuration")
+		}
+		secret, err = c.Logical().Write(fmt.Sprintf("/auth/userpass/login/%s", config.Username), map[string]interface{}{
+			"password": config.Password,
 		})
 	}
 
@@ -122,7 +103,7 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 		return nil
 	}
 
-	log.Debug("client authenticated with auth backend: %s", authType)
+	log.Printf("[DEBUG] client authenticated with auth backend: %s", config.AuthType)
 	// the default place for a token is in the auth section
 	// otherwise, the backend will set the token itself
 	c.SetToken(secret.Auth.ClientToken)
@@ -164,11 +145,11 @@ func getConfig(address, cert, key, caCert string) (*vaultapi.Config, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
-		log.Debug("getting %s from vault", key)
+		log.Printf("[DEBUG] getting %s from vault", key)
 		resp, err := c.client.Logical().Read(key)
 
 		if err != nil {
-			log.Debug("there was an error extracting %s", key)
+			log.Printf("[DEBUG] there was an error extracting %s", key)
 			return nil, err
 		}
 		if resp == nil || resp.Data == nil {
@@ -207,7 +188,7 @@ func isKV(data map[string]interface{}) (string, bool) {
 func flatten(key string, value interface{}, vars map[string]string) {
 	switch value.(type) {
 	case string:
-		log.Debug("setting key %s to: %s", key, value)
+		log.Printf("[DEBUG] setting key %s to: %s", key, value)
 		vars[key] = value.(string)
 	case map[string]interface{}:
 		inner := value.(map[string]interface{})
@@ -216,7 +197,7 @@ func flatten(key string, value interface{}, vars map[string]string) {
 			flatten(innerKey, innerValue, vars)
 		}
 	default: // we don't know how to handle non string or maps of strings
-		log.Warning("type of '%s' is not supported (%T)", key, value)
+		log.Printf("[WARNING] type of '%s' is not supported (%T)", key, value)
 	}
 }
 
