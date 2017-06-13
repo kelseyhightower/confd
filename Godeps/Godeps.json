@@ -9,11 +9,6 @@
 			"Rev": "312db06c6c6dbfa9899e58564bacfaa584f18ab7"
 		},
 		{
-			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.9.0-3-g3455d89",
-			"Rev": "3455d89ac9652295c85db2a98ea32f1d61c380bc"
-		},
-		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
 			"Comment": "v1.1.0-5-g2a34ea8",
 			"Rev": "2a34ea8812f32aae75b43400f9424a0559840659"
@@ -200,6 +195,10 @@
 			"Rev": "1c284ec98f4b398443cbabb0d9197f7f4cc0077c"
 		},
 		{
+			"ImportPath": "github.com/hashicorp/logutils",
+			"Rev": "0dc08b1671f34c4250ce212759ebd880f743d883"
+		},
+		{
 			"ImportPath": "github.com/hashicorp/serf/coordinate",
 			"Comment": "v0.7.0-18-gc4c55f1",
 			"Rev": "c4c55f16bae1aed9b355ad655d3ebf0215734461"
@@ -237,10 +236,6 @@
 		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "2e9cee70ee697e0a2ef894b560dda50dec7dff58"
-		},
-		{
-			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "20457ee8ea8546920d3f4e19e405da45250dc5a5"
 		}
 	]
 }
