@@ -4,11 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/logging"
 )
 
 func TestInitConfigDefaultConfig(t *testing.T) {
-	log.SetLevel("warn")
+	logging.SetLevel("warn")
 	want := Config{
 		Backend:      "etcd",
 		BackendNodes: []string{"http://127.0.0.1:4001"},

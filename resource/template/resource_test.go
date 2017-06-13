@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	env "github.com/kelseyhightower/confd/builtin/databases/env"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/logging"
 )
 
 // createTempDirs is a helper function which creates temporary directories
@@ -41,7 +41,7 @@ keys = [
 `
 
 func TestProcessTemplateResources(t *testing.T) {
-	log.SetLevel("warn")
+	logging.SetLevel("warn")
 	// Setup temporary conf, config, and template directories.
 	tempConfDir, err := createTempDirs()
 	if err != nil {
@@ -106,7 +106,7 @@ func TestProcessTemplateResources(t *testing.T) {
 }
 
 func TestSameConfigTrue(t *testing.T) {
-	log.SetLevel("warn")
+	logging.SetLevel("warn")
 	src, err := ioutil.TempFile("", "src")
 	defer os.Remove(src.Name())
 	if err != nil {
@@ -135,7 +135,7 @@ func TestSameConfigTrue(t *testing.T) {
 }
 
 func TestSameConfigFalse(t *testing.T) {
-	log.SetLevel("warn")
+	logging.SetLevel("warn")
 	src, err := ioutil.TempFile("", "src")
 	defer os.Remove(src.Name())
 	if err != nil {

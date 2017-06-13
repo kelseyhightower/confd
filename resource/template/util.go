@@ -5,12 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"syscall"
-
-	"github.com/kelseyhightower/confd/log"
 )
 
 // fileInfo describes a configuration file and is returned by fileStat.
@@ -75,16 +74,16 @@ func sameConfig(src, dest string) (bool, error) {
 		return false, err
 	}
 	if d.Uid != s.Uid {
-		log.Info(fmt.Sprintf("%s has UID %d should be %d", dest, d.Uid, s.Uid))
+		log.Printf("[INFO] %s has UID %d should be %d", dest, d.Uid, s.Uid)
 	}
 	if d.Gid != s.Gid {
-		log.Info(fmt.Sprintf("%s has GID %d should be %d", dest, d.Gid, s.Gid))
+		log.Printf("[INFO] %s has GID %d should be %d", dest, d.Gid, s.Gid)
 	}
 	if d.Mode != s.Mode {
-		log.Info(fmt.Sprintf("%s has mode %s should be %s", dest, os.FileMode(d.Mode), os.FileMode(s.Mode)))
+		log.Printf("[INFO] %s has mode %s should be %s", dest, os.FileMode(d.Mode), os.FileMode(s.Mode))
 	}
 	if d.Md5 != s.Md5 {
-		log.Info(fmt.Sprintf("%s has md5sum %s should be %s", dest, d.Md5, s.Md5))
+		log.Printf("[INFO] %s has md5sum %s should be %s", dest, d.Md5, s.Md5)
 	}
 	if d.Uid != s.Uid || d.Gid != s.Gid || d.Mode != s.Mode || d.Md5 != s.Md5 {
 		return false, nil

@@ -1,11 +1,11 @@
 package backends
 
 import (
+	"log"
 	"strings"
 
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/kelseyhightower/confd/confd"
-	"github.com/kelseyhightower/confd/log"
 	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
@@ -15,7 +15,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Info("Discovered: %s", plugins)
+	log.Printf("[INFO] Discovered: %s", plugins)
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: confdplugin.HandshakeConfig,
 		Plugins:         confdplugin.PluginMap,
@@ -30,7 +30,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	}
 
 	// Request the plugin
-	log.Info("Requesting plugin")
+	log.Printf("[INFO] Requesting plugin")
 	raw, err := rpcClient.Dispense(confdplugin.DatabasePluginName)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -39,7 +39,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 
 	// Configure each type of database
 	c := make(map[string]interface{})
-	log.Info("Backend nodes set to " + strings.Join(config.BackendNodes, ", "))
+	log.Printf("[INFO] Backend nodes set to " + strings.Join(config.BackendNodes, ", "))
 	switch config.Backend {
 	case "consul":
 		c["nodes"] = config.BackendNodes
@@ -59,7 +59,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["password"] = config.Password
 	case "dynamodb":
 		c["table"] = config.Table
-		log.Info("DynamoDB table set to %s", config.Table)
+		log.Printf("[INFO] DynamoDB table set to %s", config.Table)
 	case "rancher":
 		c["backendNodes"] = config.BackendNodes
 	case "zookeeper":

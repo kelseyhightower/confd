@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/logging"
 )
 
 // createRecursiveDirs is a helper function which creates temporary directorie
@@ -97,7 +97,7 @@ func createRecursiveDirs() (rootDir string, err error) {
 }
 
 func TestRecursiveFindFiles(t *testing.T) {
-	log.SetLevel("warn")
+	logging.SetLevel("warn")
 	// Setup temporary directories
 	rootDir, err := createRecursiveDirs()
 	if err != nil {
