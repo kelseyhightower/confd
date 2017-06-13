@@ -133,7 +133,7 @@ confd supports two modes of operation daemon and onetime. In daemon mode confd p
 #### etcd
 
 ```
-confd -onetime -backend etcd -node http://127.0.0.1:4001
+confd -onetime -backend etcd -node http://127.0.0.1:2379
 ```
 
 #### consul
