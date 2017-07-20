@@ -2,7 +2,7 @@
 
 Simple in memory k/v store.
 
-[![Build Status](https://travis-ci.org/kelseyhightower/memkv.svg)](https://travis-ci.org/kelseyhightower/memkv) [![GoDoc](https://godoc.org/github.com/kelseyhightower/memkv?status.png)](https://godoc.org/github.com/kelseyhightower/memkv)
+[![Build Status](https://travis-ci.org/mikarinneoracle/memkv.svg)](https://travis-ci.org/mikarinneoracle/memkv) [![GoDoc](https://godoc.org/github.com/mikarinneoracle/memkv?status.png)](https://godoc.org/github.com/mikarinneoracle/memkv)
 
 ## Usage
 
@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/kelseyhightower/memkv"
+	"github.com/mikarinneoracle/memkv"
 )
 
 func main() {

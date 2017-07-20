@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/mikarinneoracle/confd/log"
 )
 
 var replacer = strings.NewReplacer("/", "_")

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kelseyhightower/confd/backends"
+	"github.com/mikarinneoracle/confd/backends"
 )
 
 const (

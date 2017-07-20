@@ -4,17 +4,17 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/dynamodb"
-	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcd"
-	"github.com/kelseyhightower/confd/backends/rancher"
-	"github.com/kelseyhightower/confd/backends/redis"
-	"github.com/kelseyhightower/confd/backends/stackengine"
-    "github.com/kelseyhightower/confd/backends/kubernetes"
-	"github.com/kelseyhightower/confd/backends/vault"
-	"github.com/kelseyhightower/confd/backends/zookeeper"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/mikarinneoracle/confd/backends/consul"
+	"github.com/mikarinneoracle/confd/backends/dynamodb"
+	"github.com/mikarinneoracle/confd/backends/env"
+	"github.com/mikarinneoracle/confd/backends/etcd"
+	"github.com/mikarinneoracle/confd/backends/rancher"
+	"github.com/mikarinneoracle/confd/backends/redis"
+	"github.com/mikarinneoracle/confd/backends/stackengine"
+    "github.com/mikarinneoracle/confd/backends/kubernetes"
+	"github.com/mikarinneoracle/confd/backends/vault"
+	"github.com/mikarinneoracle/confd/backends/zookeeper"
+	"github.com/mikarinneoracle/confd/log"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve

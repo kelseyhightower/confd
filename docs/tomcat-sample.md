@@ -1,6 +1,6 @@
 # confd for Apache Tomcat
 If you administrate an [Apache Tomcat](http://tomcat.apache.org/) you usually need to edit multiple config files and set some environment variables. 
-[confd](https://github.com/kelseyhightower/confd) can help here especially if you have multiple Tomcats in a cluster. Configuring Tomcat is an interesting sample, because it needs multiple config files and some environment variables.
+[confd](https://github.com/mikarinneoracle/confd) can help here especially if you have multiple Tomcats in a cluster. Configuring Tomcat is an interesting sample, because it needs multiple config files and some environment variables.
 
 Important configuration files of Tomcat are 
 - server.xml: e.g. configure here jvmRoute for load balancing, ports etc.
