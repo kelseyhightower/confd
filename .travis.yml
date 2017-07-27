@@ -19,7 +19,7 @@ before_install:
   - etcd &
   # install DynamoDB
   - mkdir /tmp/dynamodb
-  - wget -O - http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz | tar xz --directory /tmp/dynamodb
+  - wget -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz | tar xz --directory /tmp/dynamodb
   - java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
   # Install rancher metadata
   - wget https://github.com/rancher/rancher-metadata/releases/download/v0.1.0/rancher-metadata.tar.gz
