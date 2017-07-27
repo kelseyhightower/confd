@@ -49,7 +49,6 @@ var (
 	watch             bool
 	appID             string
 	userID            string
-	separator         string
 )
 
 // A Config structure is used to configure confd.
@@ -77,7 +76,6 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
-	Separator    string   `toml:"separator"`
 }
 
 func init() {
@@ -108,7 +106,6 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
-	flag.StringVar(&separator, "separator", "/", "the separator between nodes in keys")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -233,7 +230,6 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
-		Separator:     config.Separator,
 	}
 	return nil
 }
@@ -325,7 +321,5 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
-	case "separator":
-		config.Prefix = separator
 	}
 }

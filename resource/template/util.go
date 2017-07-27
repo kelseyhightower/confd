@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/log"
@@ -22,16 +21,10 @@ type fileInfo struct {
 	Md5  string
 }
 
-func appendPrefix(prefix string, keys []string, separator string) []string {
+func appendPrefix(prefix string, keys []string) []string {
 	s := make([]string, len(keys))
 	for i, k := range keys {
-		if separator == "/" {
-			s[i] = path.Join(prefix, k)
-		} else if prefix == "" {
-			s[i] = k
-		} else {
-			s[i] = strings.Join([]string{prefix, k}, separator)
-		}
+		s[i] = path.Join(prefix, k)
 	}
 	return s
 }

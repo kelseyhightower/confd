@@ -28,7 +28,6 @@ type Config struct {
 	StoreClient   backends.StoreClient
 	SyncOnly      bool
 	TemplateDir   string
-	Separator     string
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -49,7 +48,6 @@ type TemplateResource struct {
 	Src           string
 	StageFile     *os.File
 	Uid           int
-	Separator     string
 	funcMap       map[string]interface{}
 	lastIndex     uint64
 	keepStageFile bool
@@ -89,16 +87,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.Prefix != "" {
 		tr.Prefix = config.Prefix
 	}
-
-	if config.Separator != "" {
-		tr.Separator = config.Separator
-	}
-
-	if tr.Separator == "/" {
-		tr.Prefix = filepath.Join("/", tr.Prefix)
-	}
-
-	log.Debug("Prefix=%s", tr.Prefix)
+	tr.Prefix = filepath.Join("/", tr.Prefix)
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -122,7 +111,7 @@ func (t *TemplateResource) setVars() error {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys, t.Separator))
+	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
 	if err != nil {
 		return err
 	}
@@ -130,13 +119,7 @@ func (t *TemplateResource) setVars() error {
 	t.store.Purge()
 
 	for k, v := range result {
-		if t.Separator == "/" {
-			t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
-			log.Debug("Setting k=%s, v=%s", filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
-		} else {
-			t.store.Set(strings.TrimPrefix(k, t.Prefix+t.Separator), v)
-			log.Debug("Setting k=%s, v=%s", strings.TrimPrefix(k, t.Prefix+t.Separator), v)
-		}
+		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
 }

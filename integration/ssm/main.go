@@ -30,54 +30,30 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("DB: Setting key=%s value=%s", *b.Name, *b.Value)
 		db[*b.Name] = *b.Value
 		return
-	case "AmazonSSM.GetParameters":
+	case "AmazonSSM.GetParametersByPath":
 		defer r.Body.Close()
-		var b ssm.GetParametersInput
+		var b ssm.GetParametersByPathInput
 		err := jsonutil.UnmarshalJSON(&b, r.Body)
 		if err != nil {
 			panic(err)
 		}
 		log.Printf("Body=%#v\n", b)
-		var getParametersOutput ssm.GetParametersOutput
+		var GetParametersByPathOutput ssm.GetParametersByPathOutput
 		var parameters []*ssm.Parameter
-		for _, name := range b.Names {
-			log.Printf("DB: Getting key=%s value=%s", *name, db[*name])
-			parameters = append(parameters, &ssm.Parameter{
-				Name:  aws.String(*name),
-				Type:  aws.String("String"),
-				Value: aws.String(db[*name]),
-			})
-		}
-		getParametersOutput.SetParameters(parameters)
-		resp, err := jsonutil.BuildJSON(getParametersOutput)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprint(w, string(resp))
-		return
-	case "AmazonSSM.DescribeParameters":
-		defer r.Body.Close()
-		var b ssm.DescribeParametersInput
-		err := jsonutil.UnmarshalJSON(&b, r.Body)
-		if err != nil {
-			panic(err)
-		}
-		log.Printf("Body=%#v\n", b)
-		var describeParametersOutput ssm.DescribeParametersOutput
-		var parameters []*ssm.ParameterMetadata
-		filter := b.Filters[0].Values[0]
-		for k := range db {
-			if strings.HasPrefix(k, *filter) == false {
+		path := b.Path
+		for k, v := range db {
+			if strings.HasPrefix(k, *path) == false {
 				continue
 			}
 			log.Printf("DB: Getting key=%s", k)
-			parameters = append(parameters, &ssm.ParameterMetadata{
-				Name: aws.String(k),
-				Type: aws.String("String"),
+			parameters = append(parameters, &ssm.Parameter{
+				Name:  aws.String(k),
+				Type:  aws.String("String"),
+				Value: aws.String(v),
 			})
 		}
-		describeParametersOutput.SetParameters(parameters)
-		resp, err := jsonutil.BuildJSON(describeParametersOutput)
+		GetParametersByPathOutput.SetParameters(parameters)
+		resp, err := jsonutil.BuildJSON(GetParametersByPathOutput)
 		if err != nil {
 			panic(err)
 		}
@@ -87,7 +63,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Unknown target")
 		return
 	}
-	return
 }
 
 func main() {
