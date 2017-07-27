@@ -8,7 +8,9 @@ import (
 )
 
 // DatabaseRPC is an implementation that talks over RPC
-type DatabaseRPC struct{ client *rpc.Client }
+type DatabaseRPC struct {
+	client *rpc.Client
+}
 
 func (g *DatabaseRPC) Configure(config map[string]interface{}) error {
 	args := &DatabaseConfigureArgs{

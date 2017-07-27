@@ -52,7 +52,7 @@ type TemplateResource struct {
 	lastIndex     uint64
 	keepStageFile bool
 	noop          bool
-	store         memkv.Store
+	store         *memkv.Store
 	database      confd.Database
 	syncOnly      bool
 }
@@ -62,7 +62,7 @@ var ErrEmptySrc = errors.New("empty src template")
 // NewTemplateResource creates a TemplateResource.
 func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
 	if config.Database == nil {
-		return nil, errors.New("A valid Database is required.")
+		return nil, errors.New("A valid Database is required")
 	}
 
 	// Set the default uid and gid so we can determine if it was
@@ -75,12 +75,13 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
 
+	memkvStore := memkv.New()
 	tr := tc.TemplateResource
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
 	tr.database = config.Database
 	tr.funcMap = newFuncMap()
-	tr.store = memkv.New()
+	tr.store = &memkvStore
 	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 
@@ -204,7 +205,7 @@ func (t *TemplateResource) sync() error {
 				if rerr != nil {
 					return rerr
 				}
-				err := ioutil.WriteFile(t.Dest, contents, t.FileMode)
+				err = ioutil.WriteFile(t.Dest, contents, t.FileMode)
 				// make sure owner and group match the temp file, in case the file was created with WriteFile
 				os.Chown(t.Dest, t.Uid, t.Gid)
 				if err != nil {
@@ -215,7 +216,7 @@ func (t *TemplateResource) sync() error {
 			}
 		}
 		if !t.syncOnly && t.ReloadCmd != "" {
-			if err := t.reload(); err != nil {
+			if err = t.reload(); err != nil {
 				return err
 			}
 		}
@@ -240,7 +241,7 @@ func (t *TemplateResource) check() error {
 	if err != nil {
 		return err
 	}
-	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
+	if err = tmpl.Execute(&cmdBuffer, data); err != nil {
 		return err
 	}
 	log.Printf("[DEBUG] Running " + cmdBuffer.String())

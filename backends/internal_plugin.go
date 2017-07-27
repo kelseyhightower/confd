@@ -38,10 +38,10 @@ const CONFDSPACE = "-CONFDSPACE-"
 // BuildPluginCommandString builds a special string for executing internal
 // plugins. It has the following format:
 //
-// 	/path/to/terraform-CONFDSPACE-internal-plugin-CONFDSPACE-terraform-database-aws
+// 	/path/to/confd-CONFDSPACE-internal-plugin-CONFDSPACE-confd-database-env
 //
 // We split the string on -CONFDSPACE- to build the command executor. The reason we
-// use -CONFDSPACE- is so we can support spaces in the /path/to/terraform part.
+// use -CONFDSPACE- is so we can support spaces in the /path/to/confd part.
 func BuildPluginCommandString(pluginType, pluginName string) (string, error) {
 	path, err := osext.Executable()
 	if err != nil {
@@ -82,20 +82,20 @@ func RunPlugin(args []string) int {
 }
 
 // Discover plugins located on disk, and fall back on plugins baked into the
-// Confd binary.
+// confd binary.
 //
 // We look in the following places for plugins:
 //
-// 1. Path where Confd is installed
-// 2. Path where Confd is invoked
+// 1. Path where confd is installed
+// 2. Path where confd is invoked
 //
 // Whichever file is discoverd LAST wins.
 //
-// Finally, we look at the list of plugins compiled into Confd. If any of
+// Finally, we look at the list of plugins compiled into confd. If any of
 // them has not been found on disk we use the internal version. This allows
 // users to add / replace plugins without recompiling the main binary.
 func Discover() (plugins map[string]string, err error) {
-	// Look in the same directory as the Confd executable, usually
+	// Look in the same directory as the confd executable, usually
 	// /usr/local/bin. If found, this replaces what we found in the config path.
 	exePath, err := osext.Executable()
 	if err != nil {
@@ -106,18 +106,18 @@ func Discover() (plugins map[string]string, err error) {
 		}
 	}
 
-	// Finally look in the cwd (where we are invoke Confd). If found, this
+	// Finally look in the cwd (where we are invoke confd). If found, this
 	// replaces anything we found in the config / install paths.
 	if err = discover(".", &plugins); err != nil {
 		return
 	}
 
-	// Finally, if we have a plugin compiled into Confd and we didn't find
+	// Finally, if we have a plugin compiled into confd and we didn't find
 	// a replacement on disk, we'll just use the internal version. Only do this
 	// from the main process, or the log output will break the plugin handshake.
 	for name, _ := range InternalDatabases {
 		if path, found := plugins[name]; found {
-			// Allow these warnings to be suppressed via TF_PLUGIN_DEV=1 or similar
+			// Allow these warnings to be suppressed via CONFD_PLUGIN_DEV=1 or similar
 			if os.Getenv("CONFD_PLUGIN_DEV") == "" {
 				log.Printf("[WARN] %s overrides an internal plugin for %s-database.\n"+
 					"  If you did not expect to see this message you will need to remove the old plugin.\n",
@@ -188,7 +188,7 @@ func pluginCmd(path string) *exec.Cmd {
 	cmdPath := ""
 
 	// If the path doesn't contain a separator, look in the same
-	// directory as the Terraform executable first.
+	// directory as the confd executable first.
 	if !strings.ContainsRune(path, os.PathSeparator) {
 		exePath, err := osext.Executable()
 		if err == nil {

@@ -15,13 +15,15 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Printf("[INFO] Discovered: %s", plugins)
+	log.Printf("[DEBUG] Discovered: %s", plugins)
+	if _, ok := plugins[config.Backend]; ok == false {
+		log.Fatalf("[ERROR] Plugin %s not found", config.Backend)
+	}
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: confdplugin.HandshakeConfig,
 		Plugins:         confdplugin.PluginMap,
 		Cmd:             pluginCmd(plugins[config.Backend]),
 	})
-	// defer client.Kill()
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
@@ -47,8 +49,6 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["key"] = config.ClientKey
 		c["cert"] = config.ClientCert
 		c["caCert"] = config.ClientCaKeys
-	case "env":
-		break
 	case "etcd":
 		c["machines"] = config.BackendNodes
 		c["key"] = config.ClientKey
@@ -86,7 +86,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["scheme"] = config.Scheme
 		c["authToken"] = config.AuthToken
 	default:
-		panic("Invalid backend")
+		break
 	}
 	database.Configure(c)
 

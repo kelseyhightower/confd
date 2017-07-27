@@ -9,5 +9,5 @@ type Database interface {
 }
 
 // DatabaseFactory is a function type that creates a new instance
-// of a resource provider.
+// of a database.
 type DatabaseFactory func() (Database, error)
