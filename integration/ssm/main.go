@@ -39,10 +39,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("Body=%#v\n", b)
 		var GetParametersByPathOutput ssm.GetParametersByPathOutput
-		var parameters []*ssm.Parameter
+		parameters := make([]*ssm.Parameter, 0, 0)
 		path := b.Path
 		for k, v := range db {
-			if strings.HasPrefix(k, *path) == false {
+			if strings.HasPrefix(k, *path+"/") == false {
 				continue
 			}
 			log.Printf("DB: Getting key=%s", k)
@@ -54,6 +54,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		GetParametersByPathOutput.SetParameters(parameters)
 		resp, err := jsonutil.BuildJSON(GetParametersByPathOutput)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, string(resp))
+		return
+	case "AmazonSSM.GetParameter":
+		defer r.Body.Close()
+		var b ssm.GetParameterInput
+		err := jsonutil.UnmarshalJSON(&b, r.Body)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("Body=%#v\n", b)
+		var GetParameterOutput ssm.GetParameterOutput
+		log.Printf("DB: Getting key=%s", *b.Name)
+		parameter := &ssm.Parameter{
+			Name:  aws.String(*b.Name),
+			Type:  aws.String("String"),
+			Value: aws.String(db[*b.Name]),
+		}
+		GetParameterOutput.SetParameter(parameter)
+		resp, err := jsonutil.BuildJSON(GetParameterOutput)
 		if err != nil {
 			panic(err)
 		}

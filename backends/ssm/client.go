@@ -50,6 +50,12 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		if err != nil {
 			return vars, err
 		}
+		if len(resp) == 0 {
+			resp, err = c.getParameter(key)
+			if err != nil {
+				return vars, err
+			}
+		}
 		for k, v := range resp {
 			vars[k] = v
 		}
@@ -73,6 +79,20 @@ func (c *Client) getParametersWithPrefix(prefix string) (map[string]string, erro
 			return lastPage
 		})
 	return parameters, err
+}
+
+func (c *Client) getParameter(name string) (map[string]string, error) {
+	parameters := make(map[string]string)
+	params := &ssm.GetParameterInput{
+		Name:           aws.String(name),
+		WithDecryption: aws.Bool(true),
+	}
+	resp, err := c.client.GetParameter(params)
+	if err != nil {
+		return parameters, err
+	}
+	parameters[*resp.Parameter.Name] = *resp.Parameter.Value
+	return parameters, nil
 }
 
 // WatchPrefix is not implemented

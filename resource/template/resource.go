@@ -115,6 +115,7 @@ func (t *TemplateResource) setVars() error {
 	if err != nil {
 		return err
 	}
+	log.Debug("Got the following map from store: %v", result)
 
 	t.store.Purge()
 
