@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
+	"github.com/mikarinneoracle/confd/backends"
+	"github.com/mikarinneoracle/confd/log"
+	"github.com/mikarinneoracle/confd/resource/template"
 )
 
 func main() {

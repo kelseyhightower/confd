@@ -2,18 +2,18 @@
 
 ### Binary Download
 
-Currently confd ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/kelseyhightower/confd/releases)
+Currently confd ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/mikarinneoracle/confd/releases)
 
 #### OS X
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-0.11.0-darwin-amd64
+$ wget https://github.com/mikarinneoracle/confd/releases/download/v0.11.0/confd-0.11.0-darwin-amd64
 ```
 
 #### Linux
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-0.11.0-linux-amd64
+$ wget https://github.com/mikarinneoracle/confd/releases/download/v0.11.0/confd-0.11.0-linux-amd64
 ```
 
 #### Building from Source

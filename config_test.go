@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/mikarinneoracle/confd/log"
 )
 
 func TestInitConfigDefaultConfig(t *testing.T) {
