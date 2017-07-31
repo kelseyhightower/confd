@@ -1,0 +1,11 @@
+[template]
+src = "hello-world.conf.template"
+dest = "/hello-world.conf"
+
+# The key below must be changed to match how you named your
+# service in Container Cloud Service.
+keys = [
+"OCCS_BACKEND_KEY"
+]
+# reload_cmd = "sv restart confd"
+
