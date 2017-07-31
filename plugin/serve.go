@@ -16,8 +16,8 @@ const (
 // This prevents users from executing bad plugins or executing a plugin
 // directory. It is a UX feature, not a security feature.
 var HandshakeConfig = plugin.HandshakeConfig{
-	// The ProtocolVersion is the version that must match between TF core
-	// and Confd plugins. This should be bumped whenever a change happens in
+	// The ProtocolVersion is the version that must match between confd core
+	// and confd plugins. This should be bumped whenever a change happens in
 	// one or the other that makes it so that they can't safely communicate.
 	// This could be e.g. adding a new interface value
 	ProtocolVersion: 1,

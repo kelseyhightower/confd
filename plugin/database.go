@@ -109,22 +109,20 @@ func (s *DatabaseRPCServer) WatchPrefix(
 	return err
 }
 
-// DatabasePlugin is the implementation of plugin.Plugin so we can serve/consume this
-//
-// This has two methods: Server must return an RPC server for this plugin
-// type. We construct a GreeterRPCServer for this.
-//
-// Client must return an implementation of our interface that communicates
-// over an RPC client. We return GreeterRPC for this.
+// DatabasePlugin is the implementation of plugin.Plugin so we can
+// serve/consume a plugin
 type DatabasePlugin struct {
 	// Impl Injection
 	Impl confd.Database
 }
 
+// Server returns an RPC server for this plugin type.
 func (p *DatabasePlugin) Server(*plugin.MuxBroker) (interface{}, error) {
 	return &DatabaseRPCServer{Database: p.Impl}, nil
 }
 
+// Client returns an implementation of our interface that communicates
+// over an RPC client.
 func (DatabasePlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
 	return &DatabaseRPC{client: c}, nil
 }
