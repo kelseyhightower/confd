@@ -31,14 +31,13 @@ func process(ts []*TemplateResource) error {
 
 type intervalProcessor struct {
 	config   Config
-	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	interval int
 }
 
-func IntervalProcessor(config Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
-	return &intervalProcessor{config, stopChan, doneChan, errChan, interval}
+func IntervalProcessor(config Config, doneChan chan bool, errChan chan error, interval int) Processor {
+	return &intervalProcessor{config, doneChan, errChan, interval}
 }
 
 func (p *intervalProcessor) Process() {
@@ -51,8 +50,6 @@ func (p *intervalProcessor) Process() {
 		}
 		process(ts)
 		select {
-		case <-p.stopChan:
-			break
 		case <-time.After(time.Duration(p.interval) * time.Second):
 			continue
 		}
@@ -61,14 +58,13 @@ func (p *intervalProcessor) Process() {
 
 type watchProcessor struct {
 	config   Config
-	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	wg       *sync.WaitGroup
 }
 
-func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
-	return &watchProcessor{config, stopChan, doneChan, errChan, &sync.WaitGroup{}}
+func WatchProcessor(config Config, doneChan chan bool, errChan chan error) Processor {
+	return &watchProcessor{config, doneChan, errChan, &sync.WaitGroup{}}
 }
 
 func (p *watchProcessor) Process() {
@@ -90,7 +86,7 @@ func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 	defer p.wg.Done()
 	keys := appendPrefix(t.Prefix, t.Keys)
 	for {
-		index, err := t.database.WatchPrefix(t.Prefix, keys, t.lastIndex, p.stopChan)
+		index, err := t.database.WatchPrefix(t.Prefix, keys, t.lastIndex)
 		if err != nil {
 			p.errChan <- err
 			// Prevent backend errors from consuming all resources.

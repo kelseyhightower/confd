@@ -70,7 +70,7 @@ func (c *Client) Configure(configRaw map[string]interface{}) error {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
-		key := strings.TrimPrefix(key, "/")
+		key = strings.TrimPrefix(key, "/")
 		pairs, _, err := c.client.List(key, nil)
 		if err != nil {
 			return vars, err
@@ -87,7 +87,7 @@ type watchResponse struct {
 	err       error
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	respChan := make(chan watchResponse)
 	go func() {
 		opts := api.QueryOptions{
@@ -101,10 +101,6 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		respChan <- watchResponse{meta.LastIndex, err}
 	}()
 
-	select {
-	case <-stopChan:
-		return waitIndex, nil
-	case r := <-respChan:
-		return r.waitIndex, r.err
-	}
+	r := <-respChan
+	return r.waitIndex, r.err
 }

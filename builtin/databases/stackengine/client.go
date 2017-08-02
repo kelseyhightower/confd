@@ -130,7 +130,6 @@ type watchResponse struct {
 	err       error
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	<-stopChan
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	return 0, nil
 }

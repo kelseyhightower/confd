@@ -123,7 +123,7 @@ func nodeWalk(node *client.Node, vars map[string]string) error {
 	return nil
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	// return something > 0 to trigger a key retrieval from the store
 	if waitIndex == 0 {
 		return 1, nil
@@ -134,17 +134,13 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		// should start watching for events starting at the current
 		// index, whatever that may be.
 		watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx := context.Background()
 		cancelRoutine := make(chan bool)
 		defer close(cancelRoutine)
 
 		go func() {
-			select {
-			case <-stopChan:
-				cancel()
-			case <-cancelRoutine:
-				return
-			}
+			<-cancelRoutine
+			return
 		}()
 
 		resp, err := watcher.Next(ctx)

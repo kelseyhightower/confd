@@ -124,8 +124,7 @@ func (c *Client) testConnection() error {
 	return err
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	// Watches are not implemented in Rancher Metadata Service
-	<-stopChan
 	return 0, nil
 }

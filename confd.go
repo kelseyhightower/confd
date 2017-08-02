@@ -52,16 +52,15 @@ func mainExitCode() int {
 		return 0
 	}
 
-	stopChan := make(chan bool)
 	doneChan := make(chan bool)
 	errChan := make(chan error, 10)
 
 	var processor template.Processor
 	switch {
 	case config.Watch:
-		processor = template.WatchProcessor(templateConfig, stopChan, doneChan, errChan)
+		processor = template.WatchProcessor(templateConfig, doneChan, errChan)
 	default:
-		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
+		processor = template.IntervalProcessor(templateConfig, doneChan, errChan, config.Interval)
 	}
 
 	go processor.Process()

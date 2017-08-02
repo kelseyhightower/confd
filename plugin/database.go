@@ -34,12 +34,11 @@ func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
 	return resp.Values, nil
 }
 
-func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	args := &DatabaseWatchPrefixArgs{
 		Prefix:    prefix,
 		Keys:      keys,
 		WaitIndex: waitIndex,
-		StopChan:  stopChan,
 	}
 	var resp DatabaseWatchPrefixResponse
 	err := g.client.Call("Plugin.WatchPrefix", args, &resp)
@@ -74,7 +73,6 @@ type DatabaseWatchPrefixArgs struct {
 	Prefix    string
 	Keys      []string
 	WaitIndex uint64
-	StopChan  chan bool
 }
 
 type DatabaseWatchPrefixResponse struct {
@@ -102,7 +100,7 @@ func (s *DatabaseRPCServer) GetValues(
 func (s *DatabaseRPCServer) WatchPrefix(
 	args *DatabaseWatchPrefixArgs,
 	resp *DatabaseWatchPrefixResponse) error {
-	index, err := s.Database.WatchPrefix(args.Prefix, args.Keys, args.WaitIndex, args.StopChan)
+	index, err := s.Database.WatchPrefix(args.Prefix, args.Keys, args.WaitIndex)
 	*resp = DatabaseWatchPrefixResponse{
 		Index: index,
 	}

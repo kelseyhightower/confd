@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 echo "Running tests..."
-go test
+go test $(go list ./... | grep -v vendor)

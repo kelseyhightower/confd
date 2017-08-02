@@ -118,7 +118,7 @@ func (c *Client) watch(key string, respChan chan watchResponse, cancelRoutine ch
 	}
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	// return something > 0 to trigger a key retrieval from the store
 	if waitIndex == 0 {
 		return 1, nil
@@ -136,7 +136,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	//watch all subfolders for changes
 	watchMap := make(map[string]string)
-	for k, _ := range entries {
+	for k := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
 				for dir := filepath.Dir(k); dir != "/"; dir = filepath.Dir(dir) {
@@ -152,7 +152,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}
 
 	//watch all keys in prefix for changes
-	for k, _ := range entries {
+	for k := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
 				log.Printf("Watching: %s", k)
@@ -162,12 +162,6 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		}
 	}
 
-	for {
-		select {
-		case <-stopChan:
-			return waitIndex, nil
-		case r := <-respChan:
-			return r.waitIndex, r.err
-		}
-	}
+	r := <-respChan
+	return r.waitIndex, r.err
 }
