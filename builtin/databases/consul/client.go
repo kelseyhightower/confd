@@ -23,7 +23,7 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err
@@ -33,8 +33,8 @@ func (c *Client) Configure(configRaw map[string]interface{}) error {
 
 	conf.Scheme = config.Scheme
 
-	if len(config.Nodes) > 0 {
-		conf.Address = config.Nodes[0]
+	if len(strings.Split(config.Nodes, ",")) > 0 {
+		conf.Address = strings.Split(config.Nodes, ",")[0]
 	}
 
 	tlsConfig := &tls.Config{}

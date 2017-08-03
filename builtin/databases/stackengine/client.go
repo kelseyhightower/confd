@@ -28,15 +28,15 @@ func Database() confd.Database {
 }
 
 // Configure returns a client object with connection information.
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err
 	}
 
 	host := "127.0.0.1:8443"
-	if len(config.Nodes) > 0 {
-		host = config.Nodes[0]
+	if len(strings.Split(config.Nodes, ",")) > 0 {
+		host = strings.Split(config.Nodes, ",")[0]
 	}
 	c.base = config.Scheme + "://" + host
 	c.token = config.AuthToken

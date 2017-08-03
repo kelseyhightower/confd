@@ -21,13 +21,13 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err
 	}
 
-	client, _, err := zk.Connect(config.Machines, time.Second) //*10)
+	client, _, err := zk.Connect(strings.Split(config.Machines, ","), time.Second) //*10)
 	c.client = client
 	return err
 }

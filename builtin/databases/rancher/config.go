@@ -1,5 +1,5 @@
 package rancher
 
 type Config struct {
-	BackendNodes []string `mapstructure:"backendNodes"`
+	BackendNodes string `mapstructure:"backendNodes"`
 }

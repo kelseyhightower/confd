@@ -28,7 +28,7 @@ func Database() confd.Database {
 
 // Configure configures an *vault.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err

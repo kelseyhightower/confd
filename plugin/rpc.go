@@ -3,16 +3,15 @@ package plugin
 import (
 	"net/rpc"
 
-	plugin "github.com/hashicorp/go-plugin"
 	"github.com/kelseyhightower/confd/confd"
 )
 
-// DatabaseRPC is an implementation that talks over RPC
-type DatabaseRPC struct {
+// RPCClient is an implementation that talks over RPC
+type RPCClient struct {
 	client *rpc.Client
 }
 
-func (g *DatabaseRPC) Configure(config map[string]interface{}) error {
+func (g *RPCClient) Configure(config map[string]string) error {
 	args := &DatabaseConfigureArgs{
 		Config: config,
 	}
@@ -21,7 +20,7 @@ func (g *DatabaseRPC) Configure(config map[string]interface{}) error {
 	return err
 }
 
-func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
+func (g *RPCClient) GetValues(keys []string) (map[string]string, error) {
 	args := &DatabaseGetValuesArgs{
 		Keys: keys,
 	}
@@ -34,7 +33,7 @@ func (g *DatabaseRPC) GetValues(keys []string) (map[string]string, error) {
 	return resp.Values, nil
 }
 
-func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
+func (g *RPCClient) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
 	args := &DatabaseWatchPrefixArgs{
 		Prefix:    prefix,
 		Keys:      keys,
@@ -49,14 +48,14 @@ func (g *DatabaseRPC) WatchPrefix(prefix string, keys []string, waitIndex uint64
 	return resp.Index, nil
 }
 
-// DatabaseRPCServer is the RPC server that DatabaseRPC talks to, conforming to
+// RPCServer is the RPC server that RPCClient talks to, conforming to
 // the requirements of net/rpc
-type DatabaseRPCServer struct {
+type RPCServer struct {
 	Database confd.Database
 }
 
 type DatabaseConfigureArgs struct {
-	Config map[string]interface{}
+	Config map[string]string
 }
 
 type DatabaseConfigureResponse struct{}
@@ -79,7 +78,7 @@ type DatabaseWatchPrefixResponse struct {
 	Index uint64
 }
 
-func (s *DatabaseRPCServer) Configure(
+func (s *RPCServer) Configure(
 	args *DatabaseConfigureArgs,
 	resp *DatabaseConfigureResponse) error {
 	err := s.Database.Configure(args.Config)
@@ -87,7 +86,7 @@ func (s *DatabaseRPCServer) Configure(
 	return err
 }
 
-func (s *DatabaseRPCServer) GetValues(
+func (s *RPCServer) GetValues(
 	args *DatabaseGetValuesArgs,
 	resp *DatabaseGetValuesResponse) error {
 	values, err := s.Database.GetValues(args.Keys)
@@ -97,7 +96,7 @@ func (s *DatabaseRPCServer) GetValues(
 	return err
 }
 
-func (s *DatabaseRPCServer) WatchPrefix(
+func (s *RPCServer) WatchPrefix(
 	args *DatabaseWatchPrefixArgs,
 	resp *DatabaseWatchPrefixResponse) error {
 	index, err := s.Database.WatchPrefix(args.Prefix, args.Keys, args.WaitIndex)
@@ -105,22 +104,4 @@ func (s *DatabaseRPCServer) WatchPrefix(
 		Index: index,
 	}
 	return err
-}
-
-// DatabasePlugin is the implementation of plugin.Plugin so we can
-// serve/consume a plugin
-type DatabasePlugin struct {
-	// Impl Injection
-	Impl confd.Database
-}
-
-// Server returns an RPC server for this plugin type.
-func (p *DatabasePlugin) Server(*plugin.MuxBroker) (interface{}, error) {
-	return &DatabaseRPCServer{Database: p.Impl}, nil
-}
-
-// Client returns an implementation of our interface that communicates
-// over an RPC client.
-func (DatabasePlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
-	return &DatabaseRPC{client: c}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,7 +27,7 @@ func Database() confd.Database {
 }
 
 // Configure configures etcd.Client with a connection to named machines.
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err
@@ -46,11 +47,15 @@ func (c *Client) Configure(configRaw map[string]interface{}) error {
 	}
 
 	cfg := client.Config{
-		Endpoints:               config.Machines,
+		Endpoints:               strings.Split(config.Machines, ","),
 		HeaderTimeoutPerRequest: time.Duration(3) * time.Second,
 	}
 
-	if config.BasicAuth {
+	basicAuth, err := strconv.ParseBool(config.BasicAuth)
+	if err != nil {
+		return err
+	}
+	if basicAuth {
 		cfg.Username = config.Username
 		cfg.Password = config.Password
 	}

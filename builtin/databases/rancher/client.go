@@ -28,15 +28,15 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err
 	}
 
 	url := MetaDataURL
-	if len(config.BackendNodes) > 0 {
-		url = "http://" + config.BackendNodes[0]
+	if len(strings.Split(config.BackendNodes, ",")) > 0 {
+		url = "http://" + strings.Split(config.BackendNodes, ",")[0]
 	}
 
 	log.Printf("Using Rancher Metadata URL: " + url)

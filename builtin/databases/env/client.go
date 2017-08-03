@@ -17,7 +17,7 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(map[string]interface{}) error {
+func (c *Client) Configure(map[string]string) error {
 	return nil
 }
 

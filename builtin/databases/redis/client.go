@@ -24,13 +24,13 @@ func Database() confd.Database {
 	return &Client{}
 }
 
-func (c *Client) Configure(configRaw map[string]interface{}) error {
+func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
 	if err := mapstructure.Decode(configRaw, &config); err != nil {
 		return err
 	}
 
-	c.machines = config.Machines
+	c.machines = strings.Split(config.Machines, ",")
 	c.password = config.Password
 	client, err := tryConnect(c.machines, c.password)
 	c.client = client

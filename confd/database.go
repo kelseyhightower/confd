@@ -5,7 +5,7 @@ package confd
 type Database interface {
 	GetValues(keys []string) (map[string]string, error)
 	WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error)
-	Configure(map[string]interface{}) error
+	Configure(map[string]string) error
 }
 
 // DatabaseFactory is a function type that creates a new instance

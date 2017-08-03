@@ -2,6 +2,7 @@ package backends
 
 import (
 	"log"
+	"strconv"
 	"strings"
 
 	plugin "github.com/hashicorp/go-plugin"
@@ -23,6 +24,8 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		HandshakeConfig: confdplugin.HandshakeConfig,
 		Plugins:         confdplugin.PluginMap,
 		Cmd:             pluginCmd(plugins[config.Backend]),
+		AllowedProtocols: []plugin.Protocol{
+			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
 	})
 
 	// Connect via RPC
@@ -32,7 +35,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	}
 
 	// Request the plugin
-	log.Printf("[INFO] Requesting plugin")
+	log.Printf("[INFO] Requesting plugin " + confdplugin.DatabasePluginName)
 	raw, err := rpcClient.Dispense(confdplugin.DatabasePluginName)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -40,32 +43,32 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	database := raw.(confd.Database)
 
 	// Configure each type of database
-	c := make(map[string]interface{})
+	c := make(map[string]string)
 	log.Printf("[INFO] Backend nodes set to " + strings.Join(config.BackendNodes, ", "))
 	switch config.Backend {
 	case "consul":
-		c["nodes"] = config.BackendNodes
+		c["nodes"] = strings.Join(config.BackendNodes, ",")
 		c["scheme"] = config.Scheme
 		c["key"] = config.ClientKey
 		c["cert"] = config.ClientCert
 		c["caCert"] = config.ClientCaKeys
 	case "etcd":
-		c["machines"] = config.BackendNodes
+		c["machines"] = strings.Join(config.BackendNodes, ",")
 		c["key"] = config.ClientKey
 		c["cert"] = config.ClientCert
 		c["caCert"] = config.ClientCaKeys
-		c["basicAuth"] = config.BasicAuth
+		c["basicAuth"] = strconv.FormatBool(config.BasicAuth)
 		c["username"] = config.Username
 		c["password"] = config.Password
 	case "dynamodb":
 		c["table"] = config.Table
 		log.Printf("[INFO] DynamoDB table set to %s", config.Table)
 	case "rancher":
-		c["backendNodes"] = config.BackendNodes
+		c["backendNodes"] = strings.Join(config.BackendNodes, ",")
 	case "zookeeper":
-		c["machines"] = config.BackendNodes
+		c["machines"] = strings.Join(config.BackendNodes, ",")
 	case "redis":
-		c["machines"] = config.BackendNodes
+		c["machines"] = strings.Join(config.BackendNodes, ",")
 		c["password"] = config.ClientKey
 	case "vault":
 		c["authType"] = config.AuthType
@@ -79,7 +82,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["key"] = config.ClientKey
 		c["caCert"] = config.ClientCaKeys
 	case "stackengine":
-		c["nodes"] = config.BackendNodes
+		c["nodes"] = strings.Join(config.BackendNodes, ",")
 		c["cert"] = config.ClientCert
 		c["key"] = config.ClientKey
 		c["caCert"] = config.ClientCaKeys

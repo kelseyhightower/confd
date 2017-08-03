@@ -1,5 +1,5 @@
 package zookeeper
 
 type Config struct {
-	Machines []string `mapstructure:"machines"`
+	Machines string `mapstructure:"machines"`
 }

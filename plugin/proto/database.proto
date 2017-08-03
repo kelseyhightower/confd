@@ -1,9 +1,8 @@
 syntax = "proto3";
 package proto;
-import "google/protobuf/any.proto";
 
 message ConfigureRequest {
-  map<string, google.protobuf.Any> config = 1;
+  map<string, string> config = 1;
 }
 
 message ConfigureResponse {}
