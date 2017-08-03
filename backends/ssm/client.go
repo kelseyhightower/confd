@@ -76,7 +76,7 @@ func (c *Client) getParametersWithPrefix(prefix string) (map[string]string, erro
 			for _, p := range page.Parameters {
 				parameters[*p.Name] = *p.Value
 			}
-			return lastPage
+			return !lastPage
 		})
 	return parameters, err
 }
