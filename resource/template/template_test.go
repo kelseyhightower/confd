@@ -456,7 +456,7 @@ func setupDirectoriesAndFiles(tt templateTest, t *testing.T) {
 
 // templateResource creates a templateResource for creating a config file
 func templateResource() (*TemplateResource, error) {
-	client := env.Database()
+	client := &env.Client{}
 
 	config := Config{
 		Database:    client, // not used but must be set

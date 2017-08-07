@@ -82,7 +82,7 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 
 	os.Setenv("FOO", "bar")
-	database := env.Database()
+	database := &env.Client{}
 	c := Config{
 		ConfDir:     tempConfDir,
 		ConfigDir:   filepath.Join(tempConfDir, "conf.d"),
