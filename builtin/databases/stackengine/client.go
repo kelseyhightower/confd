@@ -10,7 +10,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -20,11 +19,6 @@ type Client struct {
 	token     string
 	base      string
 	transport *http.Transport
-}
-
-// Database returns a new client to StackEngine
-func Database() confd.Database {
-	return &Client{}
 }
 
 // Configure returns a client object with connection information.

@@ -6,16 +6,10 @@ import (
 	"strings"
 
 	"github.com/kelseyhightower/confd/builtin/databases/env/util"
-	"github.com/kelseyhightower/confd/confd"
 )
 
 // Client provides a shell for the env client
 type Client struct{}
-
-// Database returns a new client
-func Database() confd.Database {
-	return &Client{}
-}
 
 func (c *Client) Configure(map[string]string) error {
 	return nil

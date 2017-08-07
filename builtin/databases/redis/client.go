@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -17,11 +16,6 @@ type Client struct {
 	client   redis.Conn
 	machines []string
 	password string
-}
-
-// Database returns a new client to Redis
-func Database() confd.Database {
-	return &Client{}
 }
 
 func (c *Client) Configure(configRaw map[string]string) error {

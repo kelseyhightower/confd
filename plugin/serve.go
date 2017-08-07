@@ -27,11 +27,9 @@ var HandshakeConfig = plugin.HandshakeConfig{
 	MagicCookieValue: "xtanpmnh5nqffr256vnevap59w86p3wmxkfkcp9hx4fzf5frjc3tf3tkcczcatyd",
 }
 
-type DatabaseFunc func() confd.Database
-
 // ServeOpts are the configurations to serve a plugin.
 type ServeOpts struct {
-	DatabaseFunc DatabaseFunc
+	Database confd.Database
 }
 
 // Serve serves a plugin. This function never returns and should be the final
@@ -48,6 +46,6 @@ func Serve(opts *ServeOpts) {
 // server or client.
 func pluginMap(opts *ServeOpts) map[string]plugin.Plugin {
 	return map[string]plugin.Plugin{
-		DatabasePluginName: &DatabasePlugin{Impl: opts.DatabaseFunc()},
+		DatabasePluginName: &DatabasePlugin{Impl: opts.Database},
 	}
 }

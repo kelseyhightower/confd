@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -21,11 +20,6 @@ const (
 type Client struct {
 	url        string
 	httpClient *http.Client
-}
-
-// Database returns a new client to Rancher
-func Database() confd.Database {
-	return &Client{}
 }
 
 func (c *Client) Configure(configRaw map[string]string) error {

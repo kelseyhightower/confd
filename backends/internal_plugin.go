@@ -18,19 +18,20 @@ import (
 	"github.com/kelseyhightower/confd/builtin/databases/stackengine"
 	"github.com/kelseyhightower/confd/builtin/databases/vault"
 	"github.com/kelseyhightower/confd/builtin/databases/zookeeper"
+	"github.com/kelseyhightower/confd/confd"
 	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
-var InternalDatabases = map[string]confdplugin.DatabaseFunc{
-	"env":         env.Database,
-	"consul":      consul.Database,
-	"dynamodb":    dynamodb.Database,
-	"etcd":        etcd.Database,
-	"rancher":     rancher.Database,
-	"redis":       redis.Database,
-	"stackengine": stackengine.Database,
-	"zookeeper":   zookeeper.Database,
-	"vault":       vault.Database,
+var InternalDatabases = map[string]confd.Database{
+	"env":         &env.Client{},
+	"consul":      &consul.Client{},
+	"dynamodb":    &dynamodb.Client{},
+	"etcd":        &etcd.Client{},
+	"rancher":     &rancher.Client{},
+	"redis":       &redis.Client{},
+	"stackengine": &stackengine.Client{},
+	"zookeeper":   &zookeeper.Client{},
+	"vault":       &vault.Client{},
 }
 
 const CONFDSPACE = "-CONFDSPACE-"
@@ -64,14 +65,14 @@ func RunPlugin(args []string) int {
 
 	switch pluginType {
 	case confdplugin.DatabasePluginName:
-		pluginFunc, found := InternalDatabases[pluginName]
+		database, found := InternalDatabases[pluginName]
 		if !found {
 			log.Printf("[ERROR] Could not load database: %s", pluginName)
 			return 1
 		}
 		log.Printf("[INFO] Starting database plugin %s", pluginName)
 		confdplugin.Serve(&confdplugin.ServeOpts{
-			DatabaseFunc: pluginFunc,
+			Database: database,
 		})
 	default:
 		log.Printf("[ERROR] Invalid plugin type %s", pluginType)

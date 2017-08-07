@@ -12,18 +12,12 @@ import (
 	"path"
 
 	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 )
 
 // Client is a wrapper around the vault client
 type Client struct {
 	client *vaultapi.Client
-}
-
-// Database returns a new client to Vault
-func Database() confd.Database {
-	return &Client{}
 }
 
 // Configure configures an *vault.Client with a connection to named machines.

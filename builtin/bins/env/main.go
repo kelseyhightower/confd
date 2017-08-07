@@ -7,6 +7,6 @@ import (
 
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
-		DatabaseFunc: env.Database,
+		Database: &env.Client{},
 	})
 }

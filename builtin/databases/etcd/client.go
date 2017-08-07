@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/client"
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 )
@@ -19,11 +18,6 @@ import (
 // Client is a wrapper around the etcd client
 type Client struct {
 	client client.KeysAPI
-}
-
-// NewEtcdClient returns an *etcd.Client with a connection to named machines.
-func Database() confd.Database {
-	return &Client{}
 }
 
 // Configure configures etcd.Client with a connection to named machines.

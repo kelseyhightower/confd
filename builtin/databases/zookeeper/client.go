@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
@@ -14,11 +13,6 @@ import (
 // Client provides a wrapper around the zookeeper client
 type Client struct {
 	client *zk.Conn
-}
-
-// Database returns a new client to Zookeeper
-func Database() confd.Database {
-	return &Client{}
 }
 
 func (c *Client) Configure(configRaw map[string]string) error {

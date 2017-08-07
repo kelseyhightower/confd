@@ -9,18 +9,12 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 )
 
 // Client provides a wrapper around the consulkv client
 type Client struct {
 	client *api.KV
-}
-
-// Database returns a new client to Consul
-func Database() confd.Database {
-	return &Client{}
 }
 
 func (c *Client) Configure(configRaw map[string]string) error {

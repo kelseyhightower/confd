@@ -7,6 +7,6 @@ import (
 
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
-		DatabaseFunc: zookeeper.Database,
+		Database: &zookeeper.Client{},
 	})
 }

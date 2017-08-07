@@ -21,11 +21,10 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		log.Fatalf("[ERROR] Plugin %s not found", config.Backend)
 	}
 	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig: confdplugin.HandshakeConfig,
-		Plugins:         confdplugin.PluginMap,
-		Cmd:             pluginCmd(plugins[config.Backend]),
-		AllowedProtocols: []plugin.Protocol{
-			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
+		HandshakeConfig:  confdplugin.HandshakeConfig,
+		Plugins:          confdplugin.PluginMap,
+		Cmd:              pluginCmd(plugins[config.Backend]),
+		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
 	})
 
 	// Connect via RPC

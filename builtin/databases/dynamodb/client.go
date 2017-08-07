@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/kelseyhightower/confd/confd"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -16,11 +15,6 @@ import (
 type Client struct {
 	client *dynamodb.DynamoDB
 	table  string
-}
-
-// Database returns a new client to DynamoDB
-func Database() confd.Database {
-	return &Client{}
 }
 
 // Configure configures *dynamodb.Client with a connection to the region
