@@ -242,6 +242,27 @@ val: {{.}}
 {{end}}
 ```
 
+### add/subtract/multiply/divide
+
+Elementary integer operations.
+
+```
+{{if gt (add (len $var1) (len $var2)) 2}}
+sum is greater than two
+{{end}}
+```
+
+### quorum
+
+Returns the necessary number for a quorum to be reached.  Quorum is the minimal strict majority: `n/2+1`.
+
+```
+{{$es_hosts := split (getv "/discovery/nodes/elasticsearch") "," }}
+{{$es_quorum := quorum (len $es_hosts)}}
+
+discovery.zen.minimum_master_nodes: {{$es_quorum}}
+```
+
 ### ls
 
 Returns all subkeys, []string, where path matches its argument. Returns an empty list if path is not found.

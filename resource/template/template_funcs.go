@@ -30,6 +30,11 @@ func newFuncMap() map[string]interface{} {
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
+	m["quorum"] = func(x int) int { return (x/2)+1 }
+	m["add"] = func(x, y int) int { return x + y }
+	m["subtract"] = func(x, y int) int { return x - y }
+	m["multiply"] = func(x, y int) int { return x * y }
+	m["divide"] = func(x, y int) int { return x / y }
 	return m
 }
 
