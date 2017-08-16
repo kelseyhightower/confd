@@ -25,7 +25,13 @@ cat > ./rancher-answers.json<<EOF
               "app1": "10.0.1.10:8080",
               "app2": "10.0.1.11:8080"
             }
-         }    
+         },
+         "with_under_scores": "value_with_underscores",
+         "path_here": {
+           "with": {
+             "under_scores": "value_path_with_underscores"
+           }
+         }
     }
 }
 EOF

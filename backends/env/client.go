@@ -28,10 +28,12 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 	vars := make(map[string]string)
 	for _, key := range keys {
-		k := transform(key)
+		keyNoSlashPrefix := strings.TrimPrefix(key, "/")
+		k := transform(keyNoSlashPrefix)
 		for envKey, envValue := range envMap {
 			if strings.HasPrefix(envKey, k) {
-				vars[clean(envKey)] = envValue
+				envKeyPostfix := envKey[len(k):]
+				vars["/" + keyNoSlashPrefix + clean(envKeyPostfix)] = envValue
 			}
 		}
 	}
@@ -42,15 +44,13 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 }
 
 func transform(key string) string {
-	k := strings.TrimPrefix(key, "/")
-	return strings.ToUpper(replacer.Replace(k))
+	return strings.ToUpper(replacer.Replace(key))
 }
 
 var cleanReplacer = strings.NewReplacer("_", "/")
 
 func clean(key string) string {
-	newKey := "/" + key
-	return cleanReplacer.Replace(strings.ToLower(newKey))
+	return cleanReplacer.Replace(strings.ToLower(key))
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
