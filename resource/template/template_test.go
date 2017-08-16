@@ -438,6 +438,20 @@ key: Value
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", `VmFsdWU=`)
 		},
+	}, templateTest{
+		desc: "seq test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+`,
+		tmpl: `
+{{ seq 1 3 }}
+`,
+		expected: `
+[1 2 3]
+`,
+		updateStore: func(tr *TemplateResource) {},
 	},
 }
 

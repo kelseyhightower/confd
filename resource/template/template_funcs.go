@@ -39,6 +39,12 @@ func newFuncMap() map[string]interface{} {
 	m["reverse"] = Reverse
 	m["sortByLength"] = SortByLength
 	m["sortKVByLength"] = SortKVByLength
+	m["add"] = func(a, b int) int { return a + b }
+	m["sub"] = func(a, b int) int { return a - b }
+	m["div"] = func(a, b int) int { return a / b }
+	m["mod"] = func(a, b int) int { return a % b }
+	m["mul"] = func(a, b int) int { return a * b }
+	m["seq"] = Seq
 	return m
 }
 
@@ -46,6 +52,16 @@ func addFuncs(out, in map[string]interface{}) {
 	for name, fn := range in {
 		out[name] = fn
 	}
+}
+
+// Seq creates a sequence of integers. It's named and used as GNU's seq.
+// Seq takes the first and the last element as arguments. So Seq(3, 5) will generate [3,4,5]
+func Seq(first, last int) []int {
+	var arr []int
+	for i := first; i <= last; i++ {
+		arr = append(arr, i)
+	}
+	return arr
 }
 
 type byLengthKV []memkv.KVPair
