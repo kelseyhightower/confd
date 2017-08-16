@@ -1,0 +1,7 @@
+[template]
+mode = "0644"
+src = "k8s-svc.tmpl"
+dest = "/tmp/confd-k8s-svc.conf"
+keys = [
+  "/endpoints/test-app",
+]
