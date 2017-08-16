@@ -29,7 +29,7 @@ and some people wanted machine-friendly languages.
 JSON fits a nice balance in this, but is fairly verbose and most
 importantly doesn't support comments. With YAML, we found that beginners
 had a really hard time determining what the actual structure was, and
-ended up guessing more than not whether to use a hyphen, colon, etc.
+ended up guessing more often than not whether to use a hyphen, colon, etc.
 in order to represent some configuration key.
 
 Full programming languages such as Ruby enable complex behavior
@@ -81,15 +81,36 @@ FOO
   * Boolean values: `true`, `false`
 
   * Arrays can be made by wrapping it in `[]`. Example:
-    `["foo", "bar", 42]`. Arrays can contain primitives
-    and other arrays, but cannot contain objects. Objects must
-    use the block syntax shown below.
+    `["foo", "bar", 42]`. Arrays can contain primitives,
+    other arrays, and objects. As an alternative, lists
+    of objects can be created with repeated blocks, using
+    this structure:
+
+    ```hcl
+    service {
+        key = "value"
+    }
+
+    service {
+        key = "value"
+    }
+    ```
 
 Objects and nested objects are created using the structure shown below:
 
 ```
 variable "ami" {
     description = "the AMI to use"
+}
+```
+This would be equivalent to the following json:
+``` json
+{
+  "variable": {
+      "ami": {
+          "description": "the AMI to use"
+        }
+    }
 }
 ```
 

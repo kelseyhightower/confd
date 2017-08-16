@@ -1,3 +1,34 @@
+# 0.11.4
+
+* bug: fix undefined variable on solaris (#493)
+
+# 0.11.3
+
+* formatter: configure quoting of empty values (#484)
+* formatter: configure quoting character (default is `"`) (#484)
+* bug: fix not importing io correctly in non-linux environments (#481)
+
+# 0.11.2
+
+* bug: fix windows terminal detection (#476)
+
+# 0.11.1
+
+* bug: fix tty detection with custom out (#471)
+
+# 0.11.0
+
+* performance: Use bufferpool to allocate (#370)
+* terminal: terminal detection for app-engine (#343)
+* feature: exit handler (#375)
+
+# 0.10.0
+
+* feature: Add a test hook (#180)
+* feature: `ParseLevel` is now case-insensitive (#326)
+* feature: `FieldLogger` interface that generalizes `Logger` and `Entry` (#308)
+* performance: avoid re-allocations on `WithFields` (#335)
+
 # 0.9.0
 
 * logrus/text_formatter: don't emit empty msg
