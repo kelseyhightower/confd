@@ -13,9 +13,10 @@ before_install:
   - sudo mv consul /bin/
   - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul &
   # install etcd
-  - wget https://github.com/coreos/etcd/releases/download/v2.2.5/etcd-v2.2.5-linux-amd64.tar.gz
-  - tar xzf etcd-v2.2.5-linux-amd64.tar.gz
-  - sudo mv etcd-v2.2.5-linux-amd64/etcd /bin/
+  - wget https://github.com/coreos/etcd/releases/download/v3.0.4/etcd-v3.0.4-linux-amd64.tar.gz
+  - tar xzf etcd-v3.0.4-linux-amd64.tar.gz
+  - sudo mv etcd-v3.0.4-linux-amd64/etcd /bin/
+  - sudo mv etcd-v3.0.4-linux-amd64/etcdctl /bin/
   - etcd &
   # install DynamoDB
   - mkdir /tmp/dynamodb
@@ -46,6 +47,7 @@ script:
   - bash integration/consul/test.sh
   - bash integration/env/test.sh
   - bash integration/etcd/test.sh
+  - bash integration/etcdv3/test.sh
   - bash integration/redis/test.sh
   - bash integration/rancher/test.sh
   - bash integration/vault/test.sh
