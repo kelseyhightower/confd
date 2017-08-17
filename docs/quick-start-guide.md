@@ -34,7 +34,7 @@ curl -X PUT -d 'db.example.com' http://localhost:8500/v1/kv/myapp/database/url
 curl -X PUT -d 'rob' http://localhost:8500/v1/kv/myapp/database/user
 ```
 
-####vault
+#### vault
 ```
 vault mount -path myapp generic
 vault write myapp/database url=db.example.com user=rob
@@ -133,7 +133,7 @@ confd supports two modes of operation daemon and onetime. In daemon mode confd p
 #### etcd
 
 ```
-confd -onetime -backend etcd -node http://127.0.0.1:4001
+confd -onetime -backend etcd -node http://127.0.0.1:2379
 ```
 
 #### consul
@@ -172,6 +172,11 @@ confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.16
 
 ```
 confd -onetime -backend redis -node 192.168.255.210:6379
+```
+or if you want to connect to a specific redis database (4 in this example):
+
+```
+confd -onetime -backend redis -node 192.168.255.210:6379/4
 ```
 
 =======

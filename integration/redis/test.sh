@@ -21,3 +21,4 @@ then
         exit 1
 fi
 confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend redis --node 127.0.0.1:6379
+confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend redis --node 127.0.0.1:6379/0

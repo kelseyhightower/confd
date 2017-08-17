@@ -159,7 +159,7 @@ func initConfig() error {
 	// Update BackendNodes from SRV records.
 	if config.Backend != "env" && config.SRVRecord != "" {
 		log.Info("SRV record set to " + config.SRVRecord)
-		srvNodes, err := getBackendNodesFromSRV(config.SRVRecord, config.Scheme)
+		srvNodes, err := getBackendNodesFromSRV(config.SRVRecord)
 		if err != nil {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
 		}
@@ -176,6 +176,8 @@ func initConfig() error {
 			} else {
 				config.BackendNodes = []string{"http://127.0.0.1:4001"}
 			}
+		case "etcdv3":
+			config.BackendNodes = []string{"127.0.0.1:2379"}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
 		case "vault":
@@ -233,7 +235,7 @@ func initConfig() error {
 	return nil
 }
 
-func getBackendNodesFromSRV(record, scheme string) ([]string, error) {
+func getBackendNodesFromSRV(record string) ([]string, error) {
 	nodes := make([]string, 0)
 
 	// Ignore the CNAME as we don't need it.
@@ -244,7 +246,7 @@ func getBackendNodesFromSRV(record, scheme string) ([]string, error) {
 	for _, srv := range addrs {
 		host := strings.TrimRight(srv.Target, ".")
 		port := strconv.FormatUint(uint64(srv.Port), 10)
-		nodes = append(nodes, fmt.Sprintf("%s://%s", scheme, net.JoinHostPort(host, port)))
+		nodes = append(nodes, net.JoinHostPort(host, port))
 	}
 	return nodes, nil
 }
