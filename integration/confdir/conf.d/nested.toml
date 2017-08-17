@@ -1,0 +1,7 @@
+[template]
+mode = "0644"
+src = "nested.conf.tmpl"
+dest = "/tmp/confd-nested-test.conf"
+keys = [
+  "/nested",
+]
