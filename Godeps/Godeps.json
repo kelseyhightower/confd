@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/kelseyhightower/confd",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -263,7 +263,7 @@
 		},
 		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
-			"Rev": "71620c547230ad53777a00e2ebd3bbab8353370e"
+			"Rev": "7e335e5f4b9442f39e355f4ee416bd3acb4d473f"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
