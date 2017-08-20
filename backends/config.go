@@ -12,6 +12,7 @@ type Config struct {
 	Password     string
 	Scheme       string
 	Table        string
+	Endpoint     string
 	Username     string
 	AppID        string
 	UserID       string
