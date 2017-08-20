@@ -19,11 +19,10 @@ $ wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-
 Move the binary to an installation path, make it executable, and add to path
 ```
 mkdir -p /opt/confd/bin
-mv confd-0.11.0-linux-amd64 /opt/confd/bin/confd
-chmod 755 /opt/confd/bin/confd 
-export PATH="/opt/confd/bin:$PATH"
+mv confd-0.12.0-linux-amd64 /opt/confd/bin/confd
+chmod +x /opt/confd/bin/confd 
+export PATH="$PATH:/opt/confd/bin"
 ```
-Now run confd command!
 
 #### Building from Source
 
