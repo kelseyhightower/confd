@@ -1,42 +1,42 @@
 language: go
 go:
-  - 1.6
+  - 1.8
   - tip
 env:
-  - VAULT_ADDR='http://127.0.0.1:8200'
+  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.2 ETCD_VERSION=3.2.5 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
 services:
   - redis
 before_install:
   # install consul
-  - wget https://releases.hashicorp.com/consul/0.6.3/consul_0.6.3_linux_amd64.zip
-  - unzip consul_0.6.3_linux_amd64.zip
+  - wget https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
+  - unzip consul_${CONSUL_VERSION}_linux_amd64.zip
   - sudo mv consul /bin/
   - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul &
   # install etcd
-  - wget https://github.com/coreos/etcd/releases/download/v3.0.4/etcd-v3.0.4-linux-amd64.tar.gz
-  - tar xzf etcd-v3.0.4-linux-amd64.tar.gz
-  - sudo mv etcd-v3.0.4-linux-amd64/etcd /bin/
-  - sudo mv etcd-v3.0.4-linux-amd64/etcdctl /bin/
+  - wget https://github.com/coreos/etcd/releases/download/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
+  - tar xzf etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
+  - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcd /bin/
+  - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcdctl /bin/
   - etcd &
   # install DynamoDB
   - mkdir /tmp/dynamodb
-  - wget -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz | tar xz --directory /tmp/dynamodb
+  - wget -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_${DYNAMODB_VERSION}.tar.gz | tar xz --directory /tmp/dynamodb
   - java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
   # Install rancher metadata
-  - wget https://github.com/rancher/rancher-metadata/releases/download/v0.6.0/rancher-metadata.tar.gz
+  - wget https://github.com/rancher/rancher-metadata/releases/download/v${RANCHER_VERSION}/rancher-metadata.tar.gz
   - mkdir -p ./rancher-metadata
   - tar xzf rancher-metadata.tar.gz --strip-components=1 -C ./rancher-metadata
   - sudo mv ./rancher-metadata/bin/rancher-metadata /bin/
   # Install vault
-  - wget https://releases.hashicorp.com/vault/0.4.1/vault_0.4.1_linux_amd64.zip
-  - unzip vault_0.4.1_linux_amd64.zip
+  - wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
+  - unzip vault_${VAULT_VERSION}_linux_amd64.zip
   - sudo mv vault /bin/
   - vault server -dev &
   # Install zookeeper
-  - wget http://www.eu.apache.org/dist/zookeeper/zookeeper-3.4.8/zookeeper-3.4.8.tar.gz
-  - tar xzf zookeeper-3.4.8.tar.gz
-  - mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-3.4.8/conf/zoo.cfg
-  - zookeeper-3.4.8/bin/zkServer.sh start
+  - wget http://www.eu.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+  - tar xzf zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+  - mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-${ZOOKEEPER_VERSION}/conf/zoo.cfg
+  - zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
 install:
   - sudo pip install awscli
   - go get golang.org/x/tools/cmd/cover
