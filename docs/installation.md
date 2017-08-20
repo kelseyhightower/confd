@@ -12,8 +12,16 @@ $ wget https://github.com/kelseyhightower/confd/releases/download/v0.12.0/confd-
 
 #### Linux
 
+Download the binary
 ```
 $ wget https://github.com/kelseyhightower/confd/releases/download/v0.12.0/confd-0.12.0-linux-amd64
+```
+Move the binary to an installation path, make it executable, and add to path
+```
+mkdir -p /opt/confd/bin
+mv confd-0.12.0-linux-amd64 /opt/confd/bin/confd
+chmod +x /opt/confd/bin/confd 
+export PATH="$PATH:/opt/confd/bin"
 ```
 
 #### Building from Source
