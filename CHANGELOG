@@ -1,3 +1,20 @@
+### v0.13.0
+
+181e3e3 Update dependencies
+509268d Remove StackEngine backend
+3a61969 Add further installation instructions
+dd47bbb Introducing WaitPrefix for the Rancher backend
+35ffe8f Adding nested key support to Vault backend v2
+f1833a6 ETCD V3 support
+89c59d4 Feature new template func add
+2b080af added some additional text/template sorting methods
+fbea3b9 Fixes #562 by not adding the URL scheme to the node at DNS lookup time
+ab93ff1 Windows support
+695e62e add trimSuffix template function
+3049df8 Add base64 encode/decode template helpers
+485b31c improved etcd watch support
+8528d3c added support to specify a redis database (in the connection string)
+
 ### v0.12.0
 
 5f3f79d Change etcd node port because the official port of etcd is 2379
