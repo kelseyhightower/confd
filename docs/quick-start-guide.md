@@ -197,6 +197,14 @@ database_url = db.example.com
 database_user = rob
 ```
 
+## Fallback to env
+
+Fallback to env on key that aren't defined in etcd/consul or others backends:
+
+```
+confd -onetime -backend consul -backend-fallback env -node 127.0.0.0:8500
+```
+
 ## Advanced Example
 
 In this example we will use confd to manage two nginx config files using a single template.

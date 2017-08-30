@@ -13,6 +13,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/vault"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
+	"github.com/kelseyhightower/confd/backends/fallback"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -30,6 +31,22 @@ func New(config Config) (StoreClient, error) {
 	}
 	backendNodes := config.BackendNodes
 	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
+        if config.BackendFallback != "" {
+                mainConfig := config
+		fallbackConfig := config
+		mainConfig.BackendFallback = ""
+		fallbackConfig.Backend = config.BackendFallback
+		fallbackConfig.BackendFallback = ""
+		backendMain, err :=  New(mainConfig)
+		if err != nil {
+			return nil, err
+		}
+		backendFallback, err := New(fallbackConfig)
+                if err != nil {
+			return nil, err
+		}
+		return fallback.NewFallbackClient(backendMain, backendFallback)
+	}
 	switch config.Backend {
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,

@@ -23,6 +23,7 @@ var (
 	authToken         string
 	authType          string
 	backend           string
+        backendFallback   string
 	basicAuth         bool
 	clientCaKeys      string
 	clientCert        string
@@ -56,6 +57,7 @@ type Config struct {
 	AuthToken    string   `toml:"auth_token"`
 	AuthType     string   `toml:"auth_type"`
 	Backend      string   `toml:"backend"`
+	BackendFallback  string   `toml:"backend_fallback"`
 	BasicAuth    bool     `toml:"basic_auth"`
 	BackendNodes []string `toml:"nodes"`
 	ClientCaKeys string   `toml:"client_cakeys"`
@@ -81,6 +83,7 @@ type Config struct {
 func init() {
 	flag.StringVar(&authToken, "auth-token", "", "Auth bearer token to use")
 	flag.StringVar(&backend, "backend", "etcd", "backend to use")
+	flag.StringVar(&backendFallback, "backend-fallback", "", "backend to fallback to on none existing keys")
 	flag.BoolVar(&basicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=etcd)")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
@@ -209,6 +212,7 @@ func initConfig() error {
 		AuthToken:    config.AuthToken,
 		AuthType:     config.AuthType,
 		Backend:      config.Backend,
+                BackendFallback: config.BackendFallback,
 		BasicAuth:    config.BasicAuth,
 		ClientCaKeys: config.ClientCaKeys,
 		ClientCert:   config.ClientCert,
@@ -281,6 +285,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AuthType = authType
 	case "backend":
 		config.Backend = backend
+        case "backend-fallback":
+                config.BackendFallback = backendFallback
 	case "basic-auth":
 		config.BasicAuth = basicAuth
 	case "client-cert":

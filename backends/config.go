@@ -4,6 +4,7 @@ type Config struct {
 	AuthToken    string
 	AuthType     string
 	Backend      string
+        BackendFallback string
 	BasicAuth    bool
 	ClientCaKeys string
 	ClientCert   string
