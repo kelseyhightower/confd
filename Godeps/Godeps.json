@@ -263,7 +263,8 @@
 		},
 		{
 			"ImportPath": "github.com/kelseyhightower/memkv",
-			"Rev": "7e335e5f4b9442f39e355f4ee416bd3acb4d473f"
+			"Comment": "v0.1.1",
+			"Rev": "892bfd468afa0fa476556e7bd7734a087cda08b3"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
