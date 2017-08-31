@@ -88,10 +88,6 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		tr.Prefix = config.Prefix
 	}
 
-	if !strings.HasPrefix(tr.Prefix, "/") {
-		tr.Prefix = "/" + tr.Prefix
-	}
-
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
 	}
