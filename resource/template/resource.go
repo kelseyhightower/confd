@@ -47,6 +47,7 @@ type TemplateResource struct {
 	ReloadCmd     string `toml:"reload_cmd"`
 	Src           string
 	StageFile     *os.File
+	StartCmd      string `toml:"start_cmd"`
 	Uid           int
 	funcMap       map[string]interface{}
 	lastIndex     uint64
@@ -180,7 +181,8 @@ func (t *TemplateResource) sync() error {
 	}
 
 	log.Debug("Comparing candidate config to " + t.Dest)
-	ok, err := sameConfig(staged, t.Dest)
+	destExists := isFileExist(t.Dest)
+	inSync, err := sameConfig(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
 	}
@@ -188,38 +190,36 @@ func (t *TemplateResource) sync() error {
 		log.Warning("Noop mode enabled. " + t.Dest + " will not be modified")
 		return nil
 	}
-	if !ok {
+	if !inSync {
 		log.Info("Target config " + t.Dest + " out of sync")
 		if !t.syncOnly && t.CheckCmd != "" {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
 			}
 		}
-		log.Debug("Overwriting target config " + t.Dest)
-		err := os.Rename(staged, t.Dest)
-		if err != nil {
-			if strings.Contains(err.Error(), "device or resource busy") {
-				log.Debug("Rename failed - target is likely a mount. Trying to write instead")
-				// try to open the file and write to it
-				var contents []byte
-				var rerr error
-				contents, rerr = ioutil.ReadFile(staged)
-				if rerr != nil {
-					return rerr
-				}
-				err := ioutil.WriteFile(t.Dest, contents, t.FileMode)
-				// make sure owner and group match the temp file, in case the file was created with WriteFile
-				os.Chown(t.Dest, t.Uid, t.Gid)
-				if err != nil {
-					return err
-				}
-			} else {
+		if destExists {
+			log.Debug("Overwriting target config " + t.Dest)
+			err := t.writeStagedFile()
+			if err != nil {
 				return err
 			}
-		}
-		if !t.syncOnly && t.ReloadCmd != "" {
-			if err := t.reload(); err != nil {
+			if !t.syncOnly && t.ReloadCmd != "" {
+				log.Debug("Running reload command")
+				if err := t.reload(); err != nil {
+					return err
+				}
+			}
+		} else {
+			log.Debug("Creating new file at " + t.Dest)
+			err := t.writeStagedFile()
+			if err != nil {
 				return err
+			}
+			if !t.syncOnly && t.StartCmd != "" {
+				log.Debug("Running start command")
+				if err := t.start(); err != nil {
+					return err
+				}
 			}
 		}
 		log.Info("Target config " + t.Dest + " has been updated")
@@ -246,8 +246,27 @@ func (t *TemplateResource) check() error {
 	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
 		return err
 	}
-	log.Debug("Running " + cmdBuffer.String())
-	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
+	return runCommand(cmdBuffer.String())
+}
+
+// reload executes the reload command.
+// It returns nil if the reload command returns 0.
+func (t *TemplateResource) reload() error {
+	return runCommand(t.ReloadCmd)
+}
+
+// start executes the start command.
+// It returns nil if the start command returns 0.
+func (t *TemplateResource) start() error {
+	return runCommand(t.StartCmd)
+}
+
+// runCommand is a shared function used by check, reload, and start
+// to run the given command and log its output.
+// It returns nil if the given cmd returns 0.
+func runCommand(cmd string) error {
+	log.Debug("Running " + cmd)
+	c := exec.Command("/bin/sh", "-c", cmd)
 	output, err := c.CombinedOutput()
 	if err != nil {
 		log.Error(fmt.Sprintf("%q", string(output)))
@@ -257,17 +276,30 @@ func (t *TemplateResource) check() error {
 	return nil
 }
 
-// reload executes the reload command.
-// It returns nil if the reload command returns 0.
-func (t *TemplateResource) reload() error {
-	log.Debug("Running " + t.ReloadCmd)
-	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
-	output, err := c.CombinedOutput()
+// writeStagedFile writes the staged file to the target destination.
+// It returns an error if any.
+func (t *TemplateResource) writeStagedFile() error {
+	err := os.Rename(t.StageFile.Name(), t.Dest)
 	if err != nil {
-		log.Error(fmt.Sprintf("%q", string(output)))
-		return err
+		if strings.Contains(err.Error(), "device or resource busy") {
+			log.Debug("Rename failed - target is likely a mount. Trying to write instead")
+			// try to open the file and write to it
+			var contents []byte
+			var rerr error
+			contents, rerr = ioutil.ReadFile(t.StageFile.Name())
+			if rerr != nil {
+				return rerr
+			}
+			err := ioutil.WriteFile(t.Dest, contents, t.FileMode)
+			// make sure owner and group match the temp file, in case the file was created with WriteFile
+			os.Chown(t.Dest, t.Uid, t.Gid)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
-	log.Debug(fmt.Sprintf("%q", string(output)))
 	return nil
 }
 
