@@ -14,6 +14,7 @@ confd supports the following backends:
 * zookeeper
 * dynamodb
 * rancher
+* ssm (AWS Simple Systems Manager Parameter Store)
 
 ### Add keys
 
@@ -86,6 +87,13 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
 #### Rancher
 
 This backend consumes the [Rancher](https://www.rancher.com) metadata service. For available keys, see the [Rancher Metadata Service docs](http://docs.rancher.com/rancher/rancher-services/metadata-service/).
+
+#### ssm
+
+```
+aws ssm put-parameter --name "/myapp/database/url" --type "String" --value "db.example.com"
+aws ssm put-parameter --name "/myapp/database/user" --type "SecureString" --value "rob"
+```
 
 ### Create the confdir
 
@@ -168,7 +176,6 @@ or if you want to connect to a specific redis database (4 in this example):
 confd -onetime -backend redis -node 192.168.255.210:6379/4
 ```
 
-=======
 #### rancher
 
 ```
@@ -195,6 +202,12 @@ Output:
 [myconfig]
 database_url = db.example.com
 database_user = rob
+```
+
+#### ssm
+
+```
+confd -onetime -backend ssm
 ```
 
 ## Advanced Example

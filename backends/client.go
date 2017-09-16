@@ -11,6 +11,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
+	"github.com/kelseyhightower/confd/backends/ssm"
 	"github.com/kelseyhightower/confd/backends/vault"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
@@ -65,6 +66,8 @@ func New(config Config) (StoreClient, error) {
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
 		return dynamodb.NewDynamoDBClient(table)
+	case "ssm":
+		return ssm.New()
 	}
 	return nil, errors.New("Invalid backend")
 }
