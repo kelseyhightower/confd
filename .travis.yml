@@ -3,7 +3,7 @@ go:
   - 1.8
   - tip
 env:
-  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.2 ETCD_VERSION=3.2.5 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
+  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.3 ETCD_VERSION=3.2.5 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
 services:
   - redis
 before_install:
@@ -11,7 +11,7 @@ before_install:
   - wget https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
   - unzip consul_${CONSUL_VERSION}_linux_amd64.zip
   - sudo mv consul /bin/
-  - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul &
+  - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -bind 127.0.0.1 &
   # install etcd
   - wget https://github.com/coreos/etcd/releases/download/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
   - tar xzf etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
