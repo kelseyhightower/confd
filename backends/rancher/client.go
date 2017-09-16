@@ -2,6 +2,7 @@ package rancher
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -118,8 +119,64 @@ func (c *Client) testConnection() error {
 	return err
 }
 
+type watchResponse struct {
+	waitIndex uint64
+	err       error
+}
+
+type timeout interface {
+	Timeout() bool
+}
+
+func (c *Client) waitVersion(prefix string, version string) (string, error) {
+	// Long poll for 10 seconds
+	path := fmt.Sprintf("%s/version?wait=true&value=%s&maxWait=10", prefix, version)
+
+	for {
+		resp, err := c.makeMetaDataRequest(path)
+		if err != nil {
+			t, ok := err.(timeout)
+			if ok && t.Timeout() {
+				continue
+			}
+			return "", err
+		}
+		err = json.Unmarshal(resp, &version)
+		return version, err
+	}
+}
+
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-	// Watches are not implemented in Rancher Metadata Service
-	<-stopChan
-	return 0, nil
+	// return something > 0 to trigger an initial retrieval from the store
+	if waitIndex == 0 {
+		return 1, nil
+	}
+
+	respChan := make(chan watchResponse)
+	go func() {
+		version := "init"
+		for {
+			newVersion, err := c.waitVersion(prefix, version)
+			if err != nil {
+				respChan <- watchResponse{0, err}
+				return
+			}
+
+			if version != newVersion && version != "init" {
+				respChan <- watchResponse{1, nil}
+				return
+			}
+
+			version = newVersion
+		}
+	}()
+
+	for {
+		select {
+		case <-stopChan:
+			return waitIndex, nil
+		case r := <-respChan:
+			return r.waitIndex, r.err
+		}
+	}
 }

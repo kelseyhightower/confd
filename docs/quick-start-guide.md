@@ -13,7 +13,6 @@ confd supports the following backends:
 * redis
 * zookeeper
 * dynamodb
-* stackengine
 * rancher
 
 ### Add keys
@@ -83,10 +82,6 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
 aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
     --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
-#### StackEngine
-```
-curl -k -X PUT -d 'value' https://mesh-01:8443/api/kv/key --header "Authorization: Bearer stackengine_api_key"
-```
 
 #### Rancher
 
@@ -133,7 +128,7 @@ confd supports two modes of operation daemon and onetime. In daemon mode confd p
 #### etcd
 
 ```
-confd -onetime -backend etcd -node http://127.0.0.1:4001
+confd -onetime -backend etcd -node http://127.0.0.1:2379
 ```
 
 #### consul
@@ -162,16 +157,15 @@ confd -onetime -backend dynamodb -table <YOUR_TABLE>
 confd -onetime -backend env
 ```
 
-#### StackEngine
-
-```
-confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.168.255.210:8443 -scheme https
-```
-
 #### redis
 
 ```
 confd -onetime -backend redis -node 192.168.255.210:6379
+```
+or if you want to connect to a specific redis database (4 in this example):
+
+```
+confd -onetime -backend redis -node 192.168.255.210:6379/4
 ```
 
 =======

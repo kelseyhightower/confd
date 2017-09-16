@@ -144,8 +144,12 @@ func New(address, authType string, params map[string]string) (*Client, error) {
 
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
-	vars := make(map[string]string)
+	branches := make(map[string]bool)
 	for _, key := range keys {
+		walkTree(c, key, branches)
+	}
+	vars := make(map[string]string)
+	for key := range branches {
 		log.Debug("getting %s from vault", key)
 		resp, err := c.client.Logical().Read(key)
 
@@ -200,6 +204,53 @@ func flatten(key string, value interface{}, vars map[string]string) {
 	default: // we don't know how to handle non string or maps of strings
 		log.Warning("type of '%s' is not supported (%T)", key, value)
 	}
+}
+
+// recursively walk the branches in the Vault, adding to branches map
+func walkTree(c *Client, key string, branches map[string]bool) (error) {
+	log.Debug("listing %s from vault", key)
+	
+	// strip trailing slash as long as it's not the only character
+	if last := len(key) - 1; last > 0 && key[last] == '/' {
+		key = key[:last]
+	}
+	if branches[key] {
+		// already processed this branch
+		return nil
+	}
+	branches[key] = true
+
+	resp, err := c.client.Logical().List(key)
+
+	if err != nil {
+		log.Debug("there was an error extracting %s", key)
+		return err
+	}
+	if resp == nil || resp.Data == nil || resp.Data["keys"] == nil {
+		return nil
+	}
+
+	switch resp.Data["keys"].(type) {
+		case []interface{}:
+			// expected
+		default:
+			log.Warning("key list type of '%s' is not supported (%T)", key, resp.Data["keys"])
+			return nil
+	}
+
+	keyList := resp.Data["keys"].([]interface{})
+	for _, innerKey := range keyList {
+		switch innerKey.(type) {
+
+		case string:
+			innerKey = path.Join(key, "/", innerKey.(string))
+			walkTree(c, innerKey.(string), branches)
+
+		default: // we don't know how to handle other data types
+			log.Warning("type of '%s' is not supported (%T)", key, keyList)
+		}
+	}
+	return nil
 }
 
 // WatchPrefix - not implemented at the moment

@@ -8,7 +8,6 @@ package memkv
 import (
 	"errors"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -80,15 +79,11 @@ func (s Store) Get(key string) (KVPair, error) {
 // GetValue gets the value associated with key. If there are no values
 // associated with key, GetValue returns "", ErrNotExist.
 func (s Store) GetValue(key string, v ...string) (string, error) {
-	defaultValue := ""
-	if len(v) > 0 {
-		defaultValue = v[0]
-	}
-
 	kv, err := s.Get(key)
 	if err != nil {
-		if defaultValue != "" {
-			return defaultValue, nil
+		if len(v) > 0 {
+			// Take default
+			return v[0], nil
 		}
 		return "", err
 	}
@@ -96,13 +91,13 @@ func (s Store) GetValue(key string, v ...string) (string, error) {
 }
 
 // GetAll returns a KVPair for all nodes with keys matching pattern.
-// The syntax of patterns is the same as in filepath.Match.
+// The syntax of patterns is the same as in path.Match.
 func (s Store) GetAll(pattern string) (KVPairs, error) {
 	ks := make(KVPairs, 0)
 	s.RLock()
 	defer s.RUnlock()
 	for _, kv := range s.m {
-		m, err := filepath.Match(pattern, kv.Key)
+		m, err := path.Match(pattern, kv.Key)
 		if err != nil {
 			return nil, err
 		}
@@ -138,14 +133,14 @@ func (s Store) List(filePath string) []string {
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
-	prefix := pathToTerms(path.Clean(filePath))
+	prefix := pathToTerms(filePath)
 	for _, kv := range s.m {
 		if kv.Key == filePath {
 			m[path.Base(kv.Key)] = true
 			continue
 		}
 		target := pathToTerms(path.Dir(kv.Key))
-		if samePrefixTerms(target, prefix) {
+		if samePrefixTerms(prefix, target) {
 			m[strings.Split(stripKey(kv.Key, filePath), "/")[0]] = true
 		}
 	}
@@ -161,7 +156,7 @@ func (s Store) ListDir(filePath string) []string {
 	m := make(map[string]bool)
 	s.RLock()
 	defer s.RUnlock()
-	prefix := pathToTerms(path.Clean(filePath))
+	prefix := pathToTerms(filePath)
 	for _, kv := range s.m {
 		if strings.HasPrefix(kv.Key, filePath) {
 			items := pathToTerms(path.Dir(kv.Key))
@@ -200,13 +195,12 @@ func pathToTerms(filePath string) []string {
 	return strings.Split(path.Clean(filePath), "/")
 }
 
-func samePrefixTerms(left, right []string) bool {
-	l := len(left)
-	if len(left) > len(right) {
-		l = len(right)
+func samePrefixTerms(prefix, test []string) bool {
+	if len(test) < len(prefix) {
+		return false
 	}
-	for i := 0; i < l; i++ {
-		if left[i] != right[i] {
+	for i := 0; i < len(prefix); i++ {
+		if prefix[i] != test[i] {
 			return false
 		}
 	}
