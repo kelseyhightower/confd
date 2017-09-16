@@ -22,6 +22,7 @@ import (
 type Config struct {
 	ConfDir       string
 	ConfigDir     string
+	DryRun        bool
 	KeepStageFile bool
 	Noop          bool
 	Prefix        string
@@ -55,6 +56,7 @@ type TemplateResource struct {
 	store         memkv.Store
 	storeClient   backends.StoreClient
 	syncOnly      bool
+	dryRun        bool
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -82,6 +84,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
+	tr.dryRun = config.DryRun
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 
 	if config.Prefix != "" {
@@ -195,6 +198,10 @@ func (t *TemplateResource) sync() error {
 			if err := t.check(); err != nil {
 				return errors.New("Config check failed: " + err.Error())
 			}
+		}
+		if t.dryRun {
+			log.Warning("Dry-run mode enabled. " + t.Dest + " will not be modified")
+			return nil
 		}
 		log.Debug("Overwriting target config " + t.Dest)
 		err := os.Rename(staged, t.Dest)
