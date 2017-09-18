@@ -29,7 +29,7 @@ type Client struct {
 // Iterate through `machines`, trying to connect to each in turn.
 // Returns the first successful connection or the last error encountered.
 // Assumes that `machines` is non-empty.
-func tryConnect(machines []string, password string, timeout bool) (redis.Conn, error) {
+func tryConnect(machines []string, password string, timeout bool) (redis.Conn, int, error) {
 	var err error
 	for _, address := range machines {
 		var conn redis.Conn
@@ -75,9 +75,9 @@ func tryConnect(machines []string, password string, timeout bool) (redis.Conn, e
 		if err != nil {
 			continue
 		}
-		return conn, nil
+		return conn, db, nil
 	}
-	return nil, err
+	return nil, 0, err
 }
 
 // Retrieves a connected redis client from the client wrapper.
@@ -98,7 +98,7 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 	// Existing client could have been deleted by previous block
 	if c.client == nil {
 		var err error
-		c.client, err = tryConnect(c.machines, c.password, true)
+		c.client, _, err = tryConnect(c.machines, c.password, true)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +112,7 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 func NewRedisClient(machines []string, password string) (*Client, error) {
 	var err error
 	clientWrapper := &Client{machines: machines, password: password, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil} }
-	clientWrapper.client, err = tryConnect(machines, password, true)
+	clientWrapper.client, _, err = tryConnect(machines, password, true)
 	return clientWrapper, err
 }
 
@@ -233,7 +233,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	go func() {
 		if c.psc.Conn == nil {
-			rClient, err := tryConnect(c.machines, c.password, false);
+			rClient, db, err := tryConnect(c.machines, c.password, false);
 	
 			if err != nil {
 				c.psc = redis.PubSubConn{Conn: nil}
@@ -271,7 +271,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 				}
 			}()
 
-			c.psc.PSubscribe("__key*__:" + transform(prefix) + "*")
+			c.psc.PSubscribe("__keyspace@" + strconv.Itoa(db) + "__:" + transform(prefix) + "*")
 		}
 	}()
 
