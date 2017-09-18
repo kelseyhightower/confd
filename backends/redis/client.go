@@ -244,7 +244,10 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 			c.psc = redis.PubSubConn{Conn: rClient}		
 
 			go func() {
-				defer c.psc.Close()
+				defer func() {
+					c.psc.Close()
+					c.psc = redis.PubSubConn{Conn: nil}
+				}()
 				for {
 					switch n := c.psc.Receive().(type) {
 						case redis.PMessage:
