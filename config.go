@@ -191,7 +191,6 @@ func initConfig() error {
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
-			"redis":    true,
 			"dynamodb": true,
 			"ssm":      true,
 		}
