@@ -19,11 +19,12 @@ type watchResponse struct {
 
 // Client is a wrapper around the redis client
 type Client struct {
-	client   redis.Conn
-	machines []string
-	password string
-	psc redis.PubSubConn
-	pscChan chan watchResponse
+	client    redis.Conn
+	machines  []string
+	password  string
+	separator string
+	psc 	  redis.PubSubConn
+	pscChan   chan watchResponse
 }
 
 // Iterate through `machines`, trying to connect to each in turn.
@@ -109,24 +110,31 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 
 // NewRedisClient returns an *redis.Client with a connection to named machines.
 // It returns an error if a connection to the cluster cannot be made.
-func NewRedisClient(machines []string, password string) (*Client, error) {
+func NewRedisClient(machines []string, password string, separator string) (*Client, error) {
+	if separator == "" {
+		separator = "/"
+	}
+	log.Debug(fmt.Sprintf("Redis Separator: %#v", separator))
 	var err error
-	clientWrapper := &Client{machines: machines, password: password, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil} }
+	clientWrapper := &Client{machines: machines, password: password, separator: separator, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil} }
 	clientWrapper.client, _, err = tryConnect(machines, password, true)
 	return clientWrapper, err
 }
 
-var transformReplacer = strings.NewReplacer("/", ":")
-var cleanReplacer = strings.NewReplacer(":", "/")
-
-func transform(key string) string {
+func (c *Client) transform(key string) string {
+	if c.separator == "/" {
+		return key;
+	}
 	k := strings.TrimPrefix(key, "/")
-	return transformReplacer.Replace(k)
+	return strings.Replace(k, "/", c.separator, -1);
 }
 
-func clean(key string) string {
-	newKey := "/" + key
-	return cleanReplacer.Replace(newKey)
+func (c *Client) clean(key string) string {
+	k := key
+	if !strings.HasPrefix(k, "/") {
+		k = "/" + k
+	}
+	return strings.Replace(k, c.separator, "/", -1);
 }
 
 // GetValues queries redis for keys prefixed by prefix.
@@ -141,7 +149,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	for _, key := range keys {
 		key = strings.Replace(key, "/*", "", -1)
 
-		k := transform(key)
+		k := c.transform(key)
 		t, err := redis.String(rClient.Do("TYPE", k))
 
 		if err == nil && err != redis.ErrNil {
@@ -172,7 +180,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 						if value, err = redis.String(items[i+1], nil); err != nil {
 							return vars, err
 						}
-						vars[clean(k + ":" + newKey)] = value
+						vars[c.clean(k + "/" + newKey)] = value
 					}
 					if idx == 0 {
 						break
@@ -182,7 +190,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				if key == "/" {
 					k = "*"
 				} else {
-					k = fmt.Sprintf("%s:*", k)
+					k = fmt.Sprintf(c.transform("%s/*"), k)
 				}
 		
 				idx := 0
@@ -199,7 +207,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 							return vars, err
 						}
 						if value, err := redis.String(rClient.Do("GET", newKey)); err == nil {
-							vars[clean(newKey)] = value
+							vars[c.clean(newKey)] = value
 						}
 					}
 					if idx == 0 {
@@ -273,18 +281,16 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 					}
 				}
 			}()
-
-			c.psc.PSubscribe("__keyspace@" + strconv.Itoa(db) + "__:" + transform(prefix) + "*")
+			
+			c.psc.PSubscribe("__keyspace@" + strconv.Itoa(db) + "__:" + c.transform(prefix) + "*")
 		}
 	}()
 
-	for {
-		select {
-		case <-stopChan:
-			c.psc.PUnsubscribe()
-			return waitIndex, nil
-		case r := <- c.pscChan:
-			return r.waitIndex, r.err
-		}
+	select {
+	case <-stopChan:
+		c.psc.PUnsubscribe()
+		return waitIndex, nil
+	case r := <- c.pscChan:
+		return r.waitIndex, r.err
 	}
 }
