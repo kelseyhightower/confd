@@ -1,8 +1,6 @@
 package api
 
-import (
-	"fmt"
-)
+import "fmt"
 
 func (c *Sys) ListPolicies() ([]string, error) {
 	r := c.c.NewRequest("GET", "/v1/sys/policy")
@@ -12,9 +10,25 @@ func (c *Sys) ListPolicies() ([]string, error) {
 	}
 	defer resp.Body.Close()
 
-	var result listPoliciesResp
+	var result map[string]interface{}
 	err = resp.DecodeJSON(&result)
-	return result.Policies, err
+	if err != nil {
+		return nil, err
+	}
+
+	var ok bool
+	if _, ok = result["policies"]; !ok {
+		return nil, fmt.Errorf("policies not found in response")
+	}
+
+	listRaw := result["policies"].([]interface{})
+	var policies []string
+
+	for _, val := range listRaw {
+		policies = append(policies, val.(string))
+	}
+
+	return policies, err
 }
 
 func (c *Sys) GetPolicy(name string) (string, error) {
@@ -30,9 +44,18 @@ func (c *Sys) GetPolicy(name string) (string, error) {
 		return "", err
 	}
 
-	var result getPoliciesResp
+	var result map[string]interface{}
 	err = resp.DecodeJSON(&result)
-	return result.Rules, err
+	if err != nil {
+		return "", err
+	}
+
+	var ok bool
+	if _, ok = result["rules"]; !ok {
+		return "", fmt.Errorf("rules not found in response")
+	}
+
+	return result["rules"].(string), nil
 }
 
 func (c *Sys) PutPolicy(name, rules string) error {

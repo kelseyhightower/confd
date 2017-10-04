@@ -2,10 +2,11 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/hashicorp/vault/helper/jsonutil"
 )
 
 // Response is a raw response that wraps an HTTP response.
@@ -17,16 +18,16 @@ type Response struct {
 // will consume the response body, but will not close it. Close must
 // still be called.
 func (r *Response) DecodeJSON(out interface{}) error {
-	dec := json.NewDecoder(r.Body)
-	return dec.Decode(out)
+	return jsonutil.DecodeJSONFromReader(r.Body, out)
 }
 
 // Error returns an error response if there is one. If there is an error,
 // this will fully consume the response body, but will not close it. The
 // body must still be closed manually.
 func (r *Response) Error() error {
-	// 200 to 399 are okay status codes
-	if r.StatusCode >= 200 && r.StatusCode < 400 {
+	// 200 to 399 are okay status codes. 429 is the code for health status of
+	// standby nodes.
+	if (r.StatusCode >= 200 && r.StatusCode < 400) || r.StatusCode == 429 {
 		return nil
 	}
 
@@ -41,8 +42,7 @@ func (r *Response) Error() error {
 	// in a bytes.Reader here so that the JSON decoder doesn't move the
 	// read pointer for the original buffer.
 	var resp ErrorResponse
-	dec := json.NewDecoder(bytes.NewReader(bodyBuf.Bytes()))
-	if err := dec.Decode(&resp); err != nil {
+	if err := jsonutil.DecodeJSON(bodyBuf.Bytes(), &resp); err != nil {
 		// Ignore the decoding error and just drop the raw response
 		return fmt.Errorf(
 			"Error making API request.\n\n"+

@@ -35,22 +35,23 @@
 Package transport defines and implements message oriented communication channel
 to complete various transactions (e.g., an RPC).
 */
-package transport
+package transport // import "google.golang.org/grpc/transport"
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
-	"golang.org/x/net/trace"
+	"golang.org/x/net/http2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/stats"
+	"google.golang.org/grpc/tap"
 )
 
 // recvMsg represents the received msg from the transport. All transport
@@ -169,8 +170,14 @@ type Stream struct {
 	id uint32
 	// nil for client side Stream.
 	st ServerTransport
+	// clientStatsCtx keeps the user context for stats handling.
+	// It's only valid on client side. Server side stats context is same as s.ctx.
+	// All client side stats collection should use the clientStatsCtx (instead of the stream context)
+	// so that all the generated stats for a particular RPC can be associated in the processing phase.
+	clientStatsCtx context.Context
 	// ctx is the associated context of the stream.
-	ctx    context.Context
+	ctx context.Context
+	// cancel is always nil for client side Stream.
 	cancel context.CancelFunc
 	// done is closed when the final status arrives.
 	done chan struct{}
@@ -208,6 +215,11 @@ type Stream struct {
 	// the status received from the server.
 	statusCode codes.Code
 	statusDesc string
+	// rstStream indicates whether a RST_STREAM frame needs to be sent
+	// to the server to signify that this stream is closing.
+	rstStream bool
+	// rstError is the error that needs to be sent along with the RST_STREAM frame.
+	rstError http2.ErrCode
 }
 
 // RecvCompress returns the compression algorithm applied to the inbound
@@ -240,6 +252,8 @@ func (s *Stream) Header() (metadata.MD, error) {
 	select {
 	case <-s.ctx.Done():
 		return nil, ContextErr(s.ctx.Err())
+	case <-s.goAway:
+		return nil, ErrStreamDrain
 	case <-s.headerChan:
 		return s.header.Copy(), nil
 	}
@@ -265,11 +279,6 @@ func (s *Stream) Context() context.Context {
 	return s.ctx
 }
 
-// TraceContext recreates the context of s with a trace.Trace.
-func (s *Stream) TraceContext(tr trace.Trace) {
-	s.ctx = trace.NewContext(s.ctx, tr)
-}
-
 // Method returns the method for the stream.
 func (s *Stream) Method() string {
 	return s.method
@@ -285,19 +294,30 @@ func (s *Stream) StatusDesc() string {
 	return s.statusDesc
 }
 
-// ErrIllegalTrailerSet indicates that the trailer has already been set or it
-// is too late to do so.
-var ErrIllegalTrailerSet = errors.New("transport: trailer has been set")
-
-// SetTrailer sets the trailer metadata which will be sent with the RPC status
-// by the server. This can only be called at most once. Server side only.
-func (s *Stream) SetTrailer(md metadata.MD) error {
+// SetHeader sets the header metadata. This can be called multiple times.
+// Server side only.
+func (s *Stream) SetHeader(md metadata.MD) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.trailer != nil {
-		return ErrIllegalTrailerSet
+	if s.headerOk || s.state == streamDone {
+		return ErrIllegalHeaderWrite
 	}
-	s.trailer = md.Copy()
+	if md.Len() == 0 {
+		return nil
+	}
+	s.header = metadata.Join(s.header, md)
+	return nil
+}
+
+// SetTrailer sets the trailer metadata which will be sent with the RPC status
+// by the server. This can be called multiple times. Server side only.
+func (s *Stream) SetTrailer(md metadata.MD) error {
+	if md.Len() == 0 {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.trailer = metadata.Join(s.trailer, md)
 	return nil
 }
 
@@ -316,6 +336,12 @@ func (s *Stream) Read(p []byte) (n int, err error) {
 	}
 	s.windowHandler(n)
 	return
+}
+
+// GoString is implemented by Stream so context.String() won't
+// race when printing %#v.
+func (s *Stream) GoString() string {
+	return fmt.Sprintf("<stream: %p, %v>", s, s.method)
 }
 
 // The key to save transport.Stream in the context.
@@ -343,30 +369,51 @@ const (
 	draining
 )
 
-// NewServerTransport creates a ServerTransport with conn or non-nil error
-// if it fails.
-func NewServerTransport(protocol string, conn net.Conn, maxStreams uint32, authInfo credentials.AuthInfo) (ServerTransport, error) {
-	return newHTTP2Server(conn, maxStreams, authInfo)
+// ServerConfig consists of all the configurations to establish a server transport.
+type ServerConfig struct {
+	MaxStreams   uint32
+	AuthInfo     credentials.AuthInfo
+	InTapHandle  tap.ServerInHandle
+	StatsHandler stats.Handler
 }
 
-// ConnectOptions covers all relevant options for dialing a server.
+// NewServerTransport creates a ServerTransport with conn or non-nil error
+// if it fails.
+func NewServerTransport(protocol string, conn net.Conn, config *ServerConfig) (ServerTransport, error) {
+	return newHTTP2Server(conn, config)
+}
+
+// ConnectOptions covers all relevant options for communicating with the server.
 type ConnectOptions struct {
 	// UserAgent is the application user agent.
 	UserAgent string
+	// Authority is the :authority pseudo-header to use. This field has no effect if
+	// TransportCredentials is set.
+	Authority string
 	// Dialer specifies how to dial a network address.
-	Dialer func(string, time.Duration) (net.Conn, error)
+	Dialer func(context.Context, string) (net.Conn, error)
+	// FailOnNonTempDialError specifies if gRPC fails on non-temporary dial errors.
+	FailOnNonTempDialError bool
 	// PerRPCCredentials stores the PerRPCCredentials required to issue RPCs.
 	PerRPCCredentials []credentials.PerRPCCredentials
 	// TransportCredentials stores the Authenticator required to setup a client connection.
 	TransportCredentials credentials.TransportCredentials
-	// Timeout specifies the timeout for dialing a ClientTransport.
-	Timeout time.Duration
+	// KeepaliveParams stores the keepalive parameters.
+	KeepaliveParams keepalive.ClientParameters
+	// StatsHandler stores the handler for stats.
+	StatsHandler stats.Handler
+}
+
+// TargetInfo contains the information of the target such as network address and metadata.
+type TargetInfo struct {
+	Addr     string
+	Metadata interface{}
 }
 
 // NewClientTransport establishes the transport with the required ConnectOptions
 // and returns it to the caller.
-func NewClientTransport(target string, opts *ConnectOptions) (ClientTransport, error) {
-	return newHTTP2Client(target, opts)
+func NewClientTransport(ctx context.Context, target TargetInfo, opts ConnectOptions) (ClientTransport, error) {
+	return newHTTP2Client(ctx, target, opts)
 }
 
 // Options provides additional hints and information for message
@@ -450,7 +497,7 @@ type ClientTransport interface {
 // Write methods for a given Stream will be called serially.
 type ServerTransport interface {
 	// HandleStreams receives incoming streams using the given handler.
-	HandleStreams(func(*Stream))
+	HandleStreams(func(*Stream), func(context.Context, string) context.Context)
 
 	// WriteHeader sends the header metadata for the given stream.
 	// WriteHeader may not be called on all streams.
@@ -477,18 +524,20 @@ type ServerTransport interface {
 	Drain()
 }
 
-// StreamErrorf creates an StreamError with the specified error code and description.
-func StreamErrorf(c codes.Code, format string, a ...interface{}) StreamError {
+// streamErrorf creates an StreamError with the specified error code and description.
+func streamErrorf(c codes.Code, format string, a ...interface{}) StreamError {
 	return StreamError{
 		Code: c,
 		Desc: fmt.Sprintf(format, a...),
 	}
 }
 
-// ConnectionErrorf creates an ConnectionError with the specified error description.
-func ConnectionErrorf(format string, a ...interface{}) ConnectionError {
+// connectionErrorf creates an ConnectionError with the specified error description.
+func connectionErrorf(temp bool, e error, format string, a ...interface{}) ConnectionError {
 	return ConnectionError{
 		Desc: fmt.Sprintf(format, a...),
+		temp: temp,
+		err:  e,
 	}
 }
 
@@ -496,18 +545,35 @@ func ConnectionErrorf(format string, a ...interface{}) ConnectionError {
 // entire connection and the retry of all the active streams.
 type ConnectionError struct {
 	Desc string
+	temp bool
+	err  error
 }
 
 func (e ConnectionError) Error() string {
 	return fmt.Sprintf("connection error: desc = %q", e.Desc)
 }
 
+// Temporary indicates if this connection error is temporary or fatal.
+func (e ConnectionError) Temporary() bool {
+	return e.temp
+}
+
+// Origin returns the original error of this connection error.
+func (e ConnectionError) Origin() error {
+	// Never return nil error here.
+	// If the original error is nil, return itself.
+	if e.err == nil {
+		return e
+	}
+	return e.err
+}
+
 var (
 	// ErrConnClosing indicates that the transport is closing.
-	ErrConnClosing = ConnectionError{Desc: "transport is closing"}
+	ErrConnClosing = connectionErrorf(true, nil, "transport is closing")
 	// ErrStreamDrain indicates that the stream is rejected by the server because
 	// the server stops accepting new RPCs.
-	ErrStreamDrain = StreamErrorf(codes.Unavailable, "the server stops accepting new RPCs")
+	ErrStreamDrain = streamErrorf(codes.Unavailable, "the server stops accepting new RPCs")
 )
 
 // StreamError is an error that only affects one stream within a connection.
@@ -517,16 +583,16 @@ type StreamError struct {
 }
 
 func (e StreamError) Error() string {
-	return fmt.Sprintf("stream error: code = %d desc = %q", e.Code, e.Desc)
+	return fmt.Sprintf("stream error: code = %s desc = %q", e.Code, e.Desc)
 }
 
 // ContextErr converts the error from context package into a StreamError.
 func ContextErr(err error) StreamError {
 	switch err {
 	case context.DeadlineExceeded:
-		return StreamErrorf(codes.DeadlineExceeded, "%v", err)
+		return streamErrorf(codes.DeadlineExceeded, "%v", err)
 	case context.Canceled:
-		return StreamErrorf(codes.Canceled, "%v", err)
+		return streamErrorf(codes.Canceled, "%v", err)
 	}
 	panic(fmt.Sprintf("Unexpected error from context packet: %v", err))
 }
