@@ -5,6 +5,7 @@ bin/
 vendor/**/*
 !vendor/**/
 !vendor/**/*.go
+!vendor/**/*.s
 !vendor/**/LICENSE*
 !vendor/**/COPYING*
 vendor/**/*_test.go
