@@ -27,8 +27,8 @@ export PATH="$PATH:/opt/confd/bin"
 #### Building from Source
 
 ```
-$ ./build
-$ sudo ./install
+$ make build
+$ make install
 ```
 
 #### Building from Source for Alpine Linux
@@ -37,7 +37,7 @@ Since many people are using Alpine Linux as their base images for Docker there's
 
 ```
 $ docker build -t confd_builder -f Dockerfile.build.alpine .
-$ docker run -ti --rm -v $(pwd):/app confd_builder ./build
+$ docker run -ti --rm -v $(pwd):/app confd_builder make build
 ```
 The above docker commands will produce binary in the local bin directory.
 
@@ -46,23 +46,19 @@ The above docker commands will produce binary in the local bin directory.
 With multi-stage builds you can keep the whole process contained in your Dockerfile using:
 
 ```
-FROM alpine:3.6 as confd
+FROM golang:1.9-alpine as confd
 
-ENV GOPATH /go
-
-RUN mkdir -p "$GOPATH/src/" "$GOPATH/bin" && chmod -R 777 "$GOPATH" && \
-    mkdir -p /go/src/github.com/kelseyhightower/confd
-
-RUN apk --update add unzip curl go bash && \
-    ln -s /go/src/github.com/kelseyhightower/confd /app
+RUN apk add --no-cache make unzip
+RUN mkdir -p /go/src/github.com/kelseyhightower/confd && \
+  ln -s /go/src/github.com/kelseyhightower/confd /app
 
 WORKDIR /app
 
-RUN curl -L https://github.com/kelseyhightower/confd/archive/v0.13.0.zip --output /tmp/confd.zip && \
+RUN wget -O /tmp/confd.zip https://github.com/kelseyhightower/confd/archive/v0.13.0.zip && \
     unzip -d /tmp/confd /tmp/confd.zip && \
     cp -r /tmp/confd/*/* /app && \
     rm -rf /tmp/confd* && \
-    ./build
+    make build
 
 FROM tomcat:8.5.15-jre8-alpine
 
