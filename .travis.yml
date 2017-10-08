@@ -41,7 +41,7 @@ before_install:
   - go run ./integration/ssm/main.go &
 install:
   - make build
-  - make install
+  - sudo make install
 script:
   - make test
   - make integration
