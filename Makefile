@@ -1,4 +1,4 @@
-.PHONY: build install clean test integration
+.PHONY: build install clean test integration dep
 
 build:
 	@echo "Building confd..."
@@ -19,3 +19,7 @@ test:
 integration:
 	@echo "Running integration tests..."
 	@find ./integration -name test.sh -exec bash {} \;
+
+dep:
+	@dep ensure
+	@dep prune
