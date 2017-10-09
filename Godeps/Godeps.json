@@ -94,6 +94,11 @@
 			"Rev": "b76250596b58c99f3b6af79ab32564bf6584316a"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/shareddefaults",
+			"Comment": "v1.10.17-1-gb7625059",
+			"Rev": "b76250596b58c99f3b6af79ab32564bf6584316a"
+		},
+		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol",
 			"Comment": "v1.10.17-1-gb7625059",
 			"Rev": "b76250596b58c99f3b6af79ab32564bf6584316a"
@@ -319,6 +324,39 @@
 			"Rev": "3487a5545b3d480987dfb0492035299077fab33a"
 		},
 		{
+			"ImportPath": "github.com/xordataexchange/crypt/encoding/secconf",
+			"Comment": "v0.0.2-21-gb2862e3",
+			"Rev": "b2862e3d0a775f18c7cfe02273500ae307b61218"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/cast5",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp/armor",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp/elgamal",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp/errors",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp/packet",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp/s2k",
+			"Rev": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+		},
+		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "6a513affb38dc9788b449d59ffed099b8de18fa0"
 		},
@@ -345,21 +383,6 @@
 		{
 			"ImportPath": "golang.org/x/sys/unix",
 			"Rev": "20457ee8ea8546920d3f4e19e405da45250dc5a5"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/internal/shareddefaults",
-			"Comment": "v1.10.17-1-gb7625059",
-			"Rev": "b76250596b58c99f3b6af79ab32564bf6584316a"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/vendor/github.com/go-ini/ini",
-			"Comment": "v1.10.17-1-gb7625059",
-			"Rev": "b76250596b58c99f3b6af79ab32564bf6584316a"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/vendor/github.com/jmespath/go-jmespath",
-			"Comment": "v1.10.17-1-gb7625059",
-			"Rev": "b76250596b58c99f3b6af79ab32564bf6584316a"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc",
