@@ -155,8 +155,14 @@
   revision = "ded73eae5db7e7a0ef6f55aace87a2873c5d2b74"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/xordataexchange/crypt"
+  packages = ["encoding/secconf"]
+  revision = "b2862e3d0a775f18c7cfe02273500ae307b61218"
+
+[[projects]]
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = ["cast5","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k","ssh/terminal"]
   revision = "1351f936d976c60a0a48d728281922cf63eafb8d"
 
 [[projects]]
@@ -190,6 +196,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "354a298c72c663c52b1606e8d38f6f61675d560719b144fcc124dc4f9c0c2bb8"
+  inputs-digest = "df78e7b8155a85483f50d07d8f43f6afcd761fc50dc4d068619251b07560b328"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -17,6 +17,7 @@ import (
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/memkv"
+	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 	StoreClient   backends.StoreClient
 	SyncOnly      bool
 	TemplateDir   string
+	PGPPrivateKey []byte
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -55,6 +57,7 @@ type TemplateResource struct {
 	store         memkv.Store
 	storeClient   backends.StoreClient
 	syncOnly      bool
+	PGPPrivateKey []byte
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -92,6 +95,11 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		tr.Prefix = "/" + tr.Prefix
 	}
 
+	if len(config.PGPPrivateKey) > 0 {
+		tr.PGPPrivateKey = config.PGPPrivateKey
+		addCryptFuncs(&tr)
+	}
+
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
 	}
@@ -106,6 +114,59 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
 	return &tr, nil
+}
+
+func addCryptFuncs(tr *TemplateResource) {
+	addFuncs(tr.funcMap, map[string]interface{}{
+		"cget": func(key string) (memkv.KVPair, error) {
+			kv, err := tr.funcMap["get"].(func(string) (memkv.KVPair, error))(key)
+			if err == nil {
+				var b []byte
+				b, err = secconf.Decode([]byte(kv.Value), bytes.NewBuffer(tr.PGPPrivateKey))
+				if err == nil {
+					kv.Value = string(b)
+				}
+			}
+			return kv, err
+		},
+		"cgets": func(pattern string) (memkv.KVPairs, error) {
+			kvs, err := tr.funcMap["gets"].(func(string) (memkv.KVPairs, error))(pattern)
+			if err == nil {
+				for i := range kvs {
+					b, err := secconf.Decode([]byte(kvs[i].Value), bytes.NewBuffer(tr.PGPPrivateKey))
+					if err != nil {
+						return memkv.KVPairs(nil), err
+					}
+					kvs[i].Value = string(b)
+				}
+			}
+			return kvs, err
+		},
+		"cgetv": func(key string) (string, error) {
+			v, err := tr.funcMap["getv"].(func(string, ...string) (string, error))(key)
+			if err == nil {
+				var b []byte
+				b, err = secconf.Decode([]byte(v), bytes.NewBuffer(tr.PGPPrivateKey))
+				if err == nil {
+					return string(b), nil
+				}
+			}
+			return v, err
+		},
+		"cgetvs": func(pattern string) ([]string, error) {
+			vs, err := tr.funcMap["getvs"].(func(string) ([]string, error))(pattern)
+			if err == nil {
+				for i := range vs {
+					b, err := secconf.Decode([]byte(vs[i]), bytes.NewBuffer(tr.PGPPrivateKey))
+					if err != nil {
+						return []string(nil), err
+					}
+					vs[i] = string(b)
+				}
+			}
+			return vs, err
+		},
+	})
 }
 
 // setVars sets the Vars for template resource.

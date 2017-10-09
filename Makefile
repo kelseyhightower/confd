@@ -3,7 +3,7 @@
 build:
 	@echo "Building confd..."
 	@mkdir -p bin
-	@go build -o bin/confd .
+	@go build -ldflags "-X main.GitSHA=`git rev-parse --short HEAD`" -o bin/confd .
 
 install:
 	@echo "Installing confd..."
