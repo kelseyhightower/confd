@@ -2,4 +2,10 @@
 
 echo "Building confd..."
 mkdir -p bin
-go build -o bin/confd .
+
+GIT_COMMIT=$(git rev-parse --short HEAD)
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  GIT_COMMIT=${GIT_COMMIT}-dirty
+fi
+
+go build -ldflags "-X main.GitCommit=$GIT_COMMIT" -o bin/confd .
