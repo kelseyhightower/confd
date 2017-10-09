@@ -46,6 +46,8 @@ Usage of confd:
       key path prefix (default "/")
   -scheme string
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
+  -secret-keyring
+      path to armored PGP secret keyring
   -srv-domain string
       the name of the resource record
   -srv-record string
@@ -62,7 +64,6 @@ Usage of confd:
       print version and exit
   -watch
       enable watch support
-
 ```
 
 > The -scheme flag is only used to set the URL scheme for nodes retrieved from DNS SRV records.
