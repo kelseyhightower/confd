@@ -16,7 +16,7 @@ import (
 func main() {
 	flag.Parse()
 	if printVersion {
-		fmt.Printf("confd %s (Git commit: %s, Go version: %s)\n", Version, GitCommit, runtime.Version())
+		fmt.Printf("confd %s (Git SHA: %s, Go Version: %s)\n", Version, GitSHA, runtime.Version())
 		os.Exit(0)
 	}
 	if err := initConfig(); err != nil {
