@@ -18,4 +18,4 @@ test:
 
 integration:
 	@echo "Running integration tests..."
-	@find integration -name test.sh -exec bash {}
+	@find ./integration -name test.sh -exec bash {} \;
