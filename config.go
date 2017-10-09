@@ -80,7 +80,6 @@ type Config struct {
 	AppID         string   `toml:"app_id"`
 	UserID        string   `toml:"user_id"`
 	YAMLFile      string   `toml:"file"`
-	PGPPrivateKey []byte
 }
 
 func init() {
@@ -154,13 +153,14 @@ func initConfig() error {
 
 	// Update config from commandline flags.
 	processFlags()
+	var pgpPrivateKey []byte
 	if config.SecretKeyring != "" {
 		kr, err := os.Open(config.SecretKeyring)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		defer kr.Close()
-		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
+		pgpPrivateKey, err = ioutil.ReadAll(kr)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -250,7 +250,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
-		PGPPrivateKey: config.PGPPrivateKey,
+		PGPPrivateKey: pgpPrivateKey,
 	}
 	return nil
 }

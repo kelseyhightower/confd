@@ -143,7 +143,7 @@ func addCryptFuncs(tr *TemplateResource) {
 			return kvs, err
 		},
 		"cgetv": func(key string) (string, error) {
-			v, err := tr.funcMap["getv"].(func(string) (string, error))(key)
+			v, err := tr.funcMap["getv"].(func(string, ...string) (string, error))(key)
 			if err == nil {
 				var b []byte
 				b, err = secconf.Decode([]byte(v), bytes.NewBuffer(tr.PGPPrivateKey))
