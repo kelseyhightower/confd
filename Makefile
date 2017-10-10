@@ -1,9 +1,11 @@
-.PHONY: build install clean test integration dep
+.PHONY: build install clean test integration dep release
+VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' version.go`
+GIT_SHA=`git rev-parse --short HEAD`
 
 build:
 	@echo "Building confd..."
 	@mkdir -p bin
-	@go build -ldflags "-X main.GitSHA=`git rev-parse --short HEAD`" -o bin/confd .
+	@go build -ldflags "-X main.GitSHA=${GIT_SHA}" -o bin/confd .
 
 install:
 	@echo "Installing confd..."
@@ -23,3 +25,10 @@ integration:
 dep:
 	@dep ensure
 	@dep prune
+
+release:
+	@docker build -q -t confd_builder -f Dockerfile.build.alpine .
+	@for platform in darwin linux windows; do \
+		if [ $$platform == windows ]; then extension=.exe; fi; \
+		docker run -it --rm -v ${PWD}:/app -e "GOOS=$$platform" -e "GOARCH=amd64" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-$$platform-amd64$$extension; \
+	done
