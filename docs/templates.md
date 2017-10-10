@@ -100,6 +100,7 @@ value: {{getv "/key"}}
 
 ```
 value: {{getv "/key" "default_value"}}
+```
 
 ### cgetv
 
@@ -385,7 +386,7 @@ server {
     location / {
         root              {{getv "/nginx/root"}};
         index             index.html index.htm;
-		proxy_pass        http://app;
+        proxy_pass        http://app;
         proxy_redirect    off;
         proxy_set_header  Host             $host;
         proxy_set_header  X-Real-IP        $remote_addr;
