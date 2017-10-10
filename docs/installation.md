@@ -7,19 +7,19 @@ Currently confd ships binaries for OS X and Linux 64bit systems. You can downloa
 #### OS X
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.13.0/confd-0.13.0-darwin-amd64
+$ wget https://github.com/kelseyhightower/confd/releases/download/v0.14.0/confd-0.14.0-darwin-amd64
 ```
 
 #### Linux
 
 Download the binary
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.13.0/confd-0.13.0-linux-amd64
+$ wget https://github.com/kelseyhightower/confd/releases/download/v0.14.0/confd-0.14.0-linux-amd64
 ```
 Move the binary to an installation path, make it executable, and add to path
 ```
 mkdir -p /opt/confd/bin
-mv confd-0.13.0-linux-amd64 /opt/confd/bin/confd
+mv confd-0.14.0-linux-amd64 /opt/confd/bin/confd
 chmod +x /opt/confd/bin/confd
 export PATH="$PATH:/opt/confd/bin"
 ```
@@ -54,7 +54,7 @@ RUN mkdir -p /go/src/github.com/kelseyhightower/confd && \
 
 WORKDIR /app
 
-RUN wget -O /tmp/confd.zip https://github.com/kelseyhightower/confd/archive/v0.13.0.zip && \
+RUN wget -O /tmp/confd.zip https://github.com/kelseyhightower/confd/archive/v0.14.0.zip && \
     unzip -d /tmp/confd /tmp/confd.zip && \
     cp -r /tmp/confd/*/* /app && \
     rm -rf /tmp/confd* && \
