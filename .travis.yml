@@ -1,9 +1,9 @@
 language: go
 go:
-  - 1.8
+  - 1.x
   - tip
 env:
-  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.3 ETCD_VERSION=3.2.5 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
+  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.3 ETCD_VERSION=3.2.8 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
 services:
   - redis
 before_install:
@@ -40,20 +40,8 @@ before_install:
   # Run AWS SSM mocking server
   - go run ./integration/ssm/main.go &
 install:
-  - sudo pip install awscli
-  - go get golang.org/x/tools/cmd/cover
-  - ./build
-  - sudo ./install
+  - make build
+  - sudo make install
 script:
-  - ./test
-  - bash integration/consul/test.sh
-  - bash integration/env/test.sh
-  - bash integration/etcd/test.sh
-  - bash integration/etcdv3/test.sh
-  - bash integration/redis/test.sh
-  - bash integration/rancher/test.sh
-  - bash integration/vault/test.sh
-  - bash integration/file/test.sh
-  - bash integration/zookeeper/test.sh
-  - bash integration/dynamodb/test.sh
-  - bash integration/ssm/test.sh
+  - make test
+  - make integration

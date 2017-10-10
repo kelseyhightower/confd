@@ -95,11 +95,6 @@ func (pk *PublicKeyV3) parseRSA(r io.Reader) (err error) {
 		return
 	}
 
-	// RFC 4880 Section 12.2 requires the low 8 bytes of the
-	// modulus to form the key id.
-	if len(pk.n.bytes) < 8 {
-		return errors.StructuralError("v3 public key modulus is too short")
-	}
 	if len(pk.e.bytes) > 3 {
 		err = errors.UnsupportedError("large public exponent")
 		return
@@ -216,6 +211,7 @@ func (pk *PublicKeyV3) VerifySignatureV3(signed hash.Hash, sig *SignatureV3) (er
 		// V3 public keys only support RSA.
 		panic("shouldn't happen")
 	}
+	panic("unreachable")
 }
 
 // VerifyUserIdSignatureV3 returns nil iff sig is a valid signature, made by this

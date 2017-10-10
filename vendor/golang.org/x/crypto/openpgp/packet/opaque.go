@@ -6,10 +6,9 @@ package packet
 
 import (
 	"bytes"
+	"golang.org/x/crypto/openpgp/errors"
 	"io"
 	"io/ioutil"
-
-	"golang.org/x/crypto/openpgp/errors"
 )
 
 // OpaquePacket represents an OpenPGP packet as raw, unparsed data. This is
@@ -139,7 +138,7 @@ func nextSubpacket(contents []byte) (subHeaderLen int, subPacket *OpaqueSubpacke
 			uint32(contents[4])
 		contents = contents[5:]
 	}
-	if subLen > uint32(len(contents)) || subLen == 0 {
+	if subLen > uint32(len(contents)) {
 		goto Truncated
 	}
 	subPacket.SubType = contents[0]

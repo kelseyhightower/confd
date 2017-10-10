@@ -32,7 +32,8 @@
  */
 
 // Package metadata define the structure of the metadata supported by gRPC library.
-package metadata
+// Please refer to http://www.grpc.io/docs/guides/wire.html for more information about custom-metadata.
+package metadata // import "google.golang.org/grpc/metadata"
 
 import (
 	"encoding/base64"
@@ -60,15 +61,21 @@ func encodeKeyValue(k, v string) (string, string) {
 
 // DecodeKeyValue returns the original key and value corresponding to the
 // encoded data in k, v.
+// If k is a binary header and v contains comma, v is split on comma before decoded,
+// and the decoded v will be joined with comma before returned.
 func DecodeKeyValue(k, v string) (string, string, error) {
 	if !strings.HasSuffix(k, binHdrSuffix) {
 		return k, v, nil
 	}
-	val, err := base64.StdEncoding.DecodeString(v)
-	if err != nil {
-		return "", "", err
+	vvs := strings.Split(v, ",")
+	for i, vv := range vvs {
+		val, err := base64.StdEncoding.DecodeString(vv)
+		if err != nil {
+			return "", "", err
+		}
+		vvs[i] = string(val)
 	}
-	return k, string(val), nil
+	return k, strings.Join(vvs, ","), nil
 }
 
 // MD is a mapping from metadata keys to values. Users should use the following
@@ -76,6 +83,7 @@ func DecodeKeyValue(k, v string) (string, string, error) {
 type MD map[string][]string
 
 // New creates a MD from given key-value map.
+// Keys are automatically converted to lowercase. And for keys having "-bin" as suffix, their values will be applied Base64 encoding.
 func New(m map[string]string) MD {
 	md := MD{}
 	for k, v := range m {
@@ -87,6 +95,7 @@ func New(m map[string]string) MD {
 
 // Pairs returns an MD formed by the mapping of key, value ...
 // Pairs panics if len(kv) is odd.
+// Keys are automatically converted to lowercase. And for keys having "-bin" as suffix, their values will be appplied Base64 encoding.
 func Pairs(kv ...string) MD {
 	if len(kv)%2 == 1 {
 		panic(fmt.Sprintf("metadata: Pairs got the odd number of input pairs for metadata: %d", len(kv)))
@@ -111,10 +120,17 @@ func (md MD) Len() int {
 
 // Copy returns a copy of md.
 func (md MD) Copy() MD {
+	return Join(md)
+}
+
+// Join joins any number of MDs into a single MD.
+// The order of values for each key is determined by the order in which
+// the MDs containing those values are presented to Join.
+func Join(mds ...MD) MD {
 	out := MD{}
-	for k, v := range md {
-		for _, i := range v {
-			out[k] = append(out[k], i)
+	for _, md := range mds {
+		for k, v := range md {
+			out[k] = append(out[k], v...)
 		}
 	}
 	return out
@@ -128,6 +144,8 @@ func NewContext(ctx context.Context, md MD) context.Context {
 }
 
 // FromContext returns the MD in ctx if it exists.
+// The returned md should be immutable, writing to it may cause races.
+// Modification should be made to the copies of the returned md.
 func FromContext(ctx context.Context) (md MD, ok bool) {
 	md, ok = ctx.Value(mdKey{}).(MD)
 	return

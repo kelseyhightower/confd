@@ -1,11 +1,7 @@
-FROM alpine:3.4
+FROM golang:1.9-alpine
 
-ENV GOPATH /go
-
-RUN mkdir -p "$GOPATH/src/" "$GOPATH/bin" && chmod -R 777 "$GOPATH" && \
-    mkdir -p /go/src/github.com/kelseyhightower/confd
-
-RUN apk --update add go bash && \
-    ln -s /go/src/github.com/kelseyhightower/confd /app
+RUN apk add --no-cache make
+RUN mkdir -p /go/src/github.com/kelseyhightower/confd && \
+  ln -s /go/src/github.com/kelseyhightower/confd /app
 
 WORKDIR /app
