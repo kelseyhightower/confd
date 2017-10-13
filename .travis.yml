@@ -40,6 +40,11 @@ before_install:
   - zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
   # Run AWS SSM mocking server
   - go run ./integration/ssm/main.go &
+  # Install metad
+  - wget https://github.com/yunify/metad/releases/download/v1.2.1/metad-linux-amd64.tar.gz
+  - tar -zxvf metad-linux-amd64.tar.gz
+  - sudo mv metad /bin/
+  - metad --backend local --log_level info --listen :9090 --listen_manage 127.0.0.1:9611 --xff &
 install:
   - make build
   - sudo make install

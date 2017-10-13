@@ -1,9 +1,4 @@
 #!/bin/bash
-
-metad --backend local --log_level info --listen :9090 --listen_manage 127.0.0.1:9611 --xff &
-
-sleep 1
-
 curl -X PUT http://127.0.0.1:9611/v1/data -d '{
         "key": "foobar",
         "database": {
