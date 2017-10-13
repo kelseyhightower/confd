@@ -15,6 +15,7 @@ confd supports the following backends:
 * dynamodb
 * rancher
 * ssm (AWS Simple Systems Manager Parameter Store)
+* metad
 
 ### Add keys
 
@@ -93,6 +94,11 @@ This backend consumes the [Rancher](https://www.rancher.com) metadata service. F
 ```
 aws ssm put-parameter --name "/myapp/database/url" --type "String" --value "db.example.com"
 aws ssm put-parameter --name "/myapp/database/user" --type "SecureString" --value "rob"
+```
+
+#### Metad
+```
+curl http://127.0.0.1:9611/v1/data -X PUT -d '{"myapp":{"database":{"url":"db.example.com","user":"rob"}}}'
 ```
 
 ### Create the confdir
@@ -181,6 +187,13 @@ confd -onetime -backend redis -node 192.168.255.210:6379/4
 ```
 confd -onetime -backend rancher -prefix /2015-07-25
 ```
+
+#### metad
+
+```
+confd --onetime --backend metad --node 127.0.0.1:80 --watch
+```
+=======
 
 *Note*: The metadata api prefix can be defined on the cli, or as part of your keys in the template toml file.
 

@@ -7,7 +7,10 @@ import (
 	"sort"
 	"testing"
 
+	"fmt"
 	"github.com/kelseyhightower/confd/log"
+	"math/rand"
+	"time"
 )
 
 // createRecursiveDirs is a helper function which creates temporary directorie
@@ -123,4 +126,35 @@ func TestRecursiveFindFiles(t *testing.T) {
 			t.FailNow()
 		}
 	}
+}
+
+func TestEnsureFileDir(t *testing.T) {
+	rand.Seed(int64(time.Now().Nanosecond()))
+	// ensure one level not exist dir
+	file := fmt.Sprintf("/tmp/%v/test.tmp", rand.Uint32())
+	//println(file)
+	err := ensureFileDir(file)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	// dir exist, can write file directly.
+	err = ioutil.WriteFile(file, []byte("a"), 0644)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	os.Remove(file)
+
+	// ensure two level not exist dir
+	file = fmt.Sprintf("/tmp/%v/%v/test.tmp", rand.Uint32(), rand.Uint32())
+	//println(file)
+	err = ensureFileDir(file)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	// dir exist, can write file directly.
+	err = ioutil.WriteFile(file, []byte("a"), 0644)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	os.Remove(file)
 }

@@ -88,3 +88,15 @@ func recursiveFindFiles(root string, pattern string) ([]string, error) {
 		return files, err
 	}
 }
+
+// ensureFileDir ensure file's dir is exist.
+func ensureFileDir(file string) error {
+	dir := filepath.Dir(file)
+	if dir == "" {
+		return nil
+	}
+	if isFileExist(dir) {
+		return nil
+	}
+	return os.MkdirAll(dir, 0755)
+}
