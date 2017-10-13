@@ -355,6 +355,8 @@ Wrapper for [net.LookupIP](https://golang.org/pkg/net/#LookupIP) function. The w
     server {{.}};
 {{end}}
 ```
+### lookupV4IP
+Wrapper for lookupIP function. The wrapper only return ipv4 address.
 
 ### Calculate Functions
 
