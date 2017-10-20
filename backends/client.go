@@ -69,6 +69,7 @@ func New(config Config) (StoreClient, error) {
 			"cert":     config.ClientCert,
 			"key":      config.ClientKey,
 			"caCert":   config.ClientCaKeys,
+			"role":     config.Role,
 		}
 		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
 	case "dynamodb":

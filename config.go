@@ -51,6 +51,7 @@ var (
 	appID             string
 	userID            string
 	yamlFile          string
+	role              string
 )
 
 // A Config structure is used to configure confd.
@@ -80,6 +81,7 @@ type Config struct {
 	AppID         string   `toml:"app_id"`
 	UserID        string   `toml:"user_id"`
 	YAMLFile      string   `toml:"file"`
+	Role          string   `toml:"role"`
 }
 
 func init() {
@@ -112,6 +114,7 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&role, "role", "", "Vault role to use with the kubernetes backend (only used with -backend=vault and auth-type=kubernetes)")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -240,6 +243,7 @@ func initConfig() error {
 		AppID:        config.AppID,
 		UserID:       config.UserID,
 		YAMLFile:     config.YAMLFile,
+		Role:         config.Role,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -346,5 +350,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.UserID = userID
 	case "file":
 		config.YAMLFile = yamlFile
+	case "role":
+		config.Role = role
 	}
 }

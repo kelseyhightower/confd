@@ -46,6 +46,8 @@ Usage of confd:
       the password to authenticate with (only used with vault and etcd backends)
   -prefix string
       key path prefix
+  -role string
+      Vault role to use with the kubernetes backend (only used with -backend=vault and auth-type=kubernetes) (default "confd")
   -scheme string
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
   -secret-keyring string
