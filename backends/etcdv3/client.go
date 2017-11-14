@@ -11,21 +11,18 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
-	"sync"
 )
 
 // Client is a wrapper around the etcd client
 type Client struct {
 	client  *clientv3.Client
 	watches map[string]clientv3.WatchChan
-	mu      sync.Mutex
 }
 
 // NewEtcdClient returns an *etcdv3.Client with a connection to named machines.
 func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, username string, password string) (*Client, error) {
 	var cli *clientv3.Client
 	watches := make(map[string]clientv3.WatchChan)
-	var mu sync.Mutex
 
 	cfg := clientv3.Config{
 		Endpoints:   machines,
@@ -45,7 +42,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	if caCert != "" {
 		certBytes, err := ioutil.ReadFile(caCert)
 		if err != nil {
-			return &Client{cli, watches, mu}, err
+			return &Client{cli, watches}, err
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -60,7 +57,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	if cert != "" && key != "" {
 		tlsCert, err := tls.LoadX509KeyPair(cert, key)
 		if err != nil {
-			return &Client{cli, watches, mu}, err
+			return &Client{cli, watches}, err
 		}
 		tlsConfig.Certificates = []tls.Certificate{tlsCert}
 		tlsEnabled = true
@@ -72,9 +69,9 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 
 	cli, err := clientv3.New(cfg)
 	if err != nil {
-		return &Client{cli, watches, mu}, err
+		return &Client{cli, watches}, err
 	}
-	return &Client{cli, watches, mu}, nil
+	return &Client{cli, watches}, nil
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
@@ -114,14 +111,10 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		}
 	}()
 
-	c.mu.Lock()
 	rch := c.watches[prefix]
-	c.mu.Unlock()
 	if rch == nil {
 		rch = c.client.Watch(ctx, prefix, clientv3.WithPrefix())
-		c.mu.Lock()
 		c.watches[prefix] = rch
-		c.mu.Unlock()
 	}
 
 	for wresp := range rch {
