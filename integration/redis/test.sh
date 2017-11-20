@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HOSTNAME="localhost"
+
 redis-cli set /key foobar
 redis-cli set /database/host 127.0.0.1
 redis-cli set /database/password p@sSw0rd
@@ -20,5 +22,15 @@ if [ $? -eq 0 ]
 then
         exit 1
 fi
+
 confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend redis --node 127.0.0.1:6379
+if [ $? -ne 0 ]
+then
+        exit 1
+fi
+
 confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend redis --node 127.0.0.1:6379/0
+if [ $? -ne 0 ]
+then
+        exit 1
+fi

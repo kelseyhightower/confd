@@ -20,7 +20,12 @@ test:
 
 integration:
 	@echo "Running integration tests..."
-	@find ./integration -name test.sh -exec bash {} \;
+	@for i in `find ./integration -name test.sh`; do \
+		echo "Running $$i"; \
+		bash $$i || exit 1; \
+		bash integration/expect/check.sh || exit 1; \
+		rm /tmp/confd-*; \
+	done
 
 dep:
 	@dep ensure

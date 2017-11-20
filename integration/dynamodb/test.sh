@@ -1,10 +1,11 @@
 #!/bin/bash
 
-export DYNAMODB_LOCAL=1
-export AWS_ACCESS_KEY_ID=foo
-export AWS_SECRET_ACCESS_KEY=bar
-export AWS_REGION=eu-west-1
-export AWS_DEFAULT_REGION=eu-west-1
+export HOSTNAME="localhost"
+export DYNAMODB_LOCAL="1"
+export AWS_ACCESS_KEY_ID="foo"
+export AWS_SECRET_ACCESS_KEY="bar"
+export AWS_REGION="eu-west-1"
+export AWS_DEFAULT_REGION="eu-west-1"
 
 aws dynamodb create-table \
     --region eu-west-1 --table-name confd \

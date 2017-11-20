@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HOSTNAME="localhost"
+
 cat <<EOT >> test.yaml
 key: foobar
 database:

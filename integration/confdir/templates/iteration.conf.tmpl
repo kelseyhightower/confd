@@ -1,7 +1,7 @@
 upstream app {
-{{range gets "/upstream/*"}}  
-  server {{.Value}};
-{{end}}
+{{- range gets "/upstream/*" }}
+  server {{ .Value }};
+{{- end }}
 }
 
 server {

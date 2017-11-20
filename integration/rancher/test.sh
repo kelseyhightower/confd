@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HOSTNAME="localhost"
+
 cat > ./rancher-answers.json<<EOF
 {
   "2015-07-25": {

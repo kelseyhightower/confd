@@ -19,6 +19,7 @@ before_install:
   - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcdctl /bin/
   - etcd &
   # install DynamoDB
+  - sudo pip install awscli
   - mkdir /tmp/dynamodb
   - wget -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_${DYNAMODB_VERSION}.tar.gz | tar xz --directory /tmp/dynamodb
   - java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
