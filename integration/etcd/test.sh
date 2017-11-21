@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HOSTNAME="localhost"
+
 curl -L -X PUT http://127.0.0.1:2379/v2/keys/key -d value=foobar
 curl -L -X PUT http://127.0.0.1:2379/v2/keys/database/host -d value=127.0.0.1
 curl -L -X PUT http://127.0.0.1:2379/v2/keys/database/password -d value=p@sSw0rd
@@ -17,7 +19,6 @@ curl -L -X PUT http://127.0.0.1:2379/v2/keys/prefix/upstream/app1 -d value=10.0.
 curl -L -X PUT http://127.0.0.1:2379/v2/keys/prefix/upstream/app2 -d value=10.0.1.11:8080
 curl -L -X PUT http://127.0.0.1:2379/v2/keys/prefix/nested/east/app1 -d value=10.0.1.10:8080
 curl -L -X PUT http://127.0.0.1:2379/v2/keys/prefix/nested/west/app2 -d value=10.0.1.11:8080
-
 
 # Run confd
 confd --onetime --log-level debug --confdir ./integration/confdir --backend etcd --node http://127.0.0.1:2379 --watch
