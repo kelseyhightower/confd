@@ -7,6 +7,7 @@ package packet
 import (
 	"bytes"
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"testing"
@@ -121,5 +122,25 @@ func TestEncryptingEncryptedKey(t *testing.T) {
 	keyHex := fmt.Sprintf("%x", ek.Key)
 	if keyHex != expectedKeyHex {
 		t.Errorf("bad key, got %s want %x", keyHex, expectedKeyHex)
+	}
+}
+
+func TestSerializingEncryptedKey(t *testing.T) {
+	const encryptedKeyHex = "c18c032a67d68660df41c70104005789d0de26b6a50c985a02a13131ca829c413a35d0e6fa8d6842599252162808ac7439c72151c8c6183e76923fe3299301414d0c25a2f06a2257db3839e7df0ec964773f6e4c4ac7ff3b48c444237166dd46ba8ff443a5410dc670cb486672fdbe7c9dfafb75b4fea83af3a204fe2a7dfa86bd20122b4f3d2646cbeecb8f7be8"
+
+	p, err := Read(readerFromHex(encryptedKeyHex))
+	if err != nil {
+		t.Fatalf("error from Read: %s", err)
+	}
+	ek, ok := p.(*EncryptedKey)
+	if !ok {
+		t.Fatalf("didn't parse an EncryptedKey, got %#v", p)
+	}
+
+	var buf bytes.Buffer
+	ek.Serialize(&buf)
+
+	if bufHex := hex.EncodeToString(buf.Bytes()); bufHex != encryptedKeyHex {
+		t.Fatalf("serialization of encrypted key differed from original. Original was %s, but reserialized as %s", encryptedKeyHex, bufHex)
 	}
 }

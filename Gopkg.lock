@@ -22,8 +22,8 @@
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["auth/authpb","client","clientv3","etcdserver/api/v3rpc/rpctypes","etcdserver/etcdserverpb","mvcc/mvccpb","pkg/pathutil","pkg/srv","pkg/types","version"]
-  revision = "e211fb6de3cb306aee245422e599ac521f6e21f7"
-  version = "v3.2.8"
+  revision = "694728c496e22dfa5719c78ff23cc982e15bcb2f"
+  version = "v3.2.10"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -57,8 +57,8 @@
 
 [[projects]]
   name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  revision = "4bd1920723d7b7c925de087aa32e2187708897f7"
+  packages = ["proto","protoc-gen-go/descriptor","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
+  revision = "5a0f697c9ed9d68fef0116532c6e05cfeae00e55"
 
 [[projects]]
   branch = "master"
@@ -163,17 +163,17 @@
 [[projects]]
   name = "golang.org/x/crypto"
   packages = ["cast5","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k","ssh/terminal"]
-  revision = "1351f936d976c60a0a48d728281922cf63eafb8d"
+  revision = "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
 
 [[projects]]
   name = "golang.org/x/net"
   packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "c8c74377599bd978aee1cf3b9b63a8634051cec2"
+  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
 
 [[projects]]
   name = "golang.org/x/sys"
-  packages = ["unix"]
-  revision = "e48874b42435b4347fc52bdee0424a52abc974d7"
+  packages = ["unix","windows"]
+  revision = "ebfc5b4631820b793c9010c87fd8fef0f39eb082"
 
 [[projects]]
   branch = "master"
@@ -182,10 +182,16 @@
   revision = "1cbadb444a806fd9430d14ad08967ed91da4fa0a"
 
 [[projects]]
+  branch = "master"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/api/annotations","googleapis/rpc/status"]
+  revision = "7f0da29060c682909f650ad8ed4e515bd74fa12a"
+
+[[projects]]
   name = "google.golang.org/grpc"
-  packages = [".","codes","credentials","grpclog","internal","keepalive","metadata","naming","peer","stats","tap","transport"]
-  revision = "8050b9cbc271307e5a716a9d782803d09b0d6f2d"
-  version = "v1.2.1"
+  packages = [".","balancer","codes","connectivity","credentials","grpclb/grpc_lb_v1/messages","grpclog","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","resolver","stats","status","tap","transport"]
+  revision = "401e0e00e4bb830a10496d64cd95e068c5bf50de"
+  version = "v1.7.3"
 
 [[projects]]
   branch = "v2"
@@ -196,6 +202,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "df78e7b8155a85483f50d07d8f43f6afcd761fc50dc4d068619251b07560b328"
+  inputs-digest = "a211ac46fa3d76690748f0f7c3fda5fca6a236b677e85efeab5659e0732d0b83"
   solver-name = "gps-cdcl"
   solver-version = 1

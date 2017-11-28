@@ -43,6 +43,9 @@ type Config struct {
 	// use a value that is at least 65536. See RFC 4880 Section
 	// 3.7.1.3.
 	S2KCount int
+	// RSABits is the number of bits in new RSA keys made with NewEntity.
+	// If zero, then 2048 bit keys are created.
+	RSABits int
 }
 
 func (c *Config) Random() io.Reader {

@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"testing"
 	"time"
+
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 func TestSignDetached(t *testing.T) {
@@ -48,15 +50,52 @@ func TestSignDetachedDSA(t *testing.T) {
 	testDetachedSignature(t, kring, out, signedInput, "check", testKey3KeyId)
 }
 
+func TestSignDetachedP256(t *testing.T) {
+	kring, _ := ReadKeyRing(readerFromHex(p256TestKeyPrivateHex))
+	kring[0].PrivateKey.Decrypt([]byte("passphrase"))
+
+	out := bytes.NewBuffer(nil)
+	message := bytes.NewBufferString(signedInput)
+	err := DetachSign(out, kring[0], message, nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	testDetachedSignature(t, kring, out, signedInput, "check", testKeyP256KeyId)
+}
+
 func TestNewEntity(t *testing.T) {
 	if testing.Short() {
 		return
 	}
 
+	// Check bit-length with no config.
 	e, err := NewEntity("Test User", "test", "test@example.com", nil)
 	if err != nil {
 		t.Errorf("failed to create entity: %s", err)
 		return
+	}
+	bl, err := e.PrimaryKey.BitLength()
+	if err != nil {
+		t.Errorf("failed to find bit length: %s", err)
+	}
+	if int(bl) != defaultRSAKeyBits {
+		t.Errorf("BitLength %v, expected %v", int(bl), defaultRSAKeyBits)
+	}
+
+	// Check bit-length with a config.
+	cfg := &packet.Config{RSABits: 1024}
+	e, err = NewEntity("Test User", "test", "test@example.com", cfg)
+	if err != nil {
+		t.Errorf("failed to create entity: %s", err)
+		return
+	}
+	bl, err = e.PrimaryKey.BitLength()
+	if err != nil {
+		t.Errorf("failed to find bit length: %s", err)
+	}
+	if int(bl) != cfg.RSABits {
+		t.Errorf("BitLength %v, expected %v", bl, cfg.RSABits)
 	}
 
 	w := bytes.NewBuffer(nil)
@@ -199,7 +238,7 @@ func TestEncryption(t *testing.T) {
 			signKey, _ := kring[0].signingKey(testTime)
 			expectedKeyId := signKey.PublicKey.KeyId
 			if md.SignedByKeyId != expectedKeyId {
-				t.Errorf("#%d: message signed by wrong key id, got: %d, want: %d", i, *md.SignedBy, expectedKeyId)
+				t.Errorf("#%d: message signed by wrong key id, got: %v, want: %v", i, *md.SignedBy, expectedKeyId)
 			}
 			if md.SignedBy == nil {
 				t.Errorf("#%d: failed to find the signing Entity", i)

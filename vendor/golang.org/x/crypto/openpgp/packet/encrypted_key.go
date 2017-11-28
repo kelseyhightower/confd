@@ -7,11 +7,12 @@ package packet
 import (
 	"crypto/rsa"
 	"encoding/binary"
-	"golang.org/x/crypto/openpgp/elgamal"
-	"golang.org/x/crypto/openpgp/errors"
 	"io"
 	"math/big"
 	"strconv"
+
+	"golang.org/x/crypto/openpgp/elgamal"
+	"golang.org/x/crypto/openpgp/errors"
 )
 
 const encryptedKeyVersion = 3
@@ -24,7 +25,7 @@ type EncryptedKey struct {
 	CipherFunc CipherFunction // only valid after a successful Decrypt
 	Key        []byte         // only valid after a successful Decrypt
 
-	encryptedMPI1, encryptedMPI2 []byte
+	encryptedMPI1, encryptedMPI2 parsedMPI
 }
 
 func (e *EncryptedKey) parse(r io.Reader) (err error) {
@@ -40,13 +41,13 @@ func (e *EncryptedKey) parse(r io.Reader) (err error) {
 	e.Algo = PublicKeyAlgorithm(buf[9])
 	switch e.Algo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSAEncryptOnly:
-		e.encryptedMPI1, _, err = readMPI(r)
+		e.encryptedMPI1.bytes, e.encryptedMPI1.bitLength, err = readMPI(r)
 	case PubKeyAlgoElGamal:
-		e.encryptedMPI1, _, err = readMPI(r)
+		e.encryptedMPI1.bytes, e.encryptedMPI1.bitLength, err = readMPI(r)
 		if err != nil {
 			return
 		}
-		e.encryptedMPI2, _, err = readMPI(r)
+		e.encryptedMPI2.bytes, e.encryptedMPI2.bitLength, err = readMPI(r)
 	}
 	_, err = consumeAll(r)
 	return
@@ -71,10 +72,10 @@ func (e *EncryptedKey) Decrypt(priv *PrivateKey, config *Config) error {
 	// padding oracle attacks.
 	switch priv.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSAEncryptOnly:
-		b, err = rsa.DecryptPKCS1v15(config.Random(), priv.PrivateKey.(*rsa.PrivateKey), e.encryptedMPI1)
+		b, err = rsa.DecryptPKCS1v15(config.Random(), priv.PrivateKey.(*rsa.PrivateKey), e.encryptedMPI1.bytes)
 	case PubKeyAlgoElGamal:
-		c1 := new(big.Int).SetBytes(e.encryptedMPI1)
-		c2 := new(big.Int).SetBytes(e.encryptedMPI2)
+		c1 := new(big.Int).SetBytes(e.encryptedMPI1.bytes)
+		c2 := new(big.Int).SetBytes(e.encryptedMPI2.bytes)
 		b, err = elgamal.Decrypt(priv.PrivateKey.(*elgamal.PrivateKey), c1, c2)
 	default:
 		err = errors.InvalidArgumentError("cannot decrypted encrypted session key with private key of type " + strconv.Itoa(int(priv.PubKeyAlgo)))
@@ -90,6 +91,36 @@ func (e *EncryptedKey) Decrypt(priv *PrivateKey, config *Config) error {
 	checksum := checksumKeyMaterial(e.Key)
 	if checksum != expectedChecksum {
 		return errors.StructuralError("EncryptedKey checksum incorrect")
+	}
+
+	return nil
+}
+
+// Serialize writes the encrypted key packet, e, to w.
+func (e *EncryptedKey) Serialize(w io.Writer) error {
+	var mpiLen int
+	switch e.Algo {
+	case PubKeyAlgoRSA, PubKeyAlgoRSAEncryptOnly:
+		mpiLen = 2 + len(e.encryptedMPI1.bytes)
+	case PubKeyAlgoElGamal:
+		mpiLen = 2 + len(e.encryptedMPI1.bytes) + 2 + len(e.encryptedMPI2.bytes)
+	default:
+		return errors.InvalidArgumentError("don't know how to serialize encrypted key type " + strconv.Itoa(int(e.Algo)))
+	}
+
+	serializeHeader(w, packetTypeEncryptedKey, 1 /* version */ +8 /* key id */ +1 /* algo */ +mpiLen)
+
+	w.Write([]byte{encryptedKeyVersion})
+	binary.Write(w, binary.BigEndian, e.KeyId)
+	w.Write([]byte{byte(e.Algo)})
+
+	switch e.Algo {
+	case PubKeyAlgoRSA, PubKeyAlgoRSAEncryptOnly:
+		writeMPIs(w, e.encryptedMPI1)
+	case PubKeyAlgoElGamal:
+		writeMPIs(w, e.encryptedMPI1, e.encryptedMPI2)
+	default:
+		panic("internal error")
 	}
 
 	return nil
