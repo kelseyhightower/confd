@@ -15,15 +15,11 @@ import (
 
 // Client is a wrapper around the etcd client
 type Client struct {
-	client  *clientv3.Client
-	watches map[string]clientv3.WatchChan
+	cfg clientv3.Config
 }
 
 // NewEtcdClient returns an *etcdv3.Client with a connection to named machines.
 func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, username string, password string) (*Client, error) {
-	var cli *clientv3.Client
-	watches := make(map[string]clientv3.WatchChan)
-
 	cfg := clientv3.Config{
 		Endpoints:   machines,
 		DialTimeout: 5 * time.Second,
@@ -42,7 +38,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	if caCert != "" {
 		certBytes, err := ioutil.ReadFile(caCert)
 		if err != nil {
-			return &Client{cli, watches}, err
+			return &Client{cfg}, err
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -57,7 +53,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	if cert != "" && key != "" {
 		tlsCert, err := tls.LoadX509KeyPair(cert, key)
 		if err != nil {
-			return &Client{cli, watches}, err
+			return &Client{cfg}, err
 		}
 		tlsConfig.Certificates = []tls.Certificate{tlsCert}
 		tlsEnabled = true
@@ -67,19 +63,22 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 		cfg.TLS = tlsConfig
 	}
 
-	cli, err := clientv3.New(cfg)
-	if err != nil {
-		return &Client{cli, watches}, err
-	}
-	return &Client{cli, watches}, nil
+	return &Client{cfg}, nil
 }
 
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
+
+	client, err := clientv3.New(c.cfg)
+	if err != nil {
+		return vars, err
+	}
+	defer client.Close()
+
 	for _, key := range keys {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
-		resp, err := c.client.Get(ctx, key, clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
+		resp, err := client.Get(ctx, key, clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
 		cancel()
 		if err != nil {
 			return vars, err
@@ -92,15 +91,22 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
+	var err error
+
 	// return something > 0 to trigger a key retrieval from the store
 	if waitIndex == 0 {
-		return 1, nil
+		return 1, err
 	}
+
+	client, err := clientv3.New(c.cfg)
+	if err != nil {
+		return 1, err
+	}
+	defer client.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancelRoutine := make(chan bool)
 	defer close(cancelRoutine)
-	var err error
 
 	go func() {
 		select {
@@ -111,11 +117,8 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		}
 	}()
 
-	rch := c.watches[prefix]
-	if rch == nil {
-		rch = c.client.Watch(ctx, prefix, clientv3.WithPrefix())
-		c.watches[prefix] = rch
-	}
+	rch := client.Watch(ctx, prefix, clientv3.WithPrefix())
+	defer client.Close()
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
