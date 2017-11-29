@@ -118,7 +118,6 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}()
 
 	rch := client.Watch(ctx, prefix, clientv3.WithPrefix())
-	defer client.Close()
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
