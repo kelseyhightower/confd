@@ -19,7 +19,7 @@ private-port: {{index $endpoint "private_port"}}
 public-port: {{index $endpoint "public_port"}}
 ```
 
-specifically useful if you a sub-template and you want to pass multiple values to it.
+specifically useful if you use a sub-template and you want to pass multiple values to it.
 
 ### base
 
