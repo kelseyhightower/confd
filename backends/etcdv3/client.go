@@ -21,8 +21,10 @@ type Client struct {
 // NewEtcdClient returns an *etcdv3.Client with a connection to named machines.
 func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, username string, password string) (*Client, error) {
 	cfg := clientv3.Config{
-		Endpoints:   machines,
-		DialTimeout: 5 * time.Second,
+		Endpoints:            machines,
+		DialTimeout:          5 * time.Second,
+		DialKeepAliveTime:    10 * time.Second,
+		DialKeepAliveTimeout: 3 * time.Second,
 	}
 
 	if basicAuth {
