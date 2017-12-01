@@ -13,13 +13,20 @@ type ConsulClient struct {
 }
 
 // NewConsulClient returns a new client to Consul for the given address
-func New(nodes []string, scheme, cert, key, caCert string) (*ConsulClient, error) {
+func New(nodes []string, scheme, cert, key, caCert string, basicAuth bool, username string, password string) (*ConsulClient, error) {
 	conf := api.DefaultConfig()
 
 	conf.Scheme = scheme
 
 	if len(nodes) > 0 {
 		conf.Address = nodes[0]
+	}
+
+	if basicAuth {
+		conf.HttpAuth = &api.HttpBasicAuth{
+			Username: username,
+			Password: password,
+		}
 	}
 
 	if cert != "" && key != "" {

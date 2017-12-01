@@ -17,7 +17,7 @@ Usage of confd:
   -backend string
       backend to use (default "etcd")
   -basic-auth
-      Use Basic Auth to authenticate (only used with -backend=etcd)
+      Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd)
   -client-ca-keys string
       client ca keys
   -client-cert string

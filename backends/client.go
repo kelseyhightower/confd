@@ -42,7 +42,11 @@ func New(config Config) (StoreClient, error) {
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
-			config.ClientCaKeys)
+			config.ClientCaKeys,
+			config.BasicAuth,
+			config.Username,
+			config.Password,
+		)
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
