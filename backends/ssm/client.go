@@ -2,6 +2,7 @@ package ssm
 
 import (
 	"os"
+	"string"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -53,7 +54,9 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		if len(resp) == 0 {
 			resp, err = c.getParameter(key)
 			if err != nil {
-				return vars, err
+				if !strings.Contains(err.Error(), "ParameterNotFound") {
+					return vars, err
+				}
 			}
 		}
 		for k, v := range resp {
