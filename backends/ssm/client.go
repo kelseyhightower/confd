@@ -2,7 +2,7 @@ package ssm
 
 import (
 	"os"
-	"string"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
