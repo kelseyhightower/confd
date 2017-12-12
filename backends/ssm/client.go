@@ -52,7 +52,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 		if len(resp) == 0 {
 			resp, err = c.getParameter(key)
-			if err != nil {
+			if err != nil && err.Error() != ssm.ErrCodeParameterNotFound {
 				return vars, err
 			}
 		}
