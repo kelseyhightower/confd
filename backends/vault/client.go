@@ -52,6 +52,11 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 	defer panicToError(&err)
 
 	switch authType {
+	case "app-role":
+		secret, err = c.Logical().Write("/auth/approle/login", map[string]interface{}{
+			"role_id": getParameter("role-id", params),
+			"secret_id": getParameter("secret-id", params),
+		})
 	case "app-id":
 		secret, err = c.Logical().Write("/auth/app-id/login", map[string]interface{}{
 			"app_id":  getParameter("app-id", params),

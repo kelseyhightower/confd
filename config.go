@@ -50,6 +50,8 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	roleID            string
+	secretID          string
 	yamlFile          string
 )
 
@@ -79,6 +81,8 @@ type Config struct {
 	Watch         bool     `toml:"watch"`
 	AppID         string   `toml:"app_id"`
 	UserID        string   `toml:"user_id"`
+	RoleID        string   `toml:"role_id"`
+	SecretID      string   `toml:"secret_id"`
 	YAMLFile      string   `toml:"file"`
 }
 
@@ -108,6 +112,8 @@ func init() {
 	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
 	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
+	flag.StringVar(&roleID, "role-id", "", "Vault role-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)")
+	flag.StringVar(&secretID, "secret-id", "", "Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
@@ -239,6 +245,8 @@ func initConfig() error {
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
+		RoleID:       config.RoleID,
+		SecretID:     config.SecretID,
 		YAMLFile:     config.YAMLFile,
 	}
 	// Template configuration.
@@ -344,6 +352,10 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "role-id":
+		config.RoleID = roleID
+	case "secret-id":
+		config.SecretID = secretID
 	case "file":
 		config.YAMLFile = yamlFile
 	}
