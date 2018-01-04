@@ -324,12 +324,13 @@ func (t *TemplateResource) reload() error {
 // The command can be run on unix and windows.
 func runCommand(cmd string) error {
 	log.Debug("Running " + cmd)
-	c := nil
+	var c *exec.Cmd
 	if runtime.GOOS == "windows" {
-		c := exec.Command("cmd", "/C", cmd)
+		c = exec.Command("cmd", "/C", cmd)
 	} else {
-		c := exec.Command("/bin/sh", "-c", cmd)
+		c = exec.Command("/bin/sh", "-c", cmd)
 	}
+
 	output, err := c.CombinedOutput()
 	if err != nil {
 		log.Error(fmt.Sprintf("%q", string(output)))
