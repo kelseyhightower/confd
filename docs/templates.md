@@ -234,6 +234,29 @@ Returns the string representing the decoded base64 value.
 key: {{base64Decode "VmFsdWU="}}
 ```
 
+### makeSlice
+
+Returns the global slice ID.
+
+```
+{{$sliceID := makeSlice "sliceID"}}
+```
+
+### appendSlice
+
+Appends a string to the slice.
+
+```
+{{appendSlice $sliceID "Value"}}
+```
+
+### rangeSlice
+
+Returns the data in that global slice.
+```
+{{rangeSlice $sliceID}}
+```
+
 #### Add keys to etcd
 
 ```
