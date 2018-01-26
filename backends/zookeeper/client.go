@@ -23,6 +23,7 @@ func NewZookeeperClient(machines []string) (*Client, error) {
 }
 
 func nodeWalk(prefix string, c *Client, vars map[string]string) error {
+	var s string
 	l, stat, err := c.client.Children(prefix)
 	if err != nil {
 		return err
@@ -37,7 +38,11 @@ func nodeWalk(prefix string, c *Client, vars map[string]string) error {
 
 	} else {
 		for _, key := range l {
-			s := prefix + "/" + key
+			if prefix == "/" {
+				s = "/" + key
+			} else {
+				s = prefix + "/" + key
+			}
 			_, stat, err := c.client.Exists(s)
 			if err != nil {
 				return err
@@ -63,9 +68,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		_, _, err := c.client.Exists(v)
 		if err != nil {
 			return vars, err
-		}
-		if v == "/" {
-			v = ""
 		}
 		err = nodeWalk(v, c, vars)
 		if err != nil {
