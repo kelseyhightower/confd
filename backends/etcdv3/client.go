@@ -3,7 +3,6 @@ package etcdv3
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/kelseyhightower/confd/log"
 )
 
 // Client is a wrapper around the etcd client
@@ -119,7 +119,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
-			fmt.Println(string(ev.Kv.Key))
+			log.Debug("Key updated %s", string(ev.Kv.Key))
 			// Only return if we have a key prefix we care about.
 			// This is not an exact match on the key so there is a chance
 			// we will still pickup on false positives. The net win here
