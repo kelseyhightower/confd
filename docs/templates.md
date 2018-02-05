@@ -355,6 +355,70 @@ Wrapper for [net.LookupIP](https://golang.org/pkg/net/#LookupIP) function. The w
     server {{.}};
 {{end}}
 ```
+### lookupV4IP
+Wrapper for lookupIP function. The wrapper only return ipv4 address.
+
+### Calculate Functions
+
+Calculate functions only support int64 and float64, so may be overflow, string will auto convert to number, if fail, raise error.
+
+* add +  {{add 3 2}} return 5，{{add "a" 2}} return error
+* div /  {{div "3" 2}} return 1, {{div "3.0" 2}} return 1.5
+* mul *  {{mul 3 2}} return 6
+* sub -  {{sub 3 2}} return 1
+* mod %  {{mod 3 2}} return 1
+* max    {{max 3 2}} return 3, {{max "3" 2}} return 3
+* min    {{min 3 2}} return 2, {{min "3" 2}} return 2
+
+### Compare Functions
+
+Compare functions will try convert string to number，then compare number. All number type will cast to float64, so can directly compare int and float.
+If convert string to number fail, functions will directly compare origin value.
+
+* eq == {{eq "3" 3}} return true, {{eq 3 3.0}} return true, {{eq "3" "3"}} return true, {{eq 3 "a"}} return false
+* ne != {{ne "3" 3}} return false,  {{ne "3" "3"}} return false,  {{ne 3 "a"}} return true
+* gt >  {{gt "3" 2}} return true,  {{gt "3" 2.0 }} return true, {{gt "b" "a"}} return true
+* ge >= {{ge "3" 3}} return true
+* lt <  {{lt "2" 3}} return true
+* le <= {{le "3" 3}} return true
+
+
+### filter
+
+Filter string list by regex (if element is not string, just skip).
+
+```
+{{range lsdir "/deis/services" | filter "prefix.*" }}
+   value: {{.}}
+{{end}}
+```
+
+Filter KVPair list by regex, regex work on KVPair's value.
+
+```
+{{range gets "/deis/services/*" | filter "prefix.*" }}
+   key: {{.Key}}
+   value: {{.Value}}
+{{end}}
+```
+
+### toJson
+
+Marshal object to json string
+
+```
+{{$hosts := getvs "/test/data/*/id"}}
+{{toJson $hosts}}
+```
+
+### toYaml
+
+Marshal object to yaml string
+
+```
+hosts:{{$hosts := getvs "/test/data/*/id"}}
+{{toYaml $hosts}}
+```
 
 ## Example Usage
 

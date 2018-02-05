@@ -1,0 +1,18 @@
+version: "{build}"
+
+os: Windows Server 2012 R2
+
+clone_folder: c:\gopath\src\github.com\kelseyhightower\confd
+
+environment:
+  GOPATH: c:\gopath
+
+install:
+  - echo %PATH%
+  - echo %GOPATH%
+  - go version
+  - go env
+
+build_script:
+ - mkdir bin
+ - go build -ldflags "-X main.GitSHA=${GIT_SHA}" -o bin/confd.exe .
