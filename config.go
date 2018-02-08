@@ -181,6 +181,16 @@ func initConfig() error {
 		if err != nil {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
 		}
+
+		switch config.Backend {
+		case "etcd":
+			vsm := make([]string, len(srvNodes))
+			for i, v := range srvNodes {
+				vsm[i] = config.Scheme + "://" + v
+			}
+			srvNodes = vsm
+		}
+
 		config.BackendNodes = srvNodes
 	}
 	if len(config.BackendNodes) == 0 {
