@@ -698,6 +698,25 @@ dest = "./tmp/test.conf"
 [1 2 3]
 `,
 		updateStore: func(tr *TemplateResource) {},
+	}, templateTest{
+		desc: "atoi test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/count/",
+]
+`,
+		tmpl: `
+{{ seq 1 (atoi (getv "/test/count")) }}
+`,
+		expected: `
+[1 2 3]
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/count", "3")
+		},
 	},
 }
 
