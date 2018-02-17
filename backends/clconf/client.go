@@ -10,18 +10,25 @@ import (
 
 // Client provides a shell for the yaml client
 type Client struct {
-	yamlFiles []string
+	yamlFiles         []string
+	yamlBase64Strings []string
 }
 
-func NewClconfClient(yamlFiles string) (*Client, error) {
-	return &Client{realclconf.Splitter.Split(yamlFiles, -1)}, nil
+func NewClconfClient(yamlFiles, yamlBase64Strings string) (*Client, error) {
+	var yamlFileArray, yamlBase64StringArray []string
+	if yamlFiles != "" {
+		yamlFileArray = realclconf.Splitter.Split(yamlFiles, -1)
+	}
+	if yamlBase64Strings != "" {
+		yamlBase64StringArray = realclconf.Splitter.Split(yamlBase64Strings, -1)
+	}
+	return &Client{yamlFileArray, yamlBase64StringArray}, nil
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
-	fmt.Printf("REMOVE ME: yamlFiles in clconf: [%v]\n", c.yamlFiles)
-	yamlMap, err := realclconf.LoadConf(c.yamlFiles, []string{})
-	fmt.Printf("REMOVE ME: yamlMap in clconf: [%v]\n", yamlMap)
+	yamlMap, err := realclconf.LoadConfFromEnvironment(
+		c.yamlFiles, c.yamlBase64Strings)
 	if err != nil {
 		return vars, err
 	}

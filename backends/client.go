@@ -41,7 +41,7 @@ func New(config Config) (StoreClient, error) {
 
 	switch config.Backend {
 	case "clconf":
-		return clconf.NewClconfClient(config.YAMLFile)
+		return clconf.NewClconfClient(config.YAMLFile, config.YAMLBase64)
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,

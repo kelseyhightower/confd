@@ -43,6 +43,9 @@
 [[constraint]]
   name = "gopkg.in/yaml.v2"
 
+[[constraint]]
+  name = "gitlab.com/pastdev/s2i/clconf"
+
 [[override]]
   name = "github.com/ugorji/go"
   revision = "ded73eae5db7e7a0ef6f55aace87a2873c5d2b74"
