@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +37,7 @@ func newFuncMap() map[string]interface{} {
 	m["fileExists"] = isFileExist
 	m["base64Encode"] = Base64Encode
 	m["base64Decode"] = Base64Decode
+	m["parseBool"] = ParseBool
 	m["reverse"] = Reverse
 	m["sortByLength"] = SortByLength
 	m["sortKVByLength"] = SortKVByLength
@@ -210,4 +212,12 @@ func Base64Encode(data string) string {
 func Base64Decode(data string) (string, error) {
 	s, err := base64.StdEncoding.DecodeString(data)
 	return string(s), err
+}
+
+func ParseBool(a string) bool {
+	val, err := strconv.ParseBool(a)
+	if err != nil {
+		return false
+	}
+	return val
 }
