@@ -10,6 +10,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
+	"github.com/kelseyhightower/confd/backends/kubernetes"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/ssm"
@@ -81,6 +82,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
 		return ssm.New()
+	case "kubernetes":
+		return kubernetes.New(backendNodes)
 	}
 	return nil, errors.New("Invalid backend")
 }

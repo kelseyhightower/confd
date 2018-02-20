@@ -1,0 +1,8 @@
+[template]
+src = "kubernetes.conf.tmpl"
+dest = "/tmp/confd-kubernetes-test.conf"
+keys = [
+  "/services/default",
+  "/endpoints/default",
+  "/statefulsets/default",
+]

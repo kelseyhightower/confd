@@ -1,0 +1,32 @@
+
+# Example
+
+{{- range gets "/services/default/*" }}
+	{{- $service := json .Value }}
+# Service {{$service.metadata.name}}
+		{{- $endpoints := print "/endpoints/default/" $service.metadata.name }}
+		{{- range $i, $subset := (json (getv $endpoints)).subsets }}
+		{{- range $j, $addr := $subset.addresses }}
+		{{- range $k, $port := $subset.ports }}
+{{$addr.ip}},{{.port}}
+		{{- end }}
+		{{- end }}
+		{{- end }}
+{{- end }}
+
+{{- range gets "/statefulsets/default/*" }}
+{{- $statefulset := json .Value }}
+{{- $endpoints := print "/endpoints/default/" $statefulset.spec.serviceName }}
+{{- if exists $endpoints }}
+{{- range $i, $subset := (json (getv $endpoints)).subsets }}
+{{- range $j, $addr := $subset.addresses }}
+{{- $name := split $addr.hostname "-" }}
+{{- $name := index $name 0 }}
+{{- if eq $statefulset.metadata.name $name }}
+# Statefulset instance {{$addr.hostname}}.{{$statefulset.spec.serviceName}}
+{{$addr.ip}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

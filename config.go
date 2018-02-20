@@ -228,6 +228,9 @@ func initConfig() error {
 			log.Info(fmt.Sprintf("Watch is not supported for backend %s. Exiting...", config.Backend))
 			os.Exit(1)
 		}
+	} else if config.Backend == "kubernetes" {
+		log.Info(fmt.Sprintf("Watch is mandatory for backend kubernetes. Exiting..."))
+		os.Exit(1)
 	}
 
 	if config.Backend == "dynamodb" && config.Table == "" {
