@@ -356,6 +356,14 @@ Wrapper for [net.LookupIP](https://golang.org/pkg/net/#LookupIP) function. The w
 {{end}}
 ```
 
+### atoi
+
+Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
+
+```
+{{seq 1 (atoi (getv "/count"))}}
+```
+
 ## Example Usage
 
 ```Bash
