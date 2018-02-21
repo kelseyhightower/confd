@@ -1,3 +1,7 @@
+[prune]
+  unused-packages = true
+  go-tests = true
+
 [[constraint]]
   name = "github.com/BurntSushi/toml"
   version = "0.3.0"
@@ -12,7 +16,7 @@
 
 [[constraint]]
   name = "github.com/coreos/etcd"
-  version = "=3.2.10"
+  version = "=3.3.1"
 
 [[constraint]]
   name = "github.com/fsnotify/fsnotify"
@@ -36,28 +40,27 @@
 
 [[constraint]]
   name = "github.com/samuel/go-zookeeper"
+  revision = "c4fab1ac1bec58281ad0667dc3f0907a9476ac47"
 
 [[constraint]]
   name = "golang.org/x/net"
+  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
+  branch = "v2"
 
 [[override]]
   name = "github.com/ugorji/go"
-  revision = "ded73eae5db7e7a0ef6f55aace87a2873c5d2b74"
+  revision = "bdcc60b419d136a85cdf2e7cbcac34b3f1cd6e57"
 
 [[override]]
   name = "google.golang.org/grpc"
-  version = "=1.7.3"
+  version = "=1.7.5"
 
 [[override]]
   name = "golang.org/x/crypto"
   revision = "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
-
-[[override]]
-  name = "golang.org/x/net"
-  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
 
 [[override]]
   name = "golang.org/x/sys"
@@ -65,4 +68,4 @@
 
 [[override]]
   name = "github.com/golang/protobuf"
-  revision = "5a0f697c9ed9d68fef0116532c6e05cfeae00e55"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"

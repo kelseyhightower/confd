@@ -29,7 +29,6 @@ integration:
 
 dep:
 	@dep ensure
-	@dep prune
 
 release:
 	@docker build -q -t confd_builder -f Dockerfile.build.alpine .

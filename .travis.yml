@@ -3,7 +3,7 @@ go:
   - 1.x
   - tip
 env:
-  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.3 ETCD_VERSION=3.2.10 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
+  - VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=0.9.3 ETCD_VERSION=3.3.1 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=0.8.1 ZOOKEEPER_VERSION=3.4.10 RANCHER_VERSION=0.6.0
 services:
   - redis
 before_install:
@@ -17,6 +17,7 @@ before_install:
   - tar xzf etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
   - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcd /bin/
   - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcdctl /bin/
+  - unset ETCD_VERSION
   - etcd &
   # install DynamoDB
   - sudo pip install awscli
