@@ -215,6 +215,8 @@ func initConfig() error {
 			}
 		case "etcdv3":
 			config.BackendNodes = []string{"127.0.0.1:2379"}
+		case "google":
+			config.BackendNodes = []string{"169.254.169.254"}
 		case "redis":
 			config.BackendNodes = []string{"127.0.0.1:6379"}
 		case "vault":
