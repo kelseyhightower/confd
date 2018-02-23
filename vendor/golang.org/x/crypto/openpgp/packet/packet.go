@@ -273,8 +273,6 @@ func consumeAll(r io.Reader) (n int64, err error) {
 			return
 		}
 	}
-
-	panic("unreachable")
 }
 
 // packetType represents the numeric ids of the different OpenPGP packet types. See
@@ -385,16 +383,17 @@ func Read(r io.Reader) (p Packet, err error) {
 type SignatureType uint8
 
 const (
-	SigTypeBinary           SignatureType = 0
-	SigTypeText                           = 1
-	SigTypeGenericCert                    = 0x10
-	SigTypePersonaCert                    = 0x11
-	SigTypeCasualCert                     = 0x12
-	SigTypePositiveCert                   = 0x13
-	SigTypeSubkeyBinding                  = 0x18
-	SigTypeDirectSignature                = 0x1F
-	SigTypeKeyRevocation                  = 0x20
-	SigTypeSubkeyRevocation               = 0x28
+	SigTypeBinary            SignatureType = 0
+	SigTypeText                            = 1
+	SigTypeGenericCert                     = 0x10
+	SigTypePersonaCert                     = 0x11
+	SigTypeCasualCert                      = 0x12
+	SigTypePositiveCert                    = 0x13
+	SigTypeSubkeyBinding                   = 0x18
+	SigTypePrimaryKeyBinding               = 0x19
+	SigTypeDirectSignature                 = 0x1F
+	SigTypeKeyRevocation                   = 0x20
+	SigTypeSubkeyRevocation                = 0x28
 )
 
 // PublicKeyAlgorithm represents the different public key system specified for

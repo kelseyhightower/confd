@@ -47,6 +47,7 @@ func newFuncMap() map[string]interface{} {
 	m["mod"] = func(a, b int) int { return a % b }
 	m["mul"] = func(a, b int) int { return a * b }
 	m["seq"] = Seq
+	m["atoi"] = strconv.Atoi
 	return m
 }
 

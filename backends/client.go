@@ -58,21 +58,23 @@ func New(config Config) (StoreClient, error) {
 	case "rancher":
 		return rancher.NewRancherClient(backendNodes)
 	case "redis":
-		return redis.NewRedisClient(backendNodes, config.ClientKey)
+		return redis.NewRedisClient(backendNodes, config.ClientKey, config.Separator)
 	case "env":
 		return env.NewEnvClient()
 	case "file":
 		return file.NewFileClient(config.YAMLFile)
 	case "vault":
 		vaultConfig := map[string]string{
-			"app-id":   config.AppID,
-			"user-id":  config.UserID,
-			"username": config.Username,
-			"password": config.Password,
-			"token":    config.AuthToken,
-			"cert":     config.ClientCert,
-			"key":      config.ClientKey,
-			"caCert":   config.ClientCaKeys,
+			"app-id":    config.AppID,
+			"user-id":   config.UserID,
+			"role-id":   config.RoleID,
+			"secret-id": config.SecretID,
+			"username":  config.Username,
+			"password":  config.Password,
+			"token":     config.AuthToken,
+			"cert":      config.ClientCert,
+			"key":       config.ClientKey,
+			"caCert":    config.ClientCaKeys,
 		}
 		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
 	case "dynamodb":

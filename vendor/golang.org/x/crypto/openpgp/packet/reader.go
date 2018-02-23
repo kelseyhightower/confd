@@ -16,6 +16,14 @@ type Reader struct {
 	readers []io.Reader
 }
 
+// New io.Readers are pushed when a compressed or encrypted packet is processed
+// and recursively treated as a new source of packets. However, a carefully
+// crafted packet can trigger an infinite recursive sequence of packets. See
+// http://mumble.net/~campbell/misc/pgp-quine
+// https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2013-4402
+// This constant limits the number of recursive packets that may be pushed.
+const maxReaders = 32
+
 // Next returns the most recently unread Packet, or reads another packet from
 // the top-most io.Reader. Unknown packet types are skipped.
 func (r *Reader) Next() (p Packet, err error) {
@@ -44,9 +52,15 @@ func (r *Reader) Next() (p Packet, err error) {
 
 // Push causes the Reader to start reading from a new io.Reader. When an EOF
 // error is seen from the new io.Reader, it is popped and the Reader continues
-// to read from the next most recent io.Reader.
-func (r *Reader) Push(reader io.Reader) {
+// to read from the next most recent io.Reader. Push returns a StructuralError
+// if pushing the reader would exceed the maximum recursion level, otherwise it
+// returns nil.
+func (r *Reader) Push(reader io.Reader) (err error) {
+	if len(r.readers) >= maxReaders {
+		return errors.StructuralError("too many layers of packets")
+	}
 	r.readers = append(r.readers, reader)
+	return nil
 }
 
 // Unread causes the given Packet to be returned from the next call to Next.
