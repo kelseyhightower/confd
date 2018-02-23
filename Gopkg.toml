@@ -50,6 +50,9 @@
   name = "gopkg.in/yaml.v2"
   branch = "v2"
 
+[[constraint]]
+  name = "gitlab.com/pastdev/s2i/clconf"
+
 [[override]]
   name = "github.com/ugorji/go"
   revision = "bdcc60b419d136a85cdf2e7cbcac34b3f1cd6e57"

@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -37,7 +36,6 @@ func newFuncMap() map[string]interface{} {
 	m["fileExists"] = isFileExist
 	m["base64Encode"] = Base64Encode
 	m["base64Decode"] = Base64Decode
-	m["parseBool"] = ParseBool
 	m["reverse"] = Reverse
 	m["sortByLength"] = SortByLength
 	m["sortKVByLength"] = SortKVByLength
@@ -47,7 +45,6 @@ func newFuncMap() map[string]interface{} {
 	m["mod"] = func(a, b int) int { return a % b }
 	m["mul"] = func(a, b int) int { return a * b }
 	m["seq"] = Seq
-	m["atoi"] = strconv.Atoi
 	return m
 }
 
@@ -215,10 +212,10 @@ func Base64Decode(data string) (string, error) {
 	return string(s), err
 }
 
-func ParseBool(a string) bool {
-	val, err := strconv.ParseBool(a)
-	if err != nil {
+// copied from confd util.go
+func isFileExist(fpath string) bool {
+	if _, err := os.Stat(fpath); os.IsNotExist(err) {
 		return false
 	}
-	return val
+	return true
 }

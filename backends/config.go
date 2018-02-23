@@ -17,4 +17,5 @@ type Config struct {
 	AppID        string
 	UserID       string
 	YAMLFile     string
+	YAMLBase64   string
 }
