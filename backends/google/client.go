@@ -138,7 +138,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	for {
 		// Check for the stop signal.  We could do a context object here
-		// to make this more immediant, but that adds complexity that is
+		// to make this more immediate, but that adds complexity that is
 		// not otherwise found in this codebase.
 		select {
 		case <-stopChan:
