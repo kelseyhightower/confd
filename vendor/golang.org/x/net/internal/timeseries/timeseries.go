@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package timeseries implements a time series structure for stats collection.
-package timeseries
+package timeseries // import "golang.org/x/net/internal/timeseries"
 
 import (
 	"fmt"
@@ -371,7 +371,7 @@ func (ts *timeSeries) ComputeRange(start, finish time.Time, num int) []Observabl
 		}
 	}
 
-	// Failed to find a level that covers the desired range.  So just
+	// Failed to find a level that covers the desired range. So just
 	// extract from the last level, even if it doesn't cover the entire
 	// desired range.
 	ts.extract(ts.levels[len(ts.levels)-1], start, finish, num, results)

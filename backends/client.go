@@ -9,6 +9,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
+	"github.com/kelseyhightower/confd/backends/file"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/ssm"
@@ -30,12 +31,22 @@ func New(config Config) (StoreClient, error) {
 		config.Backend = "etcd"
 	}
 	backendNodes := config.BackendNodes
-	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
+
+	if config.Backend == "file" {
+		log.Info("Backend source(s) set to " + config.YAMLFile)
+	} else {
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
+	}
+
 	switch config.Backend {
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
-			config.ClientCaKeys)
+			config.ClientCaKeys,
+			config.BasicAuth,
+			config.Username,
+			config.Password,
+		)
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
@@ -50,6 +61,8 @@ func New(config Config) (StoreClient, error) {
 		return redis.NewRedisClient(backendNodes, config.ClientKey, config.Separator)
 	case "env":
 		return env.NewEnvClient()
+	case "file":
+		return file.NewFileClient(config.YAMLFile)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,

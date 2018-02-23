@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-echo "Building confd..."
-mkdir -p bin
-go build -o bin/confd .

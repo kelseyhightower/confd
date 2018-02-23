@@ -1,3 +1,25 @@
+### v0.15.0
+
+0c4cb29e Don't pass empty prefix to zookeeper nodeWalk
+5d6e2790 Update template.md - added forgotten verb
+19d6514d remove fmt.Println
+802e6a11 Added windows cmd support
+59001ca3 Fix handling of absent parameters for ssm backend
+8419c708 AWS SSM - don't treat "ParameterNotFound" as a fatal error
+0a09632a Add support for consul BasicAuth
+adf8d486 Fix panic during Consul client creation
+027be91f Update docker Multi-Stage build
+376d3f99 fix etcdv3 client watch: reuse previous watch to avoid memory leak
+f711530d fix(confd): etcd curl err when make integration
+
+### v0.14.0
+
+95ba861f Replace godep with dep
+cb53644c Template integration with https://github.com/xordataexchange/crypt provided values
+6da43945 add go version and git commit sha1 to version string
+8f052819 yaml/json file backend
+61652a2c Add AWS SSM Parameter Store backend
+
 ### v0.13.0
 
 181e3e3 Update dependencies

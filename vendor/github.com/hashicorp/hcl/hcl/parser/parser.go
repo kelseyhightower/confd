@@ -3,8 +3,10 @@
 package parser
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/scanner"
@@ -35,6 +37,11 @@ func newParser(src []byte) *Parser {
 
 // Parse returns the fully parsed source and returns the abstract syntax tree.
 func Parse(src []byte) (*ast.File, error) {
+	// normalize all line endings
+	// since the scanner and output only work with "\n" line endings, we may
+	// end up with dangling "\r" characters in the parsed data.
+	src = bytes.Replace(src, []byte("\r\n"), []byte("\n"), -1)
+
 	p := newParser(src)
 	return p.Parse()
 }
@@ -49,7 +56,7 @@ func (p *Parser) Parse() (*ast.File, error) {
 		scerr = &PosError{Pos: pos, Err: errors.New(msg)}
 	}
 
-	f.Node, err = p.objectList()
+	f.Node, err = p.objectList(false)
 	if scerr != nil {
 		return nil, scerr
 	}
@@ -61,11 +68,23 @@ func (p *Parser) Parse() (*ast.File, error) {
 	return f, nil
 }
 
-func (p *Parser) objectList() (*ast.ObjectList, error) {
+// objectList parses a list of items within an object (generally k/v pairs).
+// The parameter" obj" tells this whether to we are within an object (braces:
+// '{', '}') or just at the top level. If we're within an object, we end
+// at an RBRACE.
+func (p *Parser) objectList(obj bool) (*ast.ObjectList, error) {
 	defer un(trace(p, "ParseObjectList"))
 	node := &ast.ObjectList{}
 
 	for {
+		if obj {
+			tok := p.scan()
+			p.unscan()
+			if tok.Type == token.RBRACE {
+				break
+			}
+		}
+
 		n, err := p.objectItem()
 		if err == errEofToken {
 			break // we are finished
@@ -78,6 +97,13 @@ func (p *Parser) objectList() (*ast.ObjectList, error) {
 		}
 
 		node.Add(n)
+
+		// object lists can be optionally comma-delimited e.g. when a list of maps
+		// is being expressed, so a comma is allowed here - it's simply consumed
+		tok := p.scan()
+		if tok.Type != token.COMMA {
+			p.unscan()
+		}
 	}
 	return node, nil
 }
@@ -122,6 +148,24 @@ func (p *Parser) objectItem() (*ast.ObjectItem, error) {
 	defer un(trace(p, "ParseObjectItem"))
 
 	keys, err := p.objectKey()
+	if len(keys) > 0 && err == errEofToken {
+		// We ignore eof token here since it is an error if we didn't
+		// receive a value (but we did receive a key) for the item.
+		err = nil
+	}
+	if len(keys) > 0 && err != nil && p.tok.Type == token.RBRACE {
+		// This is a strange boolean statement, but what it means is:
+		// We have keys with no value, and we're likely in an object
+		// (since RBrace ends an object). For this, we set err to nil so
+		// we continue and get the error below of having the wrong value
+		// type.
+		err = nil
+
+		// Reset the token type so we don't think it completed fine. See
+		// objectType which uses p.tok.Type to check if we're done with
+		// the object.
+		p.tok.Type = token.EOF
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +191,18 @@ func (p *Parser) objectItem() (*ast.ObjectItem, error) {
 		if err != nil {
 			return nil, err
 		}
+	default:
+		keyStr := make([]string, 0, len(keys))
+		for _, k := range keys {
+			keyStr = append(keyStr, k.Token.Text)
+		}
+
+		return nil, &PosError{
+			Pos: p.tok.Pos,
+			Err: fmt.Errorf(
+				"key '%s' expected start of object ('{') or assignment ('=')",
+				strings.Join(keyStr, " ")),
+		}
 	}
 
 	// do a look-ahead for line comment
@@ -168,7 +224,11 @@ func (p *Parser) objectKey() ([]*ast.ObjectKey, error) {
 		tok := p.scan()
 		switch tok.Type {
 		case token.EOF:
-			return nil, errEofToken
+			// It is very important to also return the keys here as well as
+			// the error. This is because we need to be able to tell if we
+			// did parse keys prior to finding the EOF, or if we just found
+			// a bare EOF.
+			return keys, errEofToken
 		case token.ASSIGN:
 			// assignment or object only, but not nested objects. this is not
 			// allowed: `foo bar = {}`
@@ -188,15 +248,29 @@ func (p *Parser) objectKey() ([]*ast.ObjectKey, error) {
 
 			return keys, nil
 		case token.LBRACE:
+			var err error
+
+			// If we have no keys, then it is a syntax error. i.e. {{}} is not
+			// allowed.
+			if len(keys) == 0 {
+				err = &PosError{
+					Pos: p.tok.Pos,
+					Err: fmt.Errorf("expected: IDENT | STRING got: %s", p.tok.Type),
+				}
+			}
+
 			// object
-			return keys, nil
+			return keys, err
 		case token.IDENT, token.STRING:
 			keyCount++
 			keys = append(keys, &ast.ObjectKey{Token: p.tok})
 		case token.ILLEGAL:
-			fmt.Println("illegal")
+			return keys, &PosError{
+				Pos: p.tok.Pos,
+				Err: fmt.Errorf("illegal character"),
+			}
 		default:
-			return nil, &PosError{
+			return keys, &PosError{
 				Pos: p.tok.Pos,
 				Err: fmt.Errorf("expected: IDENT | STRING | ASSIGN | LBRACE got: %s", p.tok.Type),
 			}
@@ -238,7 +312,7 @@ func (p *Parser) objectType() (*ast.ObjectType, error) {
 		Lbrace: p.tok.Pos,
 	}
 
-	l, err := p.objectList()
+	l, err := p.objectList(true)
 
 	// if we hit RBRACE, we are good to go (means we parsed all Items), if it's
 	// not a RBRACE, it's an syntax error and we just return it.
@@ -246,9 +320,12 @@ func (p *Parser) objectType() (*ast.ObjectType, error) {
 		return nil, err
 	}
 
-	// If there is no error, we should be at a RBRACE to end the object
-	if p.tok.Type != token.RBRACE {
-		return nil, fmt.Errorf("object expected closing RBRACE got: %s", p.tok.Type)
+	// No error, scan and expect the ending to be a brace
+	if tok := p.scan(); tok.Type != token.RBRACE {
+		return nil, &PosError{
+			Pos: tok.Pos,
+			Err: fmt.Errorf("object expected closing RBRACE got: %s", tok.Type),
+		}
 	}
 
 	o.List = l
@@ -268,18 +345,29 @@ func (p *Parser) listType() (*ast.ListType, error) {
 	needComma := false
 	for {
 		tok := p.scan()
-		switch tok.Type {
-		case token.NUMBER, token.FLOAT, token.STRING, token.HEREDOC:
-			if needComma {
+		if needComma {
+			switch tok.Type {
+			case token.COMMA, token.RBRACK:
+			default:
 				return nil, &PosError{
 					Pos: tok.Pos,
-					Err: fmt.Errorf("unexpected token: %s. Expecting %s", tok.Type, token.COMMA),
+					Err: fmt.Errorf(
+						"error parsing list, expected comma or list end, got: %s",
+						tok.Type),
 				}
 			}
-
+		}
+		switch tok.Type {
+		case token.BOOL, token.NUMBER, token.FLOAT, token.STRING, token.HEREDOC:
 			node, err := p.literalType()
 			if err != nil {
 				return nil, err
+			}
+
+			// If there is a lead comment, apply it
+			if p.leadComment != nil {
+				node.LeadComment = p.leadComment
+				p.leadComment = nil
 			}
 
 			l.Add(node)
@@ -288,7 +376,7 @@ func (p *Parser) listType() (*ast.ListType, error) {
 			// get next list item or we are at the end
 			// do a look-ahead for line comment
 			p.scan()
-			if p.lineComment != nil {
+			if p.lineComment != nil && len(l.List) > 0 {
 				lit, ok := l.List[len(l.List)-1].(*ast.LiteralType)
 				if ok {
 					lit.LineComment = p.lineComment
@@ -300,12 +388,28 @@ func (p *Parser) listType() (*ast.ListType, error) {
 
 			needComma = false
 			continue
-		case token.BOOL:
-			// TODO(arslan) should we support? not supported by HCL yet
+		case token.LBRACE:
+			// Looks like a nested object, so parse it out
+			node, err := p.objectType()
+			if err != nil {
+				return nil, &PosError{
+					Pos: tok.Pos,
+					Err: fmt.Errorf(
+						"error while trying to parse object within list: %s", err),
+				}
+			}
+			l.Add(node)
+			needComma = true
 		case token.LBRACK:
-			// TODO(arslan) should we support nested lists? Even though it's
-			// written in README of HCL, it's not a part of the grammar
-			// (not defined in parse.y)
+			node, err := p.listType()
+			if err != nil {
+				return nil, &PosError{
+					Pos: tok.Pos,
+					Err: fmt.Errorf(
+						"error while trying to parse list within list: %s", err),
+				}
+			}
+			l.Add(node)
 		case token.RBRACK:
 			// finished
 			l.Rbrack = p.tok.Pos

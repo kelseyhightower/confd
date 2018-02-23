@@ -17,7 +17,7 @@ Usage of confd:
   -backend string
       backend to use (default "etcd")
   -basic-auth
-      Use Basic Auth to authenticate (only used with -backend=etcd)
+      Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd)
   -client-ca-keys string
       client ca keys
   -client-cert string
@@ -28,6 +28,8 @@ Usage of confd:
       confd conf directory (default "/etc/confd")
   -config-file string
       the confd config file
+  -file string
+      the YAML/JSON file to watch for changes
   -interval int
       backend polling interval (default 600)
   -keep-stage-file
@@ -35,7 +37,7 @@ Usage of confd:
   -log-level string
       level which confd should log messages
   -node value
-      list of backend nodes (default [])
+      list of backend nodes
   -noop
       only show pending changes
   -onetime
@@ -43,9 +45,11 @@ Usage of confd:
   -password string
       the password to authenticate with (only used with vault and etcd backends)
   -prefix string
-      key path prefix (default "/")
+      key path prefix
   -scheme string
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
+  -secret-keyring string
+      path to armored PGP secret keyring (for use with crypt functions)
   -srv-domain string
       the name of the resource record
   -srv-record string
@@ -64,7 +68,6 @@ Usage of confd:
       print version and exit
   -watch
       enable watch support
-
 ```
 
 > The -scheme flag is only used to set the URL scheme for nodes retrieved from DNS SRV records.

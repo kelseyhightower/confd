@@ -1,6 +1,7 @@
 #!/bin/bash
-set -e
-ROOT_TOKEN=$(vault read -field id auth/token/lookup-self)
+
+export HOSTNAME="localhost"
+export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
 
 vault mount -path database generic
 vault mount -path key generic

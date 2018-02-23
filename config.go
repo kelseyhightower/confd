@@ -37,6 +37,7 @@ var (
 	onetime           bool
 	prefix            string
 	printVersion      bool
+	secretKeyring     string
 	scheme            string
 	srvDomain         string
 	srvRecord         string
@@ -50,45 +51,49 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	yamlFile          string
 )
 
 // A Config structure is used to configure confd.
 type Config struct {
-	AuthToken    string   `toml:"auth_token"`
-	AuthType     string   `toml:"auth_type"`
-	Backend      string   `toml:"backend"`
-	BasicAuth    bool     `toml:"basic_auth"`
-	BackendNodes []string `toml:"nodes"`
-	ClientCaKeys string   `toml:"client_cakeys"`
-	ClientCert   string   `toml:"client_cert"`
-	ClientKey    string   `toml:"client_key"`
-	ConfDir      string   `toml:"confdir"`
-	Interval     int      `toml:"interval"`
-	Noop         bool     `toml:"noop"`
-	Password     string   `toml:"password"`
-	Prefix       string   `toml:"prefix"`
-	SRVDomain    string   `toml:"srv_domain"`
-	SRVRecord    string   `toml:"srv_record"`
-	Scheme       string   `toml:"scheme"`
-	SyncOnly     bool     `toml:"sync-only"`
-	Table        string   `toml:"table"`
-	Separator    string   `toml:"separator"`
-	Username     string   `toml:"username"`
-	LogLevel     string   `toml:"log-level"`
-	Watch        bool     `toml:"watch"`
-	AppID        string   `toml:"app_id"`
-	UserID       string   `toml:"user_id"`
+	AuthToken     string   `toml:"auth_token"`
+	AuthType      string   `toml:"auth_type"`
+	Backend       string   `toml:"backend"`
+	BasicAuth     bool     `toml:"basic_auth"`
+	BackendNodes  []string `toml:"nodes"`
+	ClientCaKeys  string   `toml:"client_cakeys"`
+	ClientCert    string   `toml:"client_cert"`
+	ClientKey     string   `toml:"client_key"`
+	ConfDir       string   `toml:"confdir"`
+	Interval      int      `toml:"interval"`
+	SecretKeyring string   `toml:"secret_keyring"`
+	Noop          bool     `toml:"noop"`
+	Password      string   `toml:"password"`
+	Prefix        string   `toml:"prefix"`
+	SRVDomain     string   `toml:"srv_domain"`
+	SRVRecord     string   `toml:"srv_record"`
+	Scheme        string   `toml:"scheme"`
+	SyncOnly      bool     `toml:"sync-only"`
+	Table         string   `toml:"table"`
+	Separator     string   `toml:"separator"`
+	Username      string   `toml:"username"`
+	LogLevel      string   `toml:"log-level"`
+	Watch         bool     `toml:"watch"`
+	AppID         string   `toml:"app_id"`
+	UserID        string   `toml:"user_id"`
+	YAMLFile      string   `toml:"file"`
 }
 
 func init() {
 	flag.StringVar(&authToken, "auth-token", "", "Auth bearer token to use")
 	flag.StringVar(&backend, "backend", "etcd", "backend to use")
-	flag.BoolVar(&basicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=etcd)")
+	flag.BoolVar(&basicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd)")
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
+	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -98,6 +103,7 @@ func init() {
 	flag.StringVar(&prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
+	flag.StringVar(&secretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
 	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
 	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
@@ -150,6 +156,18 @@ func initConfig() error {
 
 	// Update config from commandline flags.
 	processFlags()
+	var pgpPrivateKey []byte
+	if config.SecretKeyring != "" {
+		kr, err := os.Open(config.SecretKeyring)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer kr.Close()
+		pgpPrivateKey, err = ioutil.ReadAll(kr)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
 
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
@@ -166,6 +184,16 @@ func initConfig() error {
 		if err != nil {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
 		}
+
+		switch config.Backend {
+		case "etcd":
+			vsm := make([]string, len(srvNodes))
+			for i, v := range srvNodes {
+				vsm[i] = config.Scheme + "://" + v
+			}
+			srvNodes = vsm
+		}
+
 		config.BackendNodes = srvNodes
 	}
 	if len(config.BackendNodes) == 0 {
@@ -224,6 +252,7 @@ func initConfig() error {
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
+		YAMLFile:     config.YAMLFile,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -234,6 +263,7 @@ func initConfig() error {
 		Prefix:        config.Prefix,
 		SyncOnly:      config.SyncOnly,
 		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
+		PGPPrivateKey: pgpPrivateKey,
 	}
 	return nil
 }
@@ -307,6 +337,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.Prefix = prefix
 	case "scheme":
 		config.Scheme = scheme
+	case "secret-keyring":
+		config.SecretKeyring = secretKeyring
 	case "srv-domain":
 		config.SRVDomain = srvDomain
 	case "srv-record":
@@ -327,5 +359,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "file":
+		config.YAMLFile = yamlFile
 	}
 }
