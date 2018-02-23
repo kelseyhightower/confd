@@ -16,5 +16,7 @@ type Config struct {
 	Username     string
 	AppID        string
 	UserID       string
+	RoleID       string
+	SecretID     string
 	YAMLFile     string
 }

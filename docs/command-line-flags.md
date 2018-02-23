@@ -46,8 +46,12 @@ Usage of confd:
       the password to authenticate with (only used with vault and etcd backends)
   -prefix string
       key path prefix
+  -role-id string
+      Vault role-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)
   -scheme string
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
+  -secret-id string
+      Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)
   -secret-keyring string
       path to armored PGP secret keyring (for use with crypt functions)
   -srv-domain string

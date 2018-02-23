@@ -67,6 +67,8 @@ func New(config Config) (StoreClient, error) {
 		vaultConfig := map[string]string{
 			"app-id":   config.AppID,
 			"user-id":  config.UserID,
+			"role-id":  config.RoleID,
+			"secret-id": config.SecretID,
 			"username": config.Username,
 			"password": config.Password,
 			"token":    config.AuthToken,
