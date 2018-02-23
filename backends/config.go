@@ -12,9 +12,13 @@ type Config struct {
 	Password     string
 	Scheme       string
 	Table        string
+	Separator    string
 	Username     string
 	AppID        string
 	UserID       string
+	RoleID       string
+	SecretID     string
 	YAMLFile     string
 	YAMLBase64   string
+	Role         string
 }
