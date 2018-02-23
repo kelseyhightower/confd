@@ -58,6 +58,8 @@ Usage of confd:
       sync without check_cmd and reload_cmd
   -table string
       the name of the DynamoDB table (only used with -backend=dynamodb)
+  -separator string
+      the separator to replace '/' with when looking up keys in the backend, prefixed "/" will also be removed (only used with -backend=redis, default "/")
   -user-id string
       Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)
   -username string

@@ -43,6 +43,7 @@ var (
 	srvRecord         string
 	syncOnly          bool
 	table             string
+	separator         string
 	templateConfig    template.Config
 	backendsConfig    backends.Config
 	username          string
@@ -74,6 +75,7 @@ type Config struct {
 	Scheme        string   `toml:"scheme"`
 	SyncOnly      bool     `toml:"sync-only"`
 	Table         string   `toml:"table"`
+	Separator     string   `toml:"separator"`
 	Username      string   `toml:"username"`
 	LogLevel      string   `toml:"log-level"`
 	Watch         bool     `toml:"watch"`
@@ -109,6 +111,7 @@ func init() {
 	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
 	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
 	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
+	flag.StringVar(&separator, "separator", "", "the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)")
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
@@ -219,7 +222,6 @@ func initConfig() error {
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
-			"redis":    true,
 			"dynamodb": true,
 			"ssm":      true,
 		}
@@ -246,6 +248,7 @@ func initConfig() error {
 		Password:     config.Password,
 		Scheme:       config.Scheme,
 		Table:        config.Table,
+		Separator:    config.Separator,
 		Username:     config.Username,
 		AppID:        config.AppID,
 		UserID:       config.UserID,
@@ -344,6 +347,8 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SyncOnly = syncOnly
 	case "table":
 		config.Table = table
+	case "separator":
+		config.Separator = separator
 	case "username":
 		config.Username = username
 	case "log-level":
