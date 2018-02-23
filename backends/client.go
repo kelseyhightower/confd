@@ -65,16 +65,16 @@ func New(config Config) (StoreClient, error) {
 		return file.NewFileClient(config.YAMLFile)
 	case "vault":
 		vaultConfig := map[string]string{
-			"app-id":   config.AppID,
-			"user-id":  config.UserID,
-			"role-id":  config.RoleID,
+			"app-id":    config.AppID,
+			"user-id":   config.UserID,
+			"role-id":   config.RoleID,
 			"secret-id": config.SecretID,
-			"username": config.Username,
-			"password": config.Password,
-			"token":    config.AuthToken,
-			"cert":     config.ClientCert,
-			"key":      config.ClientKey,
-			"caCert":   config.ClientCaKeys,
+			"username":  config.Username,
+			"password":  config.Password,
+			"token":     config.AuthToken,
+			"cert":      config.ClientCert,
+			"key":       config.ClientKey,
+			"caCert":    config.ClientCaKeys,
 		}
 		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
 	case "dynamodb":

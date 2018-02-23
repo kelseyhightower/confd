@@ -19,4 +19,5 @@ type Config struct {
 	RoleID       string
 	SecretID     string
 	YAMLFile     string
+	Role         string
 }

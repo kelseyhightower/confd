@@ -47,7 +47,7 @@ Usage of confd:
   -prefix string
       key path prefix
   -role-id string
-      Vault role-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)
+      Vault role-id to use with the AppRole, Kubernetes backend (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes)
   -scheme string
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
   -secret-id string
