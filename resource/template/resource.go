@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -308,22 +309,28 @@ func (t *TemplateResource) check() error {
 	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
 		return err
 	}
-	log.Debug("Running " + cmdBuffer.String())
-	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
-	output, err := c.CombinedOutput()
-	if err != nil {
-		log.Error(fmt.Sprintf("%q", string(output)))
-		return err
-	}
-	log.Debug(fmt.Sprintf("%q", string(output)))
-	return nil
+	return runCommand(cmdBuffer.String())
 }
 
 // reload executes the reload command.
 // It returns nil if the reload command returns 0.
 func (t *TemplateResource) reload() error {
-	log.Debug("Running " + t.ReloadCmd)
-	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
+	return runCommand(t.ReloadCmd)
+}
+
+// runCommand is a shared function used by check and reload
+// to run the given command and log its output.
+// It returns nil if the given cmd returns 0.
+// The command can be run on unix and windows.
+func runCommand(cmd string) error {
+	log.Debug("Running " + cmd)
+	var c *exec.Cmd
+	if runtime.GOOS == "windows" {
+		c = exec.Command("cmd", "/C", cmd)
+	} else {
+		c = exec.Command("/bin/sh", "-c", cmd)
+	}
+
 	output, err := c.CombinedOutput()
 	if err != nil {
 		log.Error(fmt.Sprintf("%q", string(output)))

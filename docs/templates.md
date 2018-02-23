@@ -19,7 +19,7 @@ private-port: {{index $endpoint "private_port"}}
 public-port: {{index $endpoint "public_port"}}
 ```
 
-specifically useful if you a sub-template and you want to pass multiple values to it.
+specifically useful if you use a sub-template and you want to pass multiple values to it.
 
 ### base
 
@@ -354,6 +354,14 @@ Wrapper for [net.LookupIP](https://golang.org/pkg/net/#LookupIP) function. The w
 {{range lookupIP "some.host.local"}}
     server {{.}};
 {{end}}
+```
+
+### atoi
+
+Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
+
+```
+{{seq 1 (atoi (getv "/count"))}}
 ```
 
 ## Example Usage

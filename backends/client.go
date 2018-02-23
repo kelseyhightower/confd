@@ -42,7 +42,11 @@ func New(config Config) (StoreClient, error) {
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
-			config.ClientCaKeys)
+			config.ClientCaKeys,
+			config.BasicAuth,
+			config.Username,
+			config.Password,
+		)
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
 		// The etcdClient is an http.Client and designed to be reused.
@@ -54,22 +58,23 @@ func New(config Config) (StoreClient, error) {
 	case "rancher":
 		return rancher.NewRancherClient(backendNodes)
 	case "redis":
-		return redis.NewRedisClient(backendNodes, config.ClientKey)
+		return redis.NewRedisClient(backendNodes, config.ClientKey, config.Separator)
 	case "env":
 		return env.NewEnvClient()
 	case "file":
 		return file.NewFileClient(config.YAMLFile)
 	case "vault":
 		vaultConfig := map[string]string{
-			"app-id":   config.AppID,
-			"user-id":  config.UserID,
-			"username": config.Username,
-			"password": config.Password,
-			"token":    config.AuthToken,
-			"cert":     config.ClientCert,
-			"key":      config.ClientKey,
-			"caCert":   config.ClientCaKeys,
-			"role":     config.Role,
+			"app-id":    config.AppID,
+			"user-id":   config.UserID,
+			"role-id":   config.RoleID,
+			"secret-id": config.SecretID,
+			"username":  config.Username,
+			"password":  config.Password,
+			"token":     config.AuthToken,
+			"cert":      config.ClientCert,
+			"key":       config.ClientKey,
+			"caCert":    config.ClientCaKeys,
 		}
 		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
 	case "dynamodb":

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/kelseyhightower/confd/log"
@@ -52,7 +53,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 		if len(resp) == 0 {
 			resp, err = c.getParameter(key)
-			if err != nil {
+			if err != nil && err.(awserr.Error).Code() != ssm.ErrCodeParameterNotFound {
 				return vars, err
 			}
 		}

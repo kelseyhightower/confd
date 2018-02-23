@@ -7,19 +7,19 @@ Currently confd ships binaries for OS X and Linux 64bit systems. You can downloa
 #### OS X
 
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.14.0/confd-0.14.0-darwin-amd64
+$ wget https://github.com/kelseyhightower/confd/releases/download/v0.15.0/confd-0.15.0-darwin-amd64
 ```
 
 #### Linux
 
 Download the binary
 ```
-$ wget https://github.com/kelseyhightower/confd/releases/download/v0.14.0/confd-0.14.0-linux-amd64
+$ wget https://github.com/kelseyhightower/confd/releases/download/v0.15.0/confd-0.15.0-linux-amd64
 ```
 Move the binary to an installation path, make it executable, and add to path
 ```
 mkdir -p /opt/confd/bin
-mv confd-0.14.0-linux-amd64 /opt/confd/bin/confd
+mv confd-0.15.0-linux-amd64 /opt/confd/bin/confd
 chmod +x /opt/confd/bin/confd
 export PATH="$PATH:/opt/confd/bin"
 ```
@@ -48,21 +48,22 @@ With multi-stage builds you can keep the whole process contained in your Dockerf
 ```
 FROM golang:1.9-alpine as confd
 
-RUN apk add --no-cache make unzip
-RUN mkdir -p /go/src/github.com/kelseyhightower/confd && \
-  ln -s /go/src/github.com/kelseyhightower/confd /app
+ARG CONFD_VERSION=0.15.0
 
-WORKDIR /app
+ADD https://github.com/kelseyhightower/confd/archive/v${CONFD_VERSION}.tar.gz /tmp/
 
-RUN wget -O /tmp/confd.zip https://github.com/kelseyhightower/confd/archive/v0.14.0.zip && \
-    unzip -d /tmp/confd /tmp/confd.zip && \
-    cp -r /tmp/confd/*/* /app && \
-    rm -rf /tmp/confd* && \
-    make build
+RUN apk add --no-cache \
+    bzip2 \
+    make && \
+  mkdir -p /go/src/github.com/kelseyhightower/confd && \
+  cd /go/src/github.com/kelseyhightower/confd && \
+  tar --strip-components=1 -zxf /tmp/v${CONFD_VERSION}.tar.gz && \
+  go install github.com/kelseyhightower/confd && \
+  rm -rf /tmp/v${CONFD_VERSION}.tar.gz
 
 FROM tomcat:8.5.15-jre8-alpine
 
-COPY --from=confd /app/bin/confd /usr/local/bin/confd
+COPY --from=confd /go/bin/confd /usr/local/bin/confd
 
 # Then do other useful things...
 ```

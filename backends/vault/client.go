@@ -52,6 +52,11 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 	defer panicToError(&err)
 
 	switch authType {
+	case "app-role":
+		secret, err = c.Logical().Write("/auth/approle/login", map[string]interface{}{
+			"role_id":   getParameter("role-id", params),
+			"secret_id": getParameter("secret-id", params),
+		})
 	case "app-id":
 		secret, err = c.Logical().Write("/auth/app-id/login", map[string]interface{}{
 			"app_id":  getParameter("app-id", params),
@@ -70,14 +75,16 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 			"password": password,
 		})
 	case "kubernetes":
-		jwt, errf := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
-		if errf != nil {
-			return errf
+		jwt, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+		if err != nil {
+			return err
 		}
 		secret, err = c.Logical().Write("/auth/kubernetes/login", map[string]interface{}{
 			"jwt":  string(jwt[:]),
-			"role": getParameter("role", params),
+			"role": getParameter("role-id", params),
 		})
+	case "cert":
+		secret, err = c.Logical().Write("/auth/cert/login", map[string]interface{}{})
 	}
 
 	if err != nil {
@@ -87,6 +94,10 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 	// if the token has already been set
 	if c.Token() != "" {
 		return nil
+	}
+
+	if secret == nil || secret.Auth == nil {
+		return errors.New("Unable to authenticate")
 	}
 
 	log.Debug("client authenticated with auth backend: %s", authType)
@@ -216,9 +227,9 @@ func flatten(key string, value interface{}, vars map[string]string) {
 }
 
 // recursively walk the branches in the Vault, adding to branches map
-func walkTree(c *Client, key string, branches map[string]bool) (error) {
+func walkTree(c *Client, key string, branches map[string]bool) error {
 	log.Debug("listing %s from vault", key)
-	
+
 	// strip trailing slash as long as it's not the only character
 	if last := len(key) - 1; last > 0 && key[last] == '/' {
 		key = key[:last]
@@ -240,11 +251,11 @@ func walkTree(c *Client, key string, branches map[string]bool) (error) {
 	}
 
 	switch resp.Data["keys"].(type) {
-		case []interface{}:
-			// expected
-		default:
-			log.Warning("key list type of '%s' is not supported (%T)", key, resp.Data["keys"])
-			return nil
+	case []interface{}:
+		// expected
+	default:
+		log.Warning("key list type of '%s' is not supported (%T)", key, resp.Data["keys"])
+		return nil
 	}
 
 	keyList := resp.Data["keys"].([]interface{})

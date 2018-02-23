@@ -78,7 +78,7 @@ These are steps to get vault with Kubernetes auth working on minikube.
   # And template
   echo '{{getv "/secret/foo"}}' > /etc/confd/templates/test.conf.tmpl
   # and finally run confd
-  confd -onetime -backend vault -auth-type kubernetes -role confd -node http://unrealistic-sabertooth-vault:8200 -log-level debug
+  confd -onetime -backend vault -auth-type kubernetes -role-id confd -node http://unrealistic-sabertooth-vault:8200 -log-level debug
   ```
 
 - Check `/tmp/test.conf`, it should contain your secret

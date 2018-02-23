@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export HOSTNAME="localhost"
 export KEY="foobar"
 export DATABASE_HOST="127.0.0.1"
 export DATABASE_PASSWORD="p@sSw0rd"
