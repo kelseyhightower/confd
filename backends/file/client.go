@@ -2,67 +2,41 @@ package file
 
 import (
 	"fmt"
-	"io/ioutil"
-	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/kelseyhightower/confd/log"
-	"gopkg.in/yaml.v2"
+	"github.com/pastdev/clconf/clconf"
 )
-
-var replacer = strings.NewReplacer("/", "_")
 
 // Client provides a shell for the yaml client
 type Client struct {
-	filepath string
+	yamlFiles         []string
+	yamlBase64Strings []string
 }
 
-func NewFileClient(filepath string) (*Client, error) {
-	return &Client{filepath}, nil
+func NewFileClient(yamlFiles, yamlBase64Strings string) (*Client, error) {
+	var yamlFileArray, yamlBase64StringArray []string
+	if yamlFiles != "" {
+		yamlFileArray = clconf.Splitter.Split(yamlFiles, -1)
+	}
+	if yamlBase64Strings != "" {
+		yamlBase64StringArray = clconf.Splitter.Split(yamlBase64Strings, -1)
+	}
+	return &Client{yamlFileArray, yamlBase64StringArray}, nil
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
-	yamlMap := make(map[interface{}]interface{})
 	vars := make(map[string]string)
-
-	data, err := ioutil.ReadFile(c.filepath)
-	if err != nil {
-		return vars, err
-	}
-	err = yaml.Unmarshal(data, &yamlMap)
+	yamlMap, err := clconf.LoadConfFromEnvironment(
+		c.yamlFiles, c.yamlBase64Strings)
 	if err != nil {
 		return vars, err
 	}
 
-	nodeWalk(yamlMap, "", vars)
+	vars = clconf.ToKvMap(yamlMap)
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 
 	return vars, nil
-}
-
-// nodeWalk recursively descends nodes, updating vars.
-func nodeWalk(node map[interface{}]interface{}, key string, vars map[string]string) error {
-	for k, v := range node {
-		key := key + "/" + k.(string)
-
-		switch v.(type) {
-		case map[interface{}]interface{}:
-			nodeWalk(v.(map[interface{}]interface{}), key, vars)
-		case []interface{}:
-			for _, j := range v.([]interface{}) {
-				switch j.(type) {
-				case map[interface{}]interface{}:
-					nodeWalk(j.(map[interface{}]interface{}), key, vars)
-				default:
-					vars[fmt.Sprintf("%s/%v", key, j)] = ""
-				}
-			}
-		default:
-		    vars[key] = fmt.Sprintf("%v", v)
-		}
-
-	}
-	return nil
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
@@ -76,9 +50,11 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}
 	defer watcher.Close()
 
-	err = watcher.Add(c.filepath)
-	if err != nil {
-		return 0, err
+	for _, filepath := range c.yamlFiles {
+		err = watcher.Add(filepath)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	for {

@@ -100,7 +100,7 @@ func init() {
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
-	flag.StringVar(&yamlBase64, "yamlBase64", "", "a comma separated list of YAML/JSON base64 strings")
+	flag.StringVar(&yamlBase64, "file-base64", "", "a comma separated list of YAML/JSON base64 strings")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -377,7 +377,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SecretID = secretID
 	case "file":
 		config.YAMLFile = yamlFile
-	case "yamlBase64":
+	case "file-base64":
 		config.YAMLBase64 = yamlBase64
 	}
 }

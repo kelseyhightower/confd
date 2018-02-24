@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/kelseyhightower/confd/backends/clconf"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
@@ -40,8 +39,6 @@ func New(config Config) (StoreClient, error) {
 	}
 
 	switch config.Backend {
-	case "clconf":
-		return clconf.NewClconfClient(config.YAMLFile, config.YAMLBase64)
 	case "consul":
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
@@ -65,7 +62,7 @@ func New(config Config) (StoreClient, error) {
 	case "env":
 		return env.NewEnvClient()
 	case "file":
-		return file.NewFileClient(config.YAMLFile)
+		return file.NewFileClient(config.YAMLFile, config.YAMLBase64)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":    config.AppID,

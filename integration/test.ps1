@@ -13,7 +13,7 @@ function Compare-TestResult {
         (Get-Content "$PSScriptRoot\expect\$Expected") `
         (Get-Content "$tempDir\$Actual")
     if ($diff) {
-        throw $diff
+        Write-Error $($diff | Out-String)
     }
 }
 
@@ -43,5 +43,5 @@ try {
     }
 }
 finally {
-    Remove-Item -Recurse -Force $tempDir
+    #Remove-Item -Recurse -Force $tempDir
 }
