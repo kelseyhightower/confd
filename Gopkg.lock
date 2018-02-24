@@ -8,12 +8,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  name = "github.com/sirupsen/logrus"
-  packages = ["."]
-  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
-  version = "v1.0.3"
-
-[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -222,6 +216,12 @@
   revision = "0af5bab1e1ea2860c5aef8e77427bab011d774d8"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
+  version = "v1.0.3"
+
+[[projects]]
   name = "github.com/ugorji/go"
   packages = ["codec"]
   revision = "bdcc60b419d136a85cdf2e7cbcac34b3f1cd6e57"
@@ -328,6 +328,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c11f2c4185e29aed72c17e44a531c213635edd665cbb316f0ee40f05162eebac"
+  inputs-digest = "fe9515053e877ef8c267ffcf1549e155ea0f7cc10ed4bf6d5f8a184fde5d49c5"
   solver-name = "gps-cdcl"
   solver-version = 1
