@@ -51,7 +51,8 @@
   branch = "v2"
 
 [[constraint]]
-  name = "gitlab.com/pastdev/s2i/clconf"
+  name = "github.com/pastdev/clconf"
+  version = "1.0.0"
 
 [[override]]
   name = "github.com/ugorji/go"
