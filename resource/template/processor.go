@@ -83,19 +83,42 @@ func (p *watchProcessor) Process() {
 }
 
 func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
+	// Initial template rendering
+	if err := t.process(); err != nil {
+		p.errChan <- err
+	}
+	// Waiting for updates
+	stream := make(chan error, 10)
 	defer p.wg.Done()
 	keys := appendPrefix(t.Prefix, t.Keys)
-	for {
-		index, err := t.database.WatchPrefix(t.Prefix, keys, t.lastIndex)
+	go func() {
+		log.Printf("[DEBUG] Start watching prefix")
+		err := t.database.WatchPrefix(t.Prefix, keys, stream)
 		if err != nil {
 			p.errChan <- err
-			// Prevent backend errors from consuming all resources.
-			time.Sleep(time.Second * 2)
-			continue
 		}
-		t.lastIndex = index
-		if err := t.process(); err != nil {
-			p.errChan <- err
+		log.Printf("[DEBUG] Stop watching prefix")
+	}()
+	needsUpdate := false
+	for {
+		select {
+		case <-time.After(time.Second * 5):
+			if needsUpdate {
+				needsUpdate = false
+				err := t.process()
+				if err != nil {
+					p.errChan <- err
+				}
+			}
+		case err := <-stream:
+			needsUpdate = true
+			if err != nil {
+				// Prevent backend errors from consuming all resources.
+				p.errChan <- err
+				log.Printf("[DEBUG] Sleeping for 2 seconds after backend error")
+				time.Sleep(time.Second * 2)
+				continue
+			}
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"io"
+
 	context "golang.org/x/net/context"
 
 	"github.com/kelseyhightower/confd/confd"
@@ -32,18 +34,26 @@ func (c *GRPCClient) GetValues(keys []string) (map[string]string, error) {
 	return resp.Values, nil
 }
 
-func (c *GRPCClient) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
+func (c *GRPCClient) WatchPrefix(prefix string, keys []string, stream chan error) error {
 	args := &proto.WatchPrefixRequest{
-		Prefix:    prefix,
-		Keys:      keys,
-		WaitIndex: waitIndex,
+		Prefix: prefix,
+		Keys:   keys,
 	}
-	resp, err := c.client.WatchPrefix(context.Background(), args)
+	s, err := c.client.WatchPrefix(context.Background(), args)
 	if err != nil {
-		return 0, err
+		return err
 	}
-
-	return resp.Index, nil
+	for {
+		_, err = s.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		stream <- nil
+	}
+	return nil
 }
 
 // GRPCServer is the GRPC server that GRPCClient talks to.
@@ -70,11 +80,15 @@ func (s *GRPCServer) GetValues(
 }
 
 func (s *GRPCServer) WatchPrefix(
-	ctx context.Context,
-	req *proto.WatchPrefixRequest) (*proto.WatchPrefixResponse, error) {
-	index, err := s.Database.WatchPrefix(req.Prefix, req.Keys, req.WaitIndex)
-	resp := proto.WatchPrefixResponse{
-		Index: index,
+	req *proto.WatchPrefixRequest,
+	stream proto.Database_WatchPrefixServer) error {
+	errors := make(chan error, 10)
+	go s.Database.WatchPrefix(req.Prefix, req.Keys, errors)
+	for {
+		err := <-errors
+		if err != nil {
+			return err
+		}
+		stream.Send(&proto.WatchPrefixResponse{})
 	}
-	return &resp, err
 }

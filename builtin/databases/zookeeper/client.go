@@ -79,30 +79,25 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-type watchResponse struct {
-	waitIndex uint64
-	err       error
-}
-
-func (c *Client) watch(key string, respChan chan watchResponse, cancelRoutine chan bool) {
+func (c *Client) watch(key string, respChan chan error, cancelRoutine chan bool) {
 	_, _, keyEventCh, err := c.client.GetW(key)
 	if err != nil {
-		respChan <- watchResponse{0, err}
+		respChan <- err
 	}
 	_, _, childEventCh, err := c.client.ChildrenW(key)
 	if err != nil {
-		respChan <- watchResponse{0, err}
+		respChan <- err
 	}
 
 	for {
 		select {
 		case e := <-keyEventCh:
 			if e.Type == zk.EventNodeDataChanged {
-				respChan <- watchResponse{1, e.Err}
+				respChan <- e.Err
 			}
 		case e := <-childEventCh:
 			if e.Type == zk.EventNodeChildrenChanged {
-				respChan <- watchResponse{1, e.Err}
+				respChan <- e.Err
 			}
 		case <-cancelRoutine:
 			log.Printf("Stop watching: %s", key)
@@ -112,19 +107,14 @@ func (c *Client) watch(key string, respChan chan watchResponse, cancelRoutine ch
 	}
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
-	// return something > 0 to trigger a key retrieval from the store
-	if waitIndex == 0 {
-		return 1, nil
-	}
-
+func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
 	// List the childrens first
 	entries, err := c.GetValues([]string{prefix})
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	respChan := make(chan watchResponse)
+	respChan := make(chan error)
 	cancelRoutine := make(chan bool)
 	defer close(cancelRoutine)
 
@@ -156,6 +146,11 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (ui
 		}
 	}
 
-	r := <-respChan
-	return r.waitIndex, r.err
+	for {
+		err := <-respChan
+		if err != nil {
+			return err
+		}
+		stream <- nil
+	}
 }

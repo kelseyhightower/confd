@@ -76,25 +76,16 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-type watchResponse struct {
-	waitIndex uint64
-	err       error
-}
-
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
-	respChan := make(chan watchResponse)
-	go func() {
-		opts := api.QueryOptions{
-			WaitIndex: waitIndex,
-		}
-		_, meta, err := c.client.List(prefix, &opts)
+func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+	var index uint64
+	for {
+		_, meta, err := c.client.List(prefix, &api.QueryOptions{WaitIndex: index})
 		if err != nil {
-			respChan <- watchResponse{waitIndex, err}
-			return
+			return err
 		}
-		respChan <- watchResponse{meta.LastIndex, err}
-	}()
-
-	r := <-respChan
-	return r.waitIndex, r.err
+		if meta.LastIndex != index {
+			stream <- nil
+			index = meta.LastIndex
+		}
+	}
 }

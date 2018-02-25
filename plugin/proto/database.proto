@@ -18,15 +18,12 @@ message GetValuesResponse {
 message WatchPrefixRequest {
 	string prefix = 1;
 	repeated string keys = 2;
-	uint64 wait_index = 3;
 }
 
-message WatchPrefixResponse {
-	uint64 index = 1;
-}
+message WatchPrefixResponse {}
 
 service Database {
     rpc Configure(ConfigureRequest) returns (ConfigureResponse);
     rpc GetValues(GetValuesRequest) returns (GetValuesResponse);
-    rpc WatchPrefix(WatchPrefixRequest) returns (WatchPrefixResponse);
+    rpc WatchPrefix(WatchPrefixRequest) returns (stream WatchPrefixResponse);
 }

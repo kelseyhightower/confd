@@ -122,35 +122,18 @@ func nodeWalk(node *client.Node, vars map[string]string) error {
 	return nil
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (uint64, error) {
-	// return something > 0 to trigger a key retrieval from the store
-	if waitIndex == 0 {
-		return 1, nil
-	}
-
+func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+	watcher := c.client.Watcher(prefix, &client.WatcherOptions{Recursive: true})
 	for {
-		// Setting AfterIndex to 0 (default) means that the Watcher
-		// should start watching for events starting at the current
-		// index, whatever that may be.
-		watcher := c.client.Watcher(prefix, &client.WatcherOptions{AfterIndex: uint64(0), Recursive: true})
-		ctx := context.Background()
-		cancelRoutine := make(chan bool)
-		defer close(cancelRoutine)
-
-		go func() {
-			<-cancelRoutine
-			return
-		}()
-
-		resp, err := watcher.Next(ctx)
+		resp, err := watcher.Next(context.Background())
 		if err != nil {
 			switch e := err.(type) {
 			case *client.Error:
-				if e.Code == 401 {
-					return 0, nil
+				if e.Code == http.StatusUnauthorized {
+					return nil
 				}
 			}
-			return waitIndex, err
+			return err
 		}
 
 		// Only return if we have a key prefix we care about.
@@ -159,7 +142,8 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64) (ui
 		// is reducing the scope of keys that can trigger updates.
 		for _, k := range keys {
 			if strings.HasPrefix(resp.Node.Key, k) {
-				return resp.Node.ModifiedIndex, err
+				stream <- nil
+				break
 			}
 		}
 	}
