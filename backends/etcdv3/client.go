@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/kelseyhightower/confd/log"
 	"sync"
 )
 
@@ -57,17 +58,25 @@ func (w *Watch) update(newRevision int64){
 func createWatch(client *clientv3.Client, prefix string) (*Watch, error) {
 	w := &Watch{0, make(chan bool), sync.RWMutex{}}
 	go func() {
-		rch := client.Watch(context.Background(), prefix, clientv3.WithPrefix())
+		rch := client.Watch(context.Background(), prefix, clientv3.WithPrefix(),
+							clientv3.WithCreatedNotify())
+		log.Debug("Watch created on %s", prefix)
 		for {
 			for wresp := range rch {
 				if wresp.CompactRevision > w.revision {
 					// respect CompactRevision
 					w.update(wresp.CompactRevision)
+					log.Debug("Watch to '%s' updated to %d by CompactRevision", prefix, wresp.CompactRevision)
 				} else if wresp.Header.GetRevision() > w.revision {
 					// Watch created or updated
 					w.update(wresp.Header.GetRevision())
+					log.Debug("Watch to '%s' updated to %d by header revision", prefix, wresp.Header.GetRevision())
+				}
+				if err := wresp.Err(); err != nil {
+					log.Error("Watch error: %s", err.Error())
 				}
 			}
+			log.Warning("Watch to '%s' stopped at revision %d", prefix, w.revision)
 			// Disconnected or cancelled
 			// Wait for a moment to avoid reconnecting
 			// too quickly
@@ -78,7 +87,8 @@ func createWatch(client *clientv3.Client, prefix string) (*Watch, error) {
 					clientv3.WithRev(w.revision + 1))
 			} else {
 				// Start from the latest revision
-				rch = client.Watch(context.Background(), prefix, clientv3.WithPrefix())
+				rch = client.Watch(context.Background(), prefix, clientv3.WithPrefix(),
+									clientv3.WithCreatedNotify())
 			}
 		}
 	}()
