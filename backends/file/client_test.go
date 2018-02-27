@@ -1,6 +1,5 @@
 package file
 
-/*
 import (
 	"encoding/base64"
 	"fmt"
@@ -93,7 +92,8 @@ type YamlMeta struct {
 }
 
 func getValues(yamls []Yaml, keys ...string) (map[string]string, error) {
-	tempDir := os.TempDir()
+	tempDir := path.Join(os.TempDir(), "confd")
+	os.MakeDir(tempDir)
 	yamlMeta := make([]YamlMeta, len(yamls))
 
 	for i, yaml := range yamls {
@@ -260,4 +260,3 @@ func TestGetValuesMixed(t *testing.T) {
 		t.Errorf("Failed get values: [%v] != [%v]", overrideExpected, values)
 	}
 }
-*/
