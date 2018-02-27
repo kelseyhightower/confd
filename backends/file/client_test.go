@@ -93,7 +93,7 @@ type YamlMeta struct {
 
 func getValues(yamls []Yaml, keys ...string) (map[string]string, error) {
 	tempDir := path.Join(os.TempDir(), "confd")
-	os.MakeDir(tempDir)
+	os.Mkdir(tempDir, 0700)
 	yamlMeta := make([]YamlMeta, len(yamls))
 
 	for i, yaml := range yamls {
