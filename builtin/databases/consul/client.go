@@ -4,9 +4,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/mitchellh/mapstructure"
@@ -76,16 +78,18 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
 	var index uint64
 	for {
 		_, meta, err := c.client.List(prefix, &api.QueryOptions{WaitIndex: index})
 		if err != nil {
-			return err
+			log.Printf("[ERROR] %s", err.Error())
+			time.Sleep(2 * time.Second)
+			continue
 		}
 		if meta.LastIndex != index {
-			stream <- nil
 			index = meta.LastIndex
+			results <- ""
 		}
 	}
 }

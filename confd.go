@@ -37,23 +37,32 @@ func mainExitCode() int {
 	log.Printf("[INFO] Starting confd")
 
 	database, client, err := backends.New(backendsConfig)
-	defer client.Kill()
 	if err != nil {
-		log.Printf("[ERROR] %s", err.Error())
+		log.Printf("[ERROR] Failed to connect to a plugin. %s", err.Error())
 		return 1
 	}
+	defer func() {
+		log.Printf("[INFO] Closing a plugin process")
+		client.Kill()
+	}()
 
 	templateConfig.Database = database
 	if onetime {
 		if err := template.Process(templateConfig); err != nil {
-			log.Printf("[ERROR] %s", err.Error())
+			log.Printf("[ERROR] Failed to process a template. %s", err.Error())
 			return 1
 		}
 		return 0
 	}
 
 	doneChan := make(chan bool)
-	errChan := make(chan error, 10)
+	errChan := make(chan error)
+
+	go func(errChan chan error) {
+		for err := range errChan {
+			log.Printf("[ERROR] Received an error from a plugin. %s", err.Error())
+		}
+	}(errChan)
 
 	var processor template.Processor
 	switch {
@@ -65,17 +74,14 @@ func mainExitCode() int {
 
 	go processor.Process()
 
-	signalChan := make(chan os.Signal, 1)
+	signalChan := make(chan os.Signal)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	for {
-		select {
-		case err := <-errChan:
-			log.Printf("[ERROR] %s", err.Error())
-		case s := <-signalChan:
-			log.Printf("[INFO] Captured %v. Exiting...", s)
-			close(doneChan)
-		case <-doneChan:
-			return 0
-		}
+	select {
+	case s := <-signalChan:
+		log.Printf("[INFO] Captured %s. Exiting...", s)
+		return 0
+	case <-doneChan:
+		log.Printf("[INFO] Exiting...")
+		return 0
 	}
 }

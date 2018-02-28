@@ -196,6 +196,6 @@ func flatten(key string, value interface{}, vars map[string]string) {
 }
 
 // WatchPrefix - not implemented at the moment
-func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
 	return nil
 }

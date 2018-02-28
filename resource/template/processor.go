@@ -45,7 +45,7 @@ func (p *intervalProcessor) Process() {
 	for {
 		ts, err := getTemplateResources(p.config)
 		if err != nil {
-			log.Fatal(err.Error())
+			p.errChan <- err
 			break
 		}
 		process(ts)
@@ -71,7 +71,7 @@ func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
 	ts, err := getTemplateResources(p.config)
 	if err != nil {
-		log.Fatal(err.Error())
+		p.errChan <- err
 		return
 	}
 	for _, t := range ts {
@@ -88,39 +88,32 @@ func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 		p.errChan <- err
 	}
 	// Waiting for updates
-	stream := make(chan error, 10)
+	results := make(chan string)
 	defer p.wg.Done()
 	keys := appendPrefix(t.Prefix, t.Keys)
 	go func() {
-		log.Printf("[DEBUG] Start watching prefix")
-		err := t.database.WatchPrefix(t.Prefix, keys, stream)
-		if err != nil {
-			p.errChan <- err
-		}
-		log.Printf("[DEBUG] Stop watching prefix")
-	}()
-	needsUpdate := false
-	for {
-		select {
-		case <-time.After(time.Second * 5):
-			if needsUpdate {
-				needsUpdate = false
-				err := t.process()
-				if err != nil {
-					p.errChan <- err
+		needsUpdate := false
+		for {
+			select {
+			case <-time.Tick(time.Second * 1):
+				if needsUpdate {
+					needsUpdate = false
+					err := t.process()
+					if err != nil {
+						p.errChan <- err
+					}
 				}
-			}
-		case err := <-stream:
-			needsUpdate = true
-			if err != nil {
-				// Prevent backend errors from consuming all resources.
-				p.errChan <- err
-				log.Printf("[DEBUG] Sleeping for 2 seconds after backend error")
-				time.Sleep(time.Second * 2)
-				continue
+			case <-results:
+				needsUpdate = true
+				log.Printf("[DEBUG] Got something from the plugin")
 			}
 		}
+	}()
+	err := t.database.WatchPrefix(t.Prefix, keys, results)
+	if err != nil {
+		p.errChan <- err
 	}
+	return
 }
 
 func getTemplateResources(config Config) ([]*TemplateResource, error) {

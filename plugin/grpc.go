@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"io"
+	"log"
 
 	context "golang.org/x/net/context"
 
@@ -34,7 +35,7 @@ func (c *GRPCClient) GetValues(keys []string) (map[string]string, error) {
 	return resp.Values, nil
 }
 
-func (c *GRPCClient) WatchPrefix(prefix string, keys []string, stream chan error) error {
+func (c *GRPCClient) WatchPrefix(prefix string, keys []string, results chan string) error {
 	args := &proto.WatchPrefixRequest{
 		Prefix: prefix,
 		Keys:   keys,
@@ -44,16 +45,16 @@ func (c *GRPCClient) WatchPrefix(prefix string, keys []string, stream chan error
 		return err
 	}
 	for {
-		_, err = s.Recv()
+		_, err := s.Recv()
 		if err == io.EOF {
-			break
+			log.Printf("[DEBUG] caught EOF on client")
+			return nil
 		}
 		if err != nil {
 			return err
 		}
-		stream <- nil
+		results <- ""
 	}
-	return nil
 }
 
 // GRPCServer is the GRPC server that GRPCClient talks to.
@@ -82,13 +83,13 @@ func (s *GRPCServer) GetValues(
 func (s *GRPCServer) WatchPrefix(
 	req *proto.WatchPrefixRequest,
 	stream proto.Database_WatchPrefixServer) error {
-	errors := make(chan error, 10)
-	go s.Database.WatchPrefix(req.Prefix, req.Keys, errors)
-	for {
-		err := <-errors
+	results := make(chan string)
+	go s.Database.WatchPrefix(req.Prefix, req.Keys, results)
+	for range results {
+		err := stream.Send(&proto.WatchPrefixResponse{})
 		if err != nil {
 			return err
 		}
-		stream.Send(&proto.WatchPrefixResponse{})
 	}
+	return nil
 }

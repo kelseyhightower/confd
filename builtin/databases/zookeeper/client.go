@@ -107,7 +107,7 @@ func (c *Client) watch(key string, respChan chan error, cancelRoutine chan bool)
 	}
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
 	// List the childrens first
 	entries, err := c.GetValues([]string{prefix})
 	if err != nil {
@@ -126,7 +126,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) er
 				for dir := filepath.Dir(k); dir != "/"; dir = filepath.Dir(dir) {
 					if _, ok := watchMap[dir]; !ok {
 						watchMap[dir] = ""
-						log.Printf("Watching: %s", dir)
+						log.Printf("[INFO] Watching: %s", dir)
 						go c.watch(dir, respChan, cancelRoutine)
 					}
 				}
@@ -139,7 +139,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) er
 	for k := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
-				log.Printf("Watching: %s", k)
+				log.Printf("[INFO] Watching: %s", k)
 				go c.watch(k, respChan, cancelRoutine)
 				break
 			}
@@ -149,8 +149,10 @@ func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) er
 	for {
 		err := <-respChan
 		if err != nil {
-			return err
+			log.Printf("[ERROR] %s", err.Error())
+			time.Sleep(2 * time.Second)
+			continue
 		}
-		stream <- nil
+		results <- ""
 	}
 }

@@ -124,6 +124,6 @@ type watchResponse struct {
 	err       error
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
 	return nil
 }

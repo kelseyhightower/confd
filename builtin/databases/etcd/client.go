@@ -122,7 +122,7 @@ func nodeWalk(node *client.Node, vars map[string]string) error {
 	return nil
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
+func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
 	watcher := c.client.Watcher(prefix, &client.WatcherOptions{Recursive: true})
 	for {
 		resp, err := watcher.Next(context.Background())
@@ -130,10 +130,11 @@ func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) er
 			switch e := err.(type) {
 			case *client.Error:
 				if e.Code == http.StatusUnauthorized {
-					return nil
+					return err
 				}
 			}
-			return err
+			time.Sleep(2 * time.Second)
+			continue
 		}
 
 		// Only return if we have a key prefix we care about.
@@ -142,7 +143,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) er
 		// is reducing the scope of keys that can trigger updates.
 		for _, k := range keys {
 			if strings.HasPrefix(resp.Node.Key, k) {
-				stream <- nil
+				results <- ""
 				break
 			}
 		}

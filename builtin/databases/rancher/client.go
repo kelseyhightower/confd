@@ -118,7 +118,6 @@ func (c *Client) testConnection() error {
 	return err
 }
 
-func (c *Client) WatchPrefix(prefix string, keys []string, stream chan error) error {
-	// Watches are not implemented in Rancher Metadata Service
+func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
 	return nil
 }
