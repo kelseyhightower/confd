@@ -10,6 +10,7 @@ confd supports the following backends:
 * consul
 * vault
 * environment variables
+* file
 * redis
 * zookeeper
 * dynamodb
@@ -45,6 +46,25 @@ vault write myapp/database url=db.example.com user=rob
 ```
 export MYAPP_DATABASE_URL=db.example.com
 export MYAPP_DATABASE_USER=rob
+```
+
+#### file
+
+```
+cat << EOF > /tmp/configMap.yml
+---
+database:
+  host: 127.0.0.1
+  port: 3306
+  username: REPLACE
+  password: REPLACE
+EOF
+cat << EOF > /tmp/secrets.yml
+---
+database:
+  username: admin
+  password: admin
+EOF
 ```
 
 #### redis
@@ -163,6 +183,22 @@ confd -onetime -backend dynamodb -table <YOUR_TABLE>
 
 ```
 confd -onetime -backend env
+```
+
+#### file
+
+```
+confd -onetime -backend file -file /tmp/configMap.yml,/tmp/secrets.yml
+```
+Can also add base64 encoded overrides:
+```
+read -d '' OVERRIDE <<"EOF"
+database:
+  password: dev
+  hostname: dev
+EOF
+
+confd -onetime -backend file -file /tmp/configMap.yml,/tmp/secrets.yml -file-base64 $(echo "$OVERRIDE" | base64)
 ```
 
 #### redis
