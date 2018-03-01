@@ -92,5 +92,4 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 			return 0, nil
 		}
 	}
-	return waitIndex, nil
 }
