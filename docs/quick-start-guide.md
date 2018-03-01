@@ -13,8 +13,8 @@ confd supports the following backends:
 * redis
 * zookeeper
 * dynamodb
-* stackengine
 * rancher
+* ssm (AWS Simple Systems Manager Parameter Store)
 
 ### Add keys
 
@@ -83,14 +83,17 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
 aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
     --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
-#### StackEngine
-```
-curl -k -X PUT -d 'value' https://mesh-01:8443/api/kv/key --header "Authorization: Bearer stackengine_api_key"
-```
 
 #### Rancher
 
 This backend consumes the [Rancher](https://www.rancher.com) metadata service. For available keys, see the [Rancher Metadata Service docs](http://docs.rancher.com/rancher/rancher-services/metadata-service/).
+
+#### ssm
+
+```
+aws ssm put-parameter --name "/myapp/database/url" --type "String" --value "db.example.com"
+aws ssm put-parameter --name "/myapp/database/user" --type "SecureString" --value "rob"
+```
 
 ### Create the confdir
 
@@ -133,7 +136,7 @@ confd supports two modes of operation daemon and onetime. In daemon mode confd p
 #### etcd
 
 ```
-confd -onetime -backend etcd -node http://127.0.0.1:4001
+confd -onetime -backend etcd -node http://127.0.0.1:2379
 ```
 
 #### consul
@@ -162,19 +165,17 @@ confd -onetime -backend dynamodb -table <YOUR_TABLE>
 confd -onetime -backend env
 ```
 
-#### StackEngine
-
-```
-confd -onetime -backend stackengine -auth-token stackengine_api_key -node 192.168.255.210:8443 -scheme https
-```
-
 #### redis
 
 ```
 confd -onetime -backend redis -node 192.168.255.210:6379
 ```
+or if you want to connect to a specific redis database (4 in this example):
 
-=======
+```
+confd -onetime -backend redis -node 192.168.255.210:6379/4
+```
+
 #### rancher
 
 ```
@@ -201,6 +202,12 @@ Output:
 [myconfig]
 database_url = db.example.com
 database_user = rob
+```
+
+#### ssm
+
+```
+confd -onetime -backend ssm
 ```
 
 ## Advanced Example

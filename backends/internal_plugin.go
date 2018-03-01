@@ -13,9 +13,11 @@ import (
 	"github.com/kelseyhightower/confd/builtin/databases/dynamodb"
 	"github.com/kelseyhightower/confd/builtin/databases/env"
 	"github.com/kelseyhightower/confd/builtin/databases/etcd"
+	"github.com/kelseyhightower/confd/builtin/databases/etcdv3"
+	"github.com/kelseyhightower/confd/builtin/databases/file"
 	"github.com/kelseyhightower/confd/builtin/databases/rancher"
 	"github.com/kelseyhightower/confd/builtin/databases/redis"
-	"github.com/kelseyhightower/confd/builtin/databases/stackengine"
+	"github.com/kelseyhightower/confd/builtin/databases/ssm"
 	"github.com/kelseyhightower/confd/builtin/databases/vault"
 	"github.com/kelseyhightower/confd/builtin/databases/zookeeper"
 	"github.com/kelseyhightower/confd/confd"
@@ -23,15 +25,17 @@ import (
 )
 
 var InternalDatabases = map[string]confd.Database{
-	"env":         &env.Client{},
-	"consul":      &consul.Client{},
-	"dynamodb":    &dynamodb.Client{},
-	"etcd":        &etcd.Client{},
-	"rancher":     &rancher.Client{},
-	"redis":       &redis.Client{},
-	"stackengine": &stackengine.Client{},
-	"zookeeper":   &zookeeper.Client{},
-	"vault":       &vault.Client{},
+	"env":       &env.Client{},
+	"consul":    &consul.Client{},
+	"dynamodb":  &dynamodb.Client{},
+	"etcd":      &etcd.Client{},
+	"etcdv3":    &etcdv3.Client{},
+	"rancher":   &rancher.Client{},
+	"redis":     &redis.Client{},
+	"zookeeper": &zookeeper.Client{},
+	"vault":     &vault.Client{},
+	"file":      &file.Client{},
+	"ssm":       &ssm.Client{},
 }
 
 const CONFDSPACE = "-CONFDSPACE-"

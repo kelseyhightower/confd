@@ -19,7 +19,7 @@ private-port: {{index $endpoint "private_port"}}
 public-port: {{index $endpoint "public_port"}}
 ```
 
-specifically useful if you a sub-template and you want to pass multiple values to it.
+specifically useful if you use a sub-template and you want to pass multiple values to it.
 
 ### base
 
@@ -53,12 +53,35 @@ Returns the KVPair where key matches its argument. Returns an error if key is no
 {{end}}
 ```
 
+### cget
+
+Returns the KVPair where key matches its argument and the value has been *encrypted*. Returns an error if key is not found.
+
+```
+{{with cget "/key"}}
+    key: {{.Key}}
+    value: {{.Value}}
+{{end}}
+```
+
 ### gets
 
 Returns all KVPair, []KVPair, where key matches its argument. Returns an error if key is not found.
 
 ```
 {{range gets "/*"}}
+    key: {{.Key}}
+    value: {{.Value}}
+{{end}}
+```
+
+### cgets
+
+Returns all KVPair, []KVPair, where key matches its argument and the values have been *encrypted*.
+Returns an error if key is not found.
+
+```
+{{range cgets "/*"}}
     key: {{.Key}}
     value: {{.Value}}
 {{end}}
@@ -79,12 +102,30 @@ value: {{getv "/key"}}
 value: {{getv "/key" "default_value"}}
 ```
 
+### cgetv
+
+Returns the *encrypted* value as a string where key matches its argument. Returns an error if key is not found.
+
+```
+value: {{cgetv "/key"}}
+```
+
 ### getvs
 
 Returns all values, []string, where key matches its argument. Returns an error if key is not found.
 
 ```
 {{range getvs "/*"}}
+    value: {{.}}
+{{end}}
+```
+
+### cgetvs
+
+Returns all *encrypted* values, []string, where key matches its argument. Returns an error if key is not found.
+
+```
+{{range cgetvs "/*"}}
     value: {{.}}
 {{end}}
 ```
@@ -175,6 +216,22 @@ Wrapper for [net.LookupSRV](https://golang.org/pkg/net/#LookupSRV). The wrapper 
   priority: {{.Priority}}
   weight: {{.Weight}}
 {{end}}
+```
+
+### base64Encode
+
+Returns a base64 encoded string of the value.
+
+```
+key: {{base64Encode "Value"}}
+```
+
+### base64Decode
+
+Returns the string representing the decoded base64 value.
+
+```
+key: {{base64Decode "VmFsdWU="}}
 ```
 
 #### Add keys to etcd
@@ -299,6 +356,14 @@ Wrapper for [net.LookupIP](https://golang.org/pkg/net/#LookupIP) function. The w
 {{end}}
 ```
 
+### atoi
+
+Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
+
+```
+{{seq 1 (atoi (getv "/count"))}}
+```
+
 ## Example Usage
 
 ```Bash
@@ -329,7 +394,7 @@ server {
     location / {
         root              {{getv "/nginx/root"}};
         index             index.html index.htm;
-		proxy_pass        http://app;
+        proxy_pass        http://app;
         proxy_redirect    off;
         proxy_set_header  Host             $host;
         proxy_set_header  X-Real-IP        $remote_addr;

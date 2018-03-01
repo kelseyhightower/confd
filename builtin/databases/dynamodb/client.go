@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -117,5 +118,5 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 // WatchPrefix is not implemented
 func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
-	return nil
+	return errors.New("WatchPrefix is not implemented")
 }

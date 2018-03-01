@@ -2,6 +2,7 @@ package rancher
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -118,6 +119,40 @@ func (c *Client) testConnection() error {
 	return err
 }
 
+type timeout interface {
+	Timeout() bool
+}
+
+func (c *Client) waitVersion(prefix string, version string) (string, error) {
+	// Long poll for 10 seconds
+	path := fmt.Sprintf("%s/version?wait=true&value=%s&maxWait=10", prefix, version)
+
+	for {
+		resp, err := c.makeMetaDataRequest(path)
+		if err != nil {
+			t, ok := err.(timeout)
+			if ok && t.Timeout() {
+				continue
+			}
+			return "", err
+		}
+		err = json.Unmarshal(resp, &version)
+		return version, err
+	}
+}
+
 func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
-	return nil
+	version := "init"
+	for {
+		newVersion, err := c.waitVersion(prefix, version)
+		if err != nil {
+			return err
+		}
+
+		if version != newVersion && version != "init" {
+			results <- ""
+		}
+
+		version = newVersion
+	}
 }

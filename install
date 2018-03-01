@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-BIN_DIR=${BIN_DIR:-/usr/local/bin}
-INSTALL=install
-
-echo "Installing confd to $BIN_DIR/confd..."
-$INSTALL -c bin/confd $BIN_DIR/confd

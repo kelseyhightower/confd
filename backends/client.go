@@ -43,7 +43,11 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 
 	// Configure each type of database
 	c := make(map[string]string)
-	log.Printf("[INFO] Backend nodes set to " + strings.Join(config.BackendNodes, ", "))
+	if config.Backend == "file" {
+		log.Printf("[INFO] Backend source(s) set to " + config.YAMLFile)
+	} else {
+		log.Printf("[INFO] Backend source(s) set to " + strings.Join(config.BackendNodes, ", "))
+	}
 	switch config.Backend {
 	case "consul":
 		c["nodes"] = strings.Join(config.BackendNodes, ",")
@@ -51,7 +55,10 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["key"] = config.ClientKey
 		c["cert"] = config.ClientCert
 		c["caCert"] = config.ClientCaKeys
-	case "etcd":
+		c["basicAuth"] = strconv.FormatBool(config.BasicAuth)
+		c["username"] = config.Username
+		c["password"] = config.Password
+	case "etcd", "etcdv3":
 		c["machines"] = strings.Join(config.BackendNodes, ",")
 		c["key"] = config.ClientKey
 		c["cert"] = config.ClientCert
@@ -69,26 +76,22 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	case "redis":
 		c["machines"] = strings.Join(config.BackendNodes, ",")
 		c["password"] = config.ClientKey
+		c["separator"] = config.Separator
 	case "vault":
 		c["authType"] = config.AuthType
 		c["address"] = config.BackendNodes[0]
 		c["app-id"] = config.AppID
 		c["user-id"] = config.UserID
+		c["role-id"] = config.RoleID
+		c["secret-id"] = config.SecretID
 		c["username"] = config.Username
 		c["password"] = config.Password
 		c["token"] = config.AuthToken
 		c["cert"] = config.ClientCert
 		c["key"] = config.ClientKey
 		c["caCert"] = config.ClientCaKeys
-	case "stackengine":
-		c["nodes"] = strings.Join(config.BackendNodes, ",")
-		c["cert"] = config.ClientCert
-		c["key"] = config.ClientKey
-		c["caCert"] = config.ClientCaKeys
-		c["scheme"] = config.Scheme
-		c["authToken"] = config.AuthToken
-	default:
-		break
+	case "file":
+		c["yamlFile"] = config.YAMLFile
 	}
 	database.Configure(c)
 

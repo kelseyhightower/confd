@@ -1,6 +1,7 @@
 package template
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,8 +9,11 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kelseyhightower/memkv"
 )
 
 func newFuncMap() map[string]interface{} {
@@ -27,9 +31,23 @@ func newFuncMap() map[string]interface{} {
 	m["toLower"] = strings.ToLower
 	m["contains"] = strings.Contains
 	m["replace"] = strings.Replace
+	m["trimSuffix"] = strings.TrimSuffix
 	m["lookupIP"] = LookupIP
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
+	m["base64Encode"] = Base64Encode
+	m["base64Decode"] = Base64Decode
+	m["parseBool"] = strconv.ParseBool
+	m["reverse"] = Reverse
+	m["sortByLength"] = SortByLength
+	m["sortKVByLength"] = SortKVByLength
+	m["add"] = func(a, b int) int { return a + b }
+	m["sub"] = func(a, b int) int { return a - b }
+	m["div"] = func(a, b int) int { return a / b }
+	m["mod"] = func(a, b int) int { return a % b }
+	m["mul"] = func(a, b int) int { return a * b }
+	m["seq"] = Seq
+	m["atoi"] = strconv.Atoi
 	return m
 }
 
@@ -37,6 +55,70 @@ func addFuncs(out, in map[string]interface{}) {
 	for name, fn := range in {
 		out[name] = fn
 	}
+}
+
+// Seq creates a sequence of integers. It's named and used as GNU's seq.
+// Seq takes the first and the last element as arguments. So Seq(3, 5) will generate [3,4,5]
+func Seq(first, last int) []int {
+	var arr []int
+	for i := first; i <= last; i++ {
+		arr = append(arr, i)
+	}
+	return arr
+}
+
+type byLengthKV []memkv.KVPair
+
+func (s byLengthKV) Len() int {
+	return len(s)
+}
+
+func (s byLengthKV) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s byLengthKV) Less(i, j int) bool {
+	return len(s[i].Key) < len(s[j].Key)
+}
+
+func SortKVByLength(values []memkv.KVPair) []memkv.KVPair {
+	sort.Sort(byLengthKV(values))
+	return values
+}
+
+type byLength []string
+
+func (s byLength) Len() int {
+	return len(s)
+}
+func (s byLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byLength) Less(i, j int) bool {
+	return len(s[i]) < len(s[j])
+}
+
+func SortByLength(values []string) []string {
+	sort.Sort(byLength(values))
+	return values
+}
+
+//Reverse returns the array in reversed order
+//works with []string and []KVPair
+func Reverse(values interface{}) interface{} {
+	switch values.(type) {
+	case []string:
+		v := values.([]string)
+		for left, right := 0, len(v)-1; left < right; left, right = left+1, right-1 {
+			v[left], v[right] = v[right], v[left]
+		}
+	case []memkv.KVPair:
+		v := values.([]memkv.KVPair)
+		for left, right := 0, len(v)-1; left < right; left, right = left+1, right-1 {
+			v[left], v[right] = v[right], v[left]
+		}
+	}
+	return values
 }
 
 // Getenv retrieves the value of the environment variable named by the key.
@@ -122,4 +204,13 @@ func LookupSRV(service, proto, name string) []*net.SRV {
 	}
 	sort.Sort(sortSRV(addrs))
 	return addrs
+}
+
+func Base64Encode(data string) string {
+	return base64.StdEncoding.EncodeToString([]byte(data))
+}
+
+func Base64Decode(data string) (string, error) {
+	s, err := base64.StdEncoding.DecodeString(data)
+	return string(s), err
 }

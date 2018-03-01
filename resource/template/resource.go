@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -17,6 +18,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/memkv"
+	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
 type Config struct {
@@ -28,6 +30,7 @@ type Config struct {
 	Database      confd.Database
 	SyncOnly      bool
 	TemplateDir   string
+	PGPPrivateKey []byte
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -55,6 +58,7 @@ type TemplateResource struct {
 	store         *memkv.Store
 	database      confd.Database
 	syncOnly      bool
+	PGPPrivateKey []byte
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -88,7 +92,15 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	if config.Prefix != "" {
 		tr.Prefix = config.Prefix
 	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
+
+	if !strings.HasPrefix(tr.Prefix, "/") {
+		tr.Prefix = "/" + tr.Prefix
+	}
+
+	if len(config.PGPPrivateKey) > 0 {
+		tr.PGPPrivateKey = config.PGPPrivateKey
+		addCryptFuncs(&tr)
+	}
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -106,6 +118,59 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	return &tr, nil
 }
 
+func addCryptFuncs(tr *TemplateResource) {
+	addFuncs(tr.funcMap, map[string]interface{}{
+		"cget": func(key string) (memkv.KVPair, error) {
+			kv, err := tr.funcMap["get"].(func(string) (memkv.KVPair, error))(key)
+			if err == nil {
+				var b []byte
+				b, err = secconf.Decode([]byte(kv.Value), bytes.NewBuffer(tr.PGPPrivateKey))
+				if err == nil {
+					kv.Value = string(b)
+				}
+			}
+			return kv, err
+		},
+		"cgets": func(pattern string) (memkv.KVPairs, error) {
+			kvs, err := tr.funcMap["gets"].(func(string) (memkv.KVPairs, error))(pattern)
+			if err == nil {
+				for i := range kvs {
+					b, err := secconf.Decode([]byte(kvs[i].Value), bytes.NewBuffer(tr.PGPPrivateKey))
+					if err != nil {
+						return memkv.KVPairs(nil), err
+					}
+					kvs[i].Value = string(b)
+				}
+			}
+			return kvs, err
+		},
+		"cgetv": func(key string) (string, error) {
+			v, err := tr.funcMap["getv"].(func(string, ...string) (string, error))(key)
+			if err == nil {
+				var b []byte
+				b, err = secconf.Decode([]byte(v), bytes.NewBuffer(tr.PGPPrivateKey))
+				if err == nil {
+					return string(b), nil
+				}
+			}
+			return v, err
+		},
+		"cgetvs": func(pattern string) ([]string, error) {
+			vs, err := tr.funcMap["getvs"].(func(string) ([]string, error))(pattern)
+			if err == nil {
+				for i := range vs {
+					b, err := secconf.Decode([]byte(vs[i]), bytes.NewBuffer(tr.PGPPrivateKey))
+					if err != nil {
+						return []string(nil), err
+					}
+					vs[i] = string(b)
+				}
+			}
+			return vs, err
+		},
+	})
+}
+
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
 	var err error
@@ -116,12 +181,12 @@ func (t *TemplateResource) setVars() error {
 	if err != nil {
 		return err
 	}
+	log.Printf("[DEBUG] Got the following map from store: %v", result)
 
 	t.store.Purge()
 
 	for k, v := range result {
-		log.Printf("[DEBUG] Setting %s=%s", filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
-		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
+		t.store.Set(path.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
 	return nil
 }
@@ -138,7 +203,8 @@ func (t *TemplateResource) createStageFile() error {
 	}
 
 	log.Printf("[DEBUG] Compiling source template " + t.Src)
-	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
+
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}
@@ -244,22 +310,28 @@ func (t *TemplateResource) check() error {
 	if err = tmpl.Execute(&cmdBuffer, data); err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] Running " + cmdBuffer.String())
-	c := exec.Command("/bin/sh", "-c", cmdBuffer.String())
-	output, err := c.CombinedOutput()
-	if err != nil {
-		log.Printf("[ERROR] %q", string(output))
-		return err
-	}
-	log.Printf("[DEBUG] %q", string(output))
-	return nil
+	return runCommand(cmdBuffer.String())
 }
 
 // reload executes the reload command.
 // It returns nil if the reload command returns 0.
 func (t *TemplateResource) reload() error {
-	log.Printf("[DEBUG] Running " + t.ReloadCmd)
-	c := exec.Command("/bin/sh", "-c", t.ReloadCmd)
+	return runCommand(t.ReloadCmd)
+}
+
+// runCommand is a shared function used by check and reload
+// to run the given command and log its output.
+// It returns nil if the given cmd returns 0.
+// The command can be run on unix and windows.
+func runCommand(cmd string) error {
+	log.Printf("[DEBUG] Running " + cmd)
+	var c *exec.Cmd
+	if runtime.GOOS == "windows" {
+		c = exec.Command("cmd", "/C", cmd)
+	} else {
+		c = exec.Command("/bin/sh", "-c", cmd)
+	}
+
 	output, err := c.CombinedOutput()
 	if err != nil {
 		log.Printf("[ERROR] %q", string(output))

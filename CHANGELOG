@@ -1,3 +1,83 @@
+### v0.15.0
+
+0c4cb29e Don't pass empty prefix to zookeeper nodeWalk
+5d6e2790 Update template.md - added forgotten verb
+19d6514d remove fmt.Println
+802e6a11 Added windows cmd support
+59001ca3 Fix handling of absent parameters for ssm backend
+8419c708 AWS SSM - don't treat "ParameterNotFound" as a fatal error
+0a09632a Add support for consul BasicAuth
+adf8d486 Fix panic during Consul client creation
+027be91f Update docker Multi-Stage build
+376d3f99 fix etcdv3 client watch: reuse previous watch to avoid memory leak
+f711530d fix(confd): etcd curl err when make integration
+
+### v0.14.0
+
+95ba861f Replace godep with dep
+cb53644c Template integration with https://github.com/xordataexchange/crypt provided values
+6da43945 add go version and git commit sha1 to version string
+8f052819 yaml/json file backend
+61652a2c Add AWS SSM Parameter Store backend
+
+### v0.13.0
+
+181e3e3 Update dependencies
+509268d Remove StackEngine backend
+3a61969 Add further installation instructions
+dd47bbb Introducing WaitPrefix for the Rancher backend
+35ffe8f Adding nested key support to Vault backend v2
+f1833a6 ETCD V3 support
+89c59d4 Feature new template func add
+2b080af added some additional text/template sorting methods
+fbea3b9 Fixes #562 by not adding the URL scheme to the node at DNS lookup time
+ab93ff1 Windows support
+695e62e add trimSuffix template function
+3049df8 Add base64 encode/decode template helpers
+485b31c improved etcd watch support
+8528d3c added support to specify a redis database (in the connection string)
+
+### v0.12.0
+
+5f3f79d Change etcd node port because the official port of etcd is 2379
+9073dae Fix typo in docs
+0ea1edb Remove unnecessary loop in Consul backend.
+dbbee0a Fix travis configuration to use latest dynamoDB binary
+ad5f74f Fix typo in quick-start-guide.md
+7ac1091 Upgrade Dockerfile to use latest stable Alpine which has Go 1.6
+20b3d37 add env backend integration tests
+c6622ed updated template docs
+9d57489 Specify default Vault backend node
+b34d223 Add simple redis example since one was missing from quickstart
+32d46e5 Fix typo in template-resources.md
+7c89004 Fix up Rancher metadata service description and links
+2a54c58 Fix missing braces and extra parenthesis on formatted datatime example
+6e198db Fix DynamoDB credentials handling
+705f2ee Fix dynamodb nil pointers
+e48e48f Use SVG for the build image
+6bb3c21 Add file exists function to template functions
+57b649d zookeeper watch support
+59da585 extended getenv & map template functions
+d423123 updated README for vault
+e60c2e2 Add support for redis password authentication
+f3a02e7 Adding example goreman Procfile for etcd
+aae4190 updated Dockerfile.build.alpine
+cf62311 update some docs
+54f715c Add lookupSRV function.
+7afb8d6 fixed broken etcd watch support
+5a5af59 switched to new etcd client
+5d2955a Remove gb install
+1577855 Fix typos in docs/tomcat-sample.md
+d133c25 Added support for Vault backend
+071e6ab IP dns resolving function for templates
+ccf2486 redis: try to recover from closed connections
+66a31bf Add support for etcd BasicAuth
+d9ea46c Added documentation for stackengine as a backend
+a1dee21 add -sync-only flag
+c615c18 update checklist
+233ac99 Add more debugging output for onetime and env.
+d7f835d Create tomcat-sample.md
+
 ### v0.11.0
 
 46d3c69 load template resources every interval

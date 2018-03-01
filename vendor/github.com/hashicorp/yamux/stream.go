@@ -47,8 +47,8 @@ type Stream struct {
 	recvNotifyCh chan struct{}
 	sendNotifyCh chan struct{}
 
-	readDeadline  time.Time
-	writeDeadline time.Time
+	readDeadline  atomic.Value // time.Time
+	writeDeadline atomic.Value // time.Time
 }
 
 // newStream is used to construct a new stream within
@@ -67,6 +67,8 @@ func newStream(session *Session, id uint32, state streamState) *Stream {
 		recvNotifyCh: make(chan struct{}, 1),
 		sendNotifyCh: make(chan struct{}, 1),
 	}
+	s.readDeadline.Store(time.Time{})
+	s.writeDeadline.Store(time.Time{})
 	return s
 }
 
@@ -91,10 +93,13 @@ START:
 	case streamRemoteClose:
 		fallthrough
 	case streamClosed:
+		s.recvLock.Lock()
 		if s.recvBuf == nil || s.recvBuf.Len() == 0 {
+			s.recvLock.Unlock()
 			s.stateLock.Unlock()
 			return 0, io.EOF
 		}
+		s.recvLock.Unlock()
 	case streamReset:
 		s.stateLock.Unlock()
 		return 0, ErrConnectionReset
@@ -118,12 +123,18 @@ START:
 
 WAIT:
 	var timeout <-chan time.Time
-	if !s.readDeadline.IsZero() {
-		delay := s.readDeadline.Sub(time.Now())
-		timeout = time.After(delay)
+	var timer *time.Timer
+	readDeadline := s.readDeadline.Load().(time.Time)
+	if !readDeadline.IsZero() {
+		delay := readDeadline.Sub(time.Now())
+		timer = time.NewTimer(delay)
+		timeout = timer.C
 	}
 	select {
 	case <-s.recvNotifyCh:
+		if timer != nil {
+			timer.Stop()
+		}
 		goto START
 	case <-timeout:
 		return 0, ErrTimeout
@@ -180,7 +191,7 @@ START:
 
 	// Send the header
 	s.sendHdr.encode(typeData, flags, s.id, max)
-	if err := s.session.waitForSendErr(s.sendHdr, body, s.sendErr); err != nil {
+	if err = s.session.waitForSendErr(s.sendHdr, body, s.sendErr); err != nil {
 		return 0, err
 	}
 
@@ -192,8 +203,9 @@ START:
 
 WAIT:
 	var timeout <-chan time.Time
-	if !s.writeDeadline.IsZero() {
-		delay := s.writeDeadline.Sub(time.Now())
+	writeDeadline := s.writeDeadline.Load().(time.Time)
+	if !writeDeadline.IsZero() {
+		delay := writeDeadline.Sub(time.Now())
 		timeout = time.After(delay)
 	}
 	select {
@@ -327,7 +339,7 @@ func (s *Stream) processFlags(flags uint16) error {
 		if s.state == streamSYNSent {
 			s.state = streamEstablished
 		}
-		s.session.establishStream()
+		s.session.establishStream(s.id)
 	}
 	if flags&flagFIN == flagFIN {
 		switch s.state {
@@ -348,9 +360,6 @@ func (s *Stream) processFlags(flags uint16) error {
 		}
 	}
 	if flags&flagRST == flagRST {
-		if s.state == streamSYNSent {
-			s.session.establishStream()
-		}
 		s.state = streamReset
 		closeStream = true
 		s.notifyWaiting()
@@ -430,13 +439,13 @@ func (s *Stream) SetDeadline(t time.Time) error {
 
 // SetReadDeadline sets the deadline for future Read calls.
 func (s *Stream) SetReadDeadline(t time.Time) error {
-	s.readDeadline = t
+	s.readDeadline.Store(t)
 	return nil
 }
 
 // SetWriteDeadline sets the deadline for future Write calls
 func (s *Stream) SetWriteDeadline(t time.Time) error {
-	s.writeDeadline = t
+	s.writeDeadline.Store(t)
 	return nil
 }
 

@@ -7,8 +7,10 @@ type Config struct {
 	Cert     string `mapstructure:"cert"`
 	Key      string `mapstructure:"key"`
 	CaCert   string `mapstructure:"caCert"`
-	AppId    string `mapstructure:"app-id"`
-	UserId   string `mapstructure:"user-id"`
+	AppID    string `mapstructure:"app-id"`
+	UserID   string `mapstructure:"user-id"`
+	RoleID   string `mapstructure:"role-id"`
+	SecretID string `mapstructure:"secret-id"`
 	AuthType string `mapstructure:"authType"`
 	Address  string `mapstructure:"address"`
 }

@@ -1,6 +1,7 @@
 package env
 
 import (
+	"errors"
 	"log"
 	"os"
 	"strings"
@@ -39,5 +40,5 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
-	return nil
+	return errors.New("WatchPrefix is not implemented")
 }

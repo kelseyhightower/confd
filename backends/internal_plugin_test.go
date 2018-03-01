@@ -12,11 +12,13 @@ func TestInternalPlugin_InternalDatabases(t *testing.T) {
 		"consul",
 		"dynamodb",
 		"etcd",
+		"etcdv3",
 		"rancher",
 		"redis",
-		"stackengine",
 		"zookeeper",
 		"vault",
+		"file",
+		"ssm",
 	} {
 		if _, ok := InternalDatabases[name]; !ok {
 			t.Errorf("Expected to find %s in InternalDatabases", name)

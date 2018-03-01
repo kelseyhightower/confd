@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/backends"
@@ -26,8 +27,8 @@ func mainExitCode() int {
 	}
 	flag.Parse()
 	if printVersion {
-		log.Printf("[INFO] confd %s", version)
-		return 0
+		log.Printf("[INFO] confd %s (Git SHA: %s, Go Version: %s)\n", Version, GitSHA, runtime.Version())
+		os.Exit(0)
 	}
 	if err := initConfig(); err != nil {
 		log.Printf("[ERROR] %s", err.Error())

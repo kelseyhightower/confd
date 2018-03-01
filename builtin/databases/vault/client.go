@@ -54,15 +54,20 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 	var secret *vaultapi.Secret
 
 	switch config.AuthType {
+	case "app-role":
+		secret, err = c.Logical().Write("/auth/approle/login", map[string]interface{}{
+			"role_id":   config.RoleID,
+			"secret_id": config.SecretID,
+		})
 	case "app-id":
-		if config.AppId == "" {
+		if config.AppID == "" {
 			return errors.New("app-id is missing from configuration")
-		} else if config.UserId == "" {
+		} else if config.UserID == "" {
 			return errors.New("user-id is missing from configuration")
 		}
 		secret, err = c.Logical().Write("/auth/app-id/login", map[string]interface{}{
-			"app_id":  config.AppId,
-			"user_id": config.UserId,
+			"app_id":  config.AppID,
+			"user_id": config.UserID,
 		})
 	case "github":
 		if config.Token == "" {
@@ -86,6 +91,17 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 		secret, err = c.Logical().Write(fmt.Sprintf("/auth/userpass/login/%s", config.Username), map[string]interface{}{
 			"password": config.Password,
 		})
+	case "kubernetes":
+		jwt, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+		if err != nil {
+			return err
+		}
+		secret, err = c.Logical().Write("/auth/kubernetes/login", map[string]interface{}{
+			"jwt":  string(jwt[:]),
+			"role": config.RoleID,
+		})
+	case "cert":
+		secret, err = c.Logical().Write("/auth/cert/login", map[string]interface{}{})
 	}
 
 	if err != nil {
@@ -95,6 +111,10 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 	// if the token has already been set
 	if c.Token() != "" {
 		return nil
+	}
+
+	if secret == nil || secret.Auth == nil {
+		return errors.New("Unable to authenticate")
 	}
 
 	log.Printf("[DEBUG] client authenticated with auth backend: %s", config.AuthType)
@@ -137,8 +157,12 @@ func getConfig(address, cert, key, caCert string) (*vaultapi.Config, error) {
 
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
-	vars := make(map[string]string)
+	branches := make(map[string]bool)
 	for _, key := range keys {
+		walkTree(c, key, branches)
+	}
+	vars := make(map[string]string)
+	for key := range branches {
 		log.Printf("[DEBUG] getting %s from vault", key)
 		resp, err := c.client.Logical().Read(key)
 
@@ -195,7 +219,54 @@ func flatten(key string, value interface{}, vars map[string]string) {
 	}
 }
 
+// recursively walk the branches in the Vault, adding to branches map
+func walkTree(c *Client, key string, branches map[string]bool) error {
+	log.Printf("[DEBUG] listing %s from vault", key)
+
+	// strip trailing slash as long as it's not the only character
+	if last := len(key) - 1; last > 0 && key[last] == '/' {
+		key = key[:last]
+	}
+	if branches[key] {
+		// already processed this branch
+		return nil
+	}
+	branches[key] = true
+
+	resp, err := c.client.Logical().List(key)
+
+	if err != nil {
+		log.Printf("[DEBUG] there was an error extracting %s", key)
+		return err
+	}
+	if resp == nil || resp.Data == nil || resp.Data["keys"] == nil {
+		return nil
+	}
+
+	switch resp.Data["keys"].(type) {
+	case []interface{}:
+		// expected
+	default:
+		log.Printf("[WARN] key list type of '%s' is not supported (%T)", key, resp.Data["keys"])
+		return nil
+	}
+
+	keyList := resp.Data["keys"].([]interface{})
+	for _, innerKey := range keyList {
+		switch innerKey.(type) {
+
+		case string:
+			innerKey = path.Join(key, "/", innerKey.(string))
+			walkTree(c, innerKey.(string), branches)
+
+		default: // we don't know how to handle other data types
+			log.Printf("[WARN] type of '%s' is not supported (%T)", key, keyList)
+		}
+	}
+	return nil
+}
+
 // WatchPrefix - not implemented at the moment
 func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) error {
-	return nil
+	return errors.New("WatchPrefix is not implemented")
 }

@@ -24,14 +24,9 @@ This script will generate all merged changes since $LATEST_RELEASE and append it
 
 You'll need to manually modify "HEAD" to show up as the latest release.
 
-When drafting a new release, you must make sure that a `darwin` and `linux` build of confd have
-been uploaded. If you have cross-compile support, you can use the following command to generate
-those binaries:
+When drafting a new release, you must make sure that a `darwin`, `linux` and `windows` build of confd have
+been uploaded. You must have Docker installed to build release binaries:
 
-    $ CONFD_CROSSPLATFORMS="darwin/amd64 linux/amd64" NEW_RELEASE="x.y.z"
-    $ for platform in $CONFD_CROSSPLATFORMS; do \
-        GOOS=${platform%/*} GOARCH=${platform##*/} ./build; \
-        mv bin/confd bin/confd-$NEW_RELEASE-${platform%/*}-${platform##*/}; \
-    done
+    $ make release
 
 You can then drag and drop these binaries into the release draft.

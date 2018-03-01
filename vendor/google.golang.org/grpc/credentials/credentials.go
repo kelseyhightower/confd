@@ -20,7 +20,7 @@
 // which encapsulate all the state needed by a client to authenticate with a
 // server and make various assertions, e.g., about the client's identity, role,
 // or whether it is authorized to make a particular call.
-package credentials
+package credentials // import "google.golang.org/grpc/credentials"
 
 import (
 	"crypto/tls"
@@ -91,10 +91,14 @@ type TransportCredentials interface {
 	// (io.EOF, context.DeadlineExceeded or err.Temporary() == true).
 	// If the returned error is a wrapper error, implementations should make sure that
 	// the error implements Temporary() to have the correct retry behaviors.
+	//
+	// If the returned net.Conn is closed, it MUST close the net.Conn provided.
 	ClientHandshake(context.Context, string, net.Conn) (net.Conn, AuthInfo, error)
 	// ServerHandshake does the authentication handshake for servers. It returns
 	// the authenticated connection and the corresponding auth information about
 	// the connection.
+	//
+	// If the returned net.Conn is closed, it MUST close the net.Conn provided.
 	ServerHandshake(net.Conn) (net.Conn, AuthInfo, error)
 	// Info provides the ProtocolInfo of this TransportCredentials.
 	Info() ProtocolInfo
