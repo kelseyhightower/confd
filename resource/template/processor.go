@@ -113,7 +113,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
 	if !isFileExist(config.ConfDir) {
 		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
-		return nil, nil
+		return nil, fmt.Errorf("confdir '%s' does not exist", config.ConfDir)
 	}
 	paths, err := recursiveFindFiles(config.ConfigDir, "*toml")
 	if err != nil {
