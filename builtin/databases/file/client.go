@@ -2,10 +2,10 @@ package file
 
 import (
 	"io/ioutil"
-	"log"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v2"
 )
@@ -40,7 +40,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 
 	nodeWalk(yamlMap, "", vars)
-	log.Printf("[DEBUG] Key Map: %#v", vars)
+	log.Debug("Key Map: %#v", vars)
 
 	return vars, nil
 }
@@ -89,7 +89,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 				return nil
 			}
 		case err := <-watcher.Errors:
-			log.Printf("[ERROR] %s", err.Error())
+			log.Error("%s", err.Error())
 		}
 	}
 }

@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path"
 
 	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -31,7 +31,7 @@ func (c *Client) Configure(configRaw map[string]string) error {
 	if config.AuthType == "" {
 		return errors.New("you have to set the auth type when using the vault backend")
 	}
-	log.Printf("[INFO] Vault authentication backend set to %s", config.AuthType)
+	log.Info("Vault authentication backend set to %s", config.AuthType)
 
 	conf, err := getConfig(config.Address, config.Cert, config.Key, config.CaCert)
 	if err != nil {
@@ -117,7 +117,7 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 		return errors.New("Unable to authenticate")
 	}
 
-	log.Printf("[DEBUG] client authenticated with auth backend: %s", config.AuthType)
+	log.Debug("client authenticated with auth backend: %s", config.AuthType)
 	// the default place for a token is in the auth section
 	// otherwise, the backend will set the token itself
 	c.SetToken(secret.Auth.ClientToken)
@@ -163,11 +163,11 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 	vars := make(map[string]string)
 	for key := range branches {
-		log.Printf("[DEBUG] getting %s from vault", key)
+		log.Debug("getting %s from vault", key)
 		resp, err := c.client.Logical().Read(key)
 
 		if err != nil {
-			log.Printf("[DEBUG] there was an error extracting %s", key)
+			log.Debug("there was an error extracting %s", key)
 			return nil, err
 		}
 		if resp == nil || resp.Data == nil {
@@ -206,7 +206,7 @@ func isKV(data map[string]interface{}) (string, bool) {
 func flatten(key string, value interface{}, vars map[string]string) {
 	switch value.(type) {
 	case string:
-		log.Printf("[DEBUG] setting key %s to: %s", key, value)
+		log.Debug("setting key %s to: %s", key, value)
 		vars[key] = value.(string)
 	case map[string]interface{}:
 		inner := value.(map[string]interface{})
@@ -215,13 +215,13 @@ func flatten(key string, value interface{}, vars map[string]string) {
 			flatten(innerKey, innerValue, vars)
 		}
 	default: // we don't know how to handle non string or maps of strings
-		log.Printf("[WARNING] type of '%s' is not supported (%T)", key, value)
+		log.Warning("type of '%s' is not supported (%T)", key, value)
 	}
 }
 
 // recursively walk the branches in the Vault, adding to branches map
 func walkTree(c *Client, key string, branches map[string]bool) error {
-	log.Printf("[DEBUG] listing %s from vault", key)
+	log.Debug("listing %s from vault", key)
 
 	// strip trailing slash as long as it's not the only character
 	if last := len(key) - 1; last > 0 && key[last] == '/' {
@@ -236,7 +236,7 @@ func walkTree(c *Client, key string, branches map[string]bool) error {
 	resp, err := c.client.Logical().List(key)
 
 	if err != nil {
-		log.Printf("[DEBUG] there was an error extracting %s", key)
+		log.Debug("there was an error extracting %s", key)
 		return err
 	}
 	if resp == nil || resp.Data == nil || resp.Data["keys"] == nil {
@@ -247,7 +247,7 @@ func walkTree(c *Client, key string, branches map[string]bool) error {
 	case []interface{}:
 		// expected
 	default:
-		log.Printf("[WARN] key list type of '%s' is not supported (%T)", key, resp.Data["keys"])
+		log.Warning("key list type of '%s' is not supported (%T)", key, resp.Data["keys"])
 		return nil
 	}
 
@@ -260,7 +260,7 @@ func walkTree(c *Client, key string, branches map[string]bool) error {
 			walkTree(c, innerKey.(string), branches)
 
 		default: // we don't know how to handle other data types
-			log.Printf("[WARN] type of '%s' is not supported (%T)", key, keyList)
+			log.Warning("type of '%s' is not supported (%T)", key, keyList)
 		}
 	}
 	return nil

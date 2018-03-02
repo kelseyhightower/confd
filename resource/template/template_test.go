@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"testing"
 
 	"github.com/kelseyhightower/confd/builtin/databases/env"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 

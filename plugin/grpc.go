@@ -2,12 +2,11 @@ package plugin
 
 import (
 	"io"
-	"log"
-
-	context "golang.org/x/net/context"
 
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/plugin/proto"
+	context "golang.org/x/net/context"
 )
 
 // GRPCClient is an implementation of Database that talks over gRPC
@@ -47,7 +46,7 @@ func (c *GRPCClient) WatchPrefix(prefix string, keys []string, results chan stri
 	for {
 		_, err := s.Recv()
 		if err == io.EOF {
-			log.Printf("[DEBUG] caught EOF on client")
+			log.Debug("caught EOF on client")
 			return nil
 		}
 		if err != nil {

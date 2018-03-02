@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -14,7 +13,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/logging"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
 )
 
@@ -145,9 +144,9 @@ func initConfig() error {
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
-		log.Printf("[DEBUG] Skipping confd config file.")
+		log.Debug("Skipping confd config file.")
 	} else {
-		log.Printf("[DEBUG] Loading " + configFile)
+		log.Debug("Loading " + configFile)
 		configBytes, err := ioutil.ReadFile(configFile)
 		if err != nil {
 			return err
@@ -177,7 +176,7 @@ func initConfig() error {
 	}
 
 	if config.LogLevel != "" {
-		logging.SetLevel(config.LogLevel)
+		log.SetLevel(config.LogLevel)
 	}
 
 	if config.SRVDomain != "" && config.SRVRecord == "" {
@@ -186,7 +185,7 @@ func initConfig() error {
 
 	// Update BackendNodes from SRV records.
 	if config.Backend != "env" && config.SRVRecord != "" {
-		log.Printf("[INFO] SRV record set to " + config.SRVRecord)
+		log.Info("SRV record set to " + config.SRVRecord)
 		srvNodes, err := getBackendNodesFromSRV(config.SRVRecord)
 		if err != nil {
 			return errors.New("Cannot get nodes from SRV records " + err.Error())
@@ -225,7 +224,7 @@ func initConfig() error {
 		}
 	}
 	// Initialize the storage client
-	log.Printf("[INFO] Backend set to " + config.Backend)
+	log.Info("Backend set to " + config.Backend)
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{

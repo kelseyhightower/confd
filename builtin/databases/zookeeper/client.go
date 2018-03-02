@@ -1,11 +1,11 @@
 package zookeeper
 
 import (
-	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 	zk "github.com/samuel/go-zookeeper/zk"
 )
@@ -102,7 +102,7 @@ func (c *Client) watch(key string, respChan chan error, cancelRoutine chan bool)
 				respChan <- e.Err
 			}
 		case <-cancelRoutine:
-			log.Printf("Stop watching: %s", key)
+			log.Debug("Stop watching: %s", key)
 			// There is no way to stop GetW/ChildrenW so just quit
 			return
 		}
@@ -128,7 +128,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 				for dir := filepath.Dir(k); dir != "/"; dir = filepath.Dir(dir) {
 					if _, ok := watchMap[dir]; !ok {
 						watchMap[dir] = ""
-						log.Printf("[INFO] Watching: %s", dir)
+						log.Info("Watching: %s", dir)
 						go c.watch(dir, respChan, cancelRoutine)
 					}
 				}
@@ -141,7 +141,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for k := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
-				log.Printf("[INFO] Watching: %s", k)
+				log.Info("Watching: %s", k)
 				go c.watch(k, respChan, cancelRoutine)
 				break
 			}
@@ -151,7 +151,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for {
 		err := <-respChan
 		if err != nil {
-			log.Printf("[ERROR] %s", err.Error())
+			log.Error("%s", err.Error())
 			time.Sleep(2 * time.Second)
 			continue
 		}

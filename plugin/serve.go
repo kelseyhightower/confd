@@ -35,10 +35,17 @@ type ServeOpts struct {
 // Serve serves a plugin. This function never returns and should be the final
 // function called in the main function of the plugin.
 func Serve(opts *ServeOpts) {
+	// logger := hclog.New(&hclog.LoggerOptions{
+	// 	Level:      hclog.Trace,
+	// 	Output:     os.Stderr,
+	// 	JSONFormat: true,
+	// })
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: HandshakeConfig,
 		Plugins:         pluginMap(opts),
 		GRPCServer:      plugin.DefaultGRPCServer,
+		// Logger:          logger,
+		// Logger: *log.GetLogger(),
 	})
 }
 

@@ -2,13 +2,13 @@ package ssm
 
 import (
 	"errors"
-	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/kelseyhightower/confd/log"
 )
 
 type Client struct {
@@ -27,7 +27,7 @@ func (c *Client) Configure(configRaw map[string]string) error {
 
 	var config *aws.Config
 	if os.Getenv("SSM_LOCAL") != "" {
-		log.Printf("[DEBUG] SSM_LOCAL is set")
+		log.Debug("SSM_LOCAL is set")
 		endpoint := "http://localhost:8001"
 		config = &aws.Config{
 			Endpoint: &endpoint,
@@ -46,7 +46,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	var err error
 	for _, key := range keys {
-		log.Printf("[DEBUG] Processing key=%s", key)
+		log.Debug("Processing key=%s", key)
 		var resp map[string]string
 		resp, err = c.getParametersWithPrefix(key)
 		if err != nil {

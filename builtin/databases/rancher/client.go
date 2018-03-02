@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -34,7 +34,7 @@ func (c *Client) Configure(configRaw map[string]string) error {
 		url = "http://" + strings.Split(config.BackendNodes, ",")[0]
 	}
 
-	log.Printf("Using Rancher Metadata URL: " + url)
+	log.Info("Using Rancher Metadata URL: " + url)
 	c.url = url
 	c.httpClient = &http.Client{}
 	return c.testConnection()
@@ -87,7 +87,7 @@ func treeWalk(root string, val interface{}, vars map[string]string) error {
 	case nil:
 		vars[root] = "null"
 	default:
-		log.Printf("Unknown type: " + reflect.TypeOf(val).Name())
+		log.Error("Unknown type: " + reflect.TypeOf(val).Name())
 	}
 	return nil
 }

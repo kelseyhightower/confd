@@ -4,13 +4,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -83,7 +83,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for {
 		_, meta, err := c.client.List(prefix, &api.QueryOptions{WaitIndex: index})
 		if err != nil {
-			log.Printf("[ERROR] %s", err.Error())
+			log.Error("%s", err.Error())
 			time.Sleep(2 * time.Second)
 			continue
 		}

@@ -177,12 +177,6 @@
   revision = "68e816d1c783414e79bc65b3994d9ab6b0a722ab"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/hashicorp/logutils"
-  packages = ["."]
-  revision = "0dc08b1671f34c4250ce212759ebd880f743d883"
-
-[[projects]]
   name = "github.com/hashicorp/serf"
   packages = ["coordinate"]
   revision = "d6574a5bb1226678d7010325fb6c985db20ee458"
@@ -361,6 +355,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c9bb6152f3dce611ecdd6f5ea3692ba4d0171a2b4c5a8ad28b7e5a4a9d1bbadf"
+  inputs-digest = "0f2783fcb012c95d9061e8741749fdc7340f81751b51b2eaab9bcbc73009ed2f"
   solver-name = "gps-cdcl"
   solver-version = 1

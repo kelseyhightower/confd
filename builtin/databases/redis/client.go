@@ -2,13 +2,13 @@ package redis
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -62,7 +62,7 @@ func tryConnect(machines []string, password string, timeout bool) (redis.Conn, i
 		if _, err = os.Stat(address); err == nil {
 			network = "unix"
 		}
-		log.Printf("[DEBUG] Trying to connect to redis node %s", address)
+		log.Debug("Trying to connect to redis node %s", address)
 
 		var dialops []redis.DialOption
 		if timeout {
@@ -99,11 +99,11 @@ func tryConnect(machines []string, password string, timeout bool) (redis.Conn, i
 // Returns the established redis connection or the error encountered.
 func (c *Client) connectedClient() (redis.Conn, error) {
 	if c.client != nil {
-		log.Printf("[DEBUG] Testing existing redis connection.")
+		log.Debug("Testing existing redis connection.")
 
 		resp, err := c.client.Do("PING")
 		if (err != nil && err == redis.ErrNil) || resp != "PONG" {
-			log.Printf("[ERROR] Existing redis connection no longer usable. "+
+			log.Error("Existing redis connection no longer usable. "+
 				"Will try to re-establish. Error: %s", err.Error())
 			c.client = nil
 		}
@@ -127,7 +127,7 @@ func NewRedisClient(machines []string, password string, separator string) (*Clie
 	if separator == "" {
 		separator = "/"
 	}
-	log.Printf("[DEBUG] Redis Separator: %#v", separator)
+	log.Debug("Redis Separator: %#v", separator)
 	var err error
 	clientWrapper := &Client{machines: machines, password: password, separator: separator, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil}}
 	clientWrapper.client, _, err = tryConnect(machines, password, true)
@@ -233,7 +233,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] Key Map: %#v", vars)
+	log.Debug("Key Map: %#v", vars)
 
 	return vars, nil
 }
@@ -253,7 +253,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for {
 		switch n := psc.Receive().(type) {
 		case redis.PMessage:
-			log.Printf("[ERROR] Redis Message: %s %s", n.Channel, n.Data)
+			log.Error("Redis Message: %s %s", n.Channel, n.Data)
 			data := string(n.Data)
 			commands := [12]string{"del", "append", "rename_from", "rename_to", "expire", "set", "incrby", "incrbyfloat", "hset", "hincrby", "hincrbyfloat", "hdel"}
 			for _, command := range commands {
@@ -263,12 +263,12 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 				}
 			}
 		case redis.Subscription:
-			log.Printf("[DEBUG] Redis Subscription: %s %s %d", n.Kind, n.Channel, n.Count)
+			log.Debug("Redis Subscription: %s %s %d", n.Kind, n.Channel, n.Count)
 			if n.Count == 0 {
 				results <- ""
 			}
 		case error:
-			log.Printf("[ERROR] Redis error: %s", n.Error())
+			log.Error("Redis error: %s", n.Error())
 			time.Sleep(2 * time.Second)
 		}
 	}

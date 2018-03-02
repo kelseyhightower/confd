@@ -2,12 +2,12 @@ package dynamodb
 
 import (
 	"errors"
-	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -30,7 +30,7 @@ func (c *Client) Configure(configRaw map[string]string) error {
 	c.table = config.Table
 	var awsConfig *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
-		log.Println("DYNAMODB_LOCAL is set")
+		log.Debug("DYNAMODB_LOCAL is set")
 		endpoint := "http://localhost:8000"
 		awsConfig = &aws.Config{
 			Endpoint: &endpoint,
@@ -78,7 +78,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				if val.S != nil {
 					vars[key] = *val.S
 				} else {
-					log.Printf("Skipping key '%s'. 'value' is not of type 'string'.", key)
+					log.Warning("Skipping key '%s'. 'value' is not of type 'string'.", key)
 				}
 				continue
 			}
@@ -107,7 +107,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				if val.S != nil {
 					vars[*item["key"].S] = *val.S
 				} else {
-					log.Printf("Skipping key '%s'. 'value' is not of type 'string'.", *item["key"].S)
+					log.Warning("Skipping key '%s'. 'value' is not of type 'string'.", *item["key"].S)
 				}
 				continue
 			}

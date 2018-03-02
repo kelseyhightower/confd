@@ -1,8 +1,6 @@
 package backends
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,6 +19,7 @@ import (
 	"github.com/kelseyhightower/confd/builtin/databases/vault"
 	"github.com/kelseyhightower/confd/builtin/databases/zookeeper"
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/kelseyhightower/confd/log"
 	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
@@ -58,28 +57,28 @@ func BuildPluginCommandString(pluginType, pluginName string) (string, error) {
 
 func RunPlugin(args []string) int {
 	if len(args) != 2 {
-		log.Printf("Wrong number of args; expected: confd internal-plugin pluginType pluginName")
+		log.Error("Wrong number of args; expected: confd internal-plugin pluginType pluginName")
 		return 1
 	}
 
 	pluginType := args[0]
 	pluginName := args[1]
 
-	log.SetPrefix(fmt.Sprintf("%s-%s (internal) ", pluginName, pluginType))
+	// log.SetPrefix(fmt.Sprintf("%s-%s (internal) ", pluginName, pluginType))
 
 	switch pluginType {
 	case confdplugin.DatabasePluginName:
 		database, found := InternalDatabases[pluginName]
 		if !found {
-			log.Printf("[ERROR] Could not load database: %s", pluginName)
+			log.Error("Could not load database: %s", pluginName)
 			return 1
 		}
-		log.Printf("[INFO] Starting database plugin %s", pluginName)
+		log.Info("Starting database plugin %s", pluginName)
 		confdplugin.Serve(&confdplugin.ServeOpts{
 			Database: database,
 		})
 	default:
-		log.Printf("[ERROR] Invalid plugin type %s", pluginType)
+		log.Error("Invalid plugin type %s", pluginType)
 		return 1
 	}
 
@@ -104,7 +103,7 @@ func Discover() (plugins map[string]string, err error) {
 	// /usr/local/bin. If found, this replaces what we found in the config path.
 	exePath, err := osext.Executable()
 	if err != nil {
-		log.Printf("[ERROR] Error loading exe directory: %s", err)
+		log.Error("Error loading exe directory: %s", err)
 	} else {
 		if err = discover(filepath.Dir(exePath), &plugins); err != nil {
 			return
@@ -124,7 +123,7 @@ func Discover() (plugins map[string]string, err error) {
 		if path, found := plugins[name]; found {
 			// Allow these warnings to be suppressed via CONFD_PLUGIN_DEV=1 or similar
 			if os.Getenv("CONFD_PLUGIN_DEV") == "" {
-				log.Printf("[WARN] %s overrides an internal plugin for %s-database.\n"+
+				log.Warning("%s overrides an internal plugin for %s-database.\n"+
 					"  If you did not expect to see this message you will need to remove the old plugin.\n",
 					path, name)
 			}
@@ -182,7 +181,7 @@ func discoverSingle(glob string, m *map[string]string) error {
 			continue
 		}
 
-		log.Printf("[DEBUG] Discovered plugin: %s = %s", parts[2], match)
+		log.Debug("Discovered plugin: %s = %s", parts[2], match)
 		(*m)[parts[2]] = match
 	}
 

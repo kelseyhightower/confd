@@ -1,12 +1,13 @@
 package backends
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 	"strings"
 
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/kelseyhightower/confd/confd"
+	"github.com/kelseyhightower/confd/log"
 	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
@@ -16,15 +17,16 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Printf("[DEBUG] Discovered: %s", plugins)
+	log.Debug("Discovered: %s", plugins)
 	if _, ok := plugins[config.Backend]; ok == false {
-		log.Fatalf("[ERROR] Plugin %s not found", config.Backend)
+		return nil, nil, fmt.Errorf("Plugin %s not found", config.Backend)
 	}
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig:  confdplugin.HandshakeConfig,
 		Plugins:          confdplugin.PluginMap,
 		Cmd:              pluginCmd(plugins[config.Backend]),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		Logger:           *log.GetLogger(),
 	})
 
 	// Connect via RPC
@@ -34,7 +36,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	}
 
 	// Request the plugin
-	log.Printf("[INFO] Requesting plugin " + confdplugin.DatabasePluginName)
+	log.Info("Requesting plugin " + confdplugin.DatabasePluginName)
 	raw, err := rpcClient.Dispense(confdplugin.DatabasePluginName)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -44,9 +46,9 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	// Configure each type of database
 	c := make(map[string]string)
 	if config.Backend == "file" {
-		log.Printf("[INFO] Backend source(s) set to " + config.YAMLFile)
+		log.Info("Backend source(s) set to " + config.YAMLFile)
 	} else {
-		log.Printf("[INFO] Backend source(s) set to " + strings.Join(config.BackendNodes, ", "))
+		log.Info("Backend source(s) set to " + strings.Join(config.BackendNodes, ", "))
 	}
 	switch config.Backend {
 	case "consul":
@@ -68,7 +70,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["password"] = config.Password
 	case "dynamodb":
 		c["table"] = config.Table
-		log.Printf("[INFO] DynamoDB table set to %s", config.Table)
+		log.Info("DynamoDB table set to %s", config.Table)
 	case "rancher":
 		c["backendNodes"] = strings.Join(config.BackendNodes, ",")
 	case "zookeeper":

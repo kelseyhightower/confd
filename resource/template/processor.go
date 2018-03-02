@@ -1,9 +1,10 @@
 package template
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	"github.com/kelseyhightower/confd/log"
 )
 
 type Processor interface {
@@ -22,7 +23,7 @@ func process(ts []*TemplateResource) error {
 	var lastErr error
 	for _, t := range ts {
 		if err := t.process(); err != nil {
-			log.Printf("[ERROR] %s", err.Error())
+			log.Error("%s", err.Error())
 			lastErr = err
 		}
 	}
@@ -105,7 +106,7 @@ func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 				}
 			case <-results:
 				needsUpdate = true
-				log.Printf("[DEBUG] Got something from the plugin")
+				log.Debug("Got something from the plugin")
 			}
 		}
 	}()
@@ -119,9 +120,9 @@ func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	var lastError error
 	templates := make([]*TemplateResource, 0)
-	log.Printf("[DEBUG] Loading template resources from confdir " + config.ConfDir)
+	log.Debug("Loading template resources from confdir " + config.ConfDir)
 	if !isFileExist(config.ConfDir) {
-		log.Printf("[WARN] Cannot load template resources: confdir '%s' does not exist", config.ConfDir)
+		log.Warning("Cannot load template resources: confdir '%s' does not exist", config.ConfDir)
 		return nil, nil
 	}
 	paths, err := recursiveFindFiles(config.ConfigDir, "*toml")
@@ -130,11 +131,11 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	}
 
 	if len(paths) < 1 {
-		log.Printf("[WARN] Found no templates")
+		log.Warning("Found no templates")
 	}
 
 	for _, p := range paths {
-		log.Printf("[DEBUG] Found template: %s", p)
+		log.Debug("Found template: %s", p)
 		t, err := NewTemplateResource(p, config)
 		if err != nil {
 			lastError = err
