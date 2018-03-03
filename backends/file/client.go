@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"path"
+	"errors"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/kelseyhightower/confd/log"
@@ -34,17 +36,52 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		return vars, err
 	}
 
-	nodeWalk(yamlMap, "", vars)
+	if len(keys) == 0 {
+		nodeWalk(yamlMap, "", vars)
+	} else {
+		for _, key := range keys {
+			filteredYamlMap, err := filterByPath(key, yamlMap)
+			if err != nil {
+				return vars, err
+			}
+			nodeWalk(filteredYamlMap, key, vars)
+		}
+	}
+
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 
 	return vars, nil
 }
 
+func filterByPath(path string, varsMap map[interface{}]interface{}) (map[interface{}]interface{}, error) {
+	keys := strings.Split(path, "/")
+	filteredVarsMap := varsMap
+	for _, key := range(keys) {
+		if key != "" {
+			newFilteredVarsMap, err := filterByKey(key, filteredVarsMap)
+			if err != nil {
+				return varsMap, err
+			}
+			filteredVarsMap = newFilteredVarsMap
+		}
+	}
+	return filteredVarsMap, nil
+}
+
+func filterByKey(key string, varsMap map[interface{}]interface{}) (map[interface{}]interface{}, error) {
+	newVarsMap, exists := varsMap[key].(map[interface{}]interface{})
+	if !exists {
+		message := fmt.Sprintf("Error: cannot find element in %v with a key %s", varsMap, key)
+		return make(map[interface{}]interface{}), errors.New(message)
+	}
+	return newVarsMap, nil
+}
+
+
 // nodeWalk recursively descends nodes, updating vars.
 func nodeWalk(node map[interface{}]interface{}, key string, vars map[string]string) error {
 	for k, v := range node {
-		key := key + "/" + k.(string)
-
+		key := path.Join(key, k.(string))
 		switch v.(type) {
 		case map[interface{}]interface{}:
 			nodeWalk(v.(map[interface{}]interface{}), key, vars)
@@ -54,7 +91,7 @@ func nodeWalk(node map[interface{}]interface{}, key string, vars map[string]stri
 				case map[interface{}]interface{}:
 					nodeWalk(j.(map[interface{}]interface{}), key, vars)
 				case string:
-					vars[key+"/"+j.(string)] = ""
+					vars[path.Join(key, j.(string))] = ""
 				}
 			}
 		case string:
