@@ -43,7 +43,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		for _, key := range keys {
 			if key != "" {
 				filteredYamlMap, err := filterByPath(key, yamlMap)
-				log.Debug(fmt.Sprintf("Key: %s, Map: %#v", key, filteredYamlMap))
 				if err != nil {
 					return vars, err
 				}
@@ -64,47 +63,27 @@ func filterByPath(path string, varsMap interface{}) (interface{}, error) {
 		if key != "" {
 			switch filteredVarsMap.(type) {
 				case map[interface{}]interface{}:
-					newFilteredVarsMap, err := filterByKey(key, filteredVarsMap)
-					if err != nil {
-						return nil, err
+					newFilteredVarsMap, exists := filteredVarsMap.(map[interface{}]interface{})[key]
+					if !exists {
+						message := fmt.Sprintf("Error: cannot find element in %v with a key %s", varsMap, key)
+						return nil, errors.New(message)
 					}
 					filteredVarsMap = newFilteredVarsMap
 				case []interface{}:
-					newFilteredVarsMap, err := filterByKey(key, filteredVarsMap)
+					index, err := strconv.Atoi(key)
 					if err != nil {
 						return nil, err
 					}
+					newFilteredVarsMap := filteredVarsMap.([]interface{})[index]
 					filteredVarsMap = newFilteredVarsMap
 				default:
-					message := fmt.Sprintf("Error: element %v has wrong type. Map is expected!", filteredVarsMap)
+					message := fmt.Sprintf("Error: element %v has wrong type. Map or slice is expected!", filteredVarsMap)
 					return nil, errors.New(message)
 			}
 		}
 	}
 	return filteredVarsMap, nil
 }
-
-func filterByKey(key string, varsMap interface{}) (interface{}, error) {
-
-	switch varsMap.(type) {
-		case map[interface{}]interface{}:
-			newVarsMap, exists := varsMap.(map[interface{}]interface{})[key]
-			if !exists {
-				message := fmt.Sprintf("Error: cannot find element in %v with a key %s", varsMap, key)
-				return nil, errors.New(message)
-			}
-			return newVarsMap, nil
-		case []interface{}:
-			index, err := strconv.Atoi(key)
-			if err != nil {
-				return nil, err
-			}
-			newVarsMap := varsMap.([]interface{})[index]
-			return newVarsMap, nil
-	}
-	return nil, errors.New("Invalid input type")
-}
-
 
 // nodeWalk recursively descends nodes, updating vars.
 func nodeWalk(node interface{}, key string, vars map[string]string) error {
