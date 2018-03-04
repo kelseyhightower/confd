@@ -6,6 +6,7 @@ import (
 	"strings"
 	"path"
 	"errors"
+	"strconv"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/kelseyhightower/confd/log"
@@ -40,11 +41,14 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		nodeWalk(yamlMap, "", vars)
 	} else {
 		for _, key := range keys {
-			filteredYamlMap, err := filterByPath(key, yamlMap)
-			if err != nil {
-				return vars, err
+			if key != "" {
+				filteredYamlMap, err := filterByPath(key, yamlMap)
+				log.Debug(fmt.Sprintf("Key: %s, Map: %#v", key, filteredYamlMap))
+				if err != nil {
+					return vars, err
+				}
+				nodeWalk(filteredYamlMap, key, vars)
 			}
-			nodeWalk(filteredYamlMap, key, vars)
 		}
 	}
 
@@ -53,50 +57,70 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-func filterByPath(path string, varsMap map[interface{}]interface{}) (map[interface{}]interface{}, error) {
+func filterByPath(path string, varsMap interface{}) (interface{}, error) {
 	keys := strings.Split(path, "/")
 	filteredVarsMap := varsMap
 	for _, key := range(keys) {
 		if key != "" {
-			newFilteredVarsMap, err := filterByKey(key, filteredVarsMap)
-			if err != nil {
-				return varsMap, err
+			switch filteredVarsMap.(type) {
+				case map[interface{}]interface{}:
+					newFilteredVarsMap, err := filterByKey(key, filteredVarsMap)
+					if err != nil {
+						return nil, err
+					}
+					filteredVarsMap = newFilteredVarsMap
+				case []interface{}:
+					newFilteredVarsMap, err := filterByKey(key, filteredVarsMap)
+					if err != nil {
+						return nil, err
+					}
+					filteredVarsMap = newFilteredVarsMap
+				default:
+					message := fmt.Sprintf("Error: element %v has wrong type. Map is expected!", filteredVarsMap)
+					return nil, errors.New(message)
 			}
-			filteredVarsMap = newFilteredVarsMap
 		}
 	}
 	return filteredVarsMap, nil
 }
 
-func filterByKey(key string, varsMap map[interface{}]interface{}) (map[interface{}]interface{}, error) {
-	newVarsMap, exists := varsMap[key].(map[interface{}]interface{})
-	if !exists {
-		message := fmt.Sprintf("Error: cannot find element in %v with a key %s", varsMap, key)
-		return make(map[interface{}]interface{}), errors.New(message)
+func filterByKey(key string, varsMap interface{}) (interface{}, error) {
+
+	switch varsMap.(type) {
+		case map[interface{}]interface{}:
+			newVarsMap, exists := varsMap.(map[interface{}]interface{})[key]
+			if !exists {
+				message := fmt.Sprintf("Error: cannot find element in %v with a key %s", varsMap, key)
+				return nil, errors.New(message)
+			}
+			return newVarsMap, nil
+		case []interface{}:
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				return nil, err
+			}
+			newVarsMap := varsMap.([]interface{})[index]
+			return newVarsMap, nil
 	}
-	return newVarsMap, nil
+	return nil, errors.New("Invalid input type")
 }
 
 
 // nodeWalk recursively descends nodes, updating vars.
-func nodeWalk(node map[interface{}]interface{}, key string, vars map[string]string) error {
-	for k, v := range node {
-		key := path.Join(key, k.(string))
-		switch v.(type) {
-		case map[interface{}]interface{}:
-			nodeWalk(v.(map[interface{}]interface{}), key, vars)
+func nodeWalk(node interface{}, key string, vars map[string]string) error {
+	switch node.(type) {
 		case []interface{}:
-			for _, j := range v.([]interface{}) {
-				switch j.(type) {
-				case map[interface{}]interface{}:
-					nodeWalk(j.(map[interface{}]interface{}), key, vars)
-				case string:
-					vars[path.Join(key, j.(string))] = ""
-				}
+			for i, j := range node.([]interface{}) {
+				key := path.Join(key, strconv.Itoa(i))
+				nodeWalk(j, key, vars)
+			}
+		case map[interface{}]interface{}:
+			for k, v := range node.(map[interface{}]interface{}) {
+				key := path.Join(key, k.(string))
+				nodeWalk(v, key, vars)
 			}
 		case string:
-			vars[key] = v.(string)
-		}
+			vars[key] = node.(string)
 	}
 	return nil
 }
