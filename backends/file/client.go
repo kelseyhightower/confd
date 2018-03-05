@@ -42,17 +42,14 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		return vars, err
 	}
 
+VarsLoop:
 	for k, _ := range vars {
-		valid := false
 		for _, key := range keys {
 			if strings.HasPrefix(k, key) {
-				valid = true
-				break
+				continue VarsLoop
 			}
 		}
-		if !valid {
-			delete(vars, k)
-		}
+		delete(vars, k)
 	}
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 	return vars, nil
