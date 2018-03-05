@@ -1,7 +1,6 @@
 package file
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -32,55 +31,31 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	if err != nil {
 		return vars, err
 	}
+
 	err = yaml.Unmarshal(data, &yamlMap)
 	if err != nil {
 		return vars, err
 	}
 
-	if len(keys) == 0 {
-		nodeWalk(yamlMap, "", vars)
-	} else {
+	err = nodeWalk(yamlMap, "/", vars)
+	if err != nil {
+		return vars, err
+	}
+
+	for k, _ := range vars {
+		valid := false
 		for _, key := range keys {
-			filteredYamlMap, err := filterByPath(key, yamlMap)
-			if err != nil {
-				return vars, err
+			if strings.HasPrefix(k, key) {
+				valid = true
+				break
 			}
-			nodeWalk(filteredYamlMap, key, vars)
+		}
+		if !valid {
+			delete(vars, k)
 		}
 	}
-
 	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
-
 	return vars, nil
-}
-
-func filterByPath(path string, varsMap interface{}) (interface{}, error) {
-	keys := strings.Split(path, "/")
-	filteredVarsMap := varsMap
-	for _, key := range keys {
-		if key != "" {
-			switch filteredVarsMap.(type) {
-			case map[interface{}]interface{}:
-				newFilteredVarsMap, exists := filteredVarsMap.(map[interface{}]interface{})[key]
-				if !exists {
-					message := fmt.Sprintf("Error: cannot find element in %v with a key %s", varsMap, key)
-					return nil, errors.New(message)
-				}
-				filteredVarsMap = newFilteredVarsMap
-			case []interface{}:
-				index, err := strconv.Atoi(key)
-				if err != nil {
-					return nil, err
-				}
-				newFilteredVarsMap := filteredVarsMap.([]interface{})[index]
-				filteredVarsMap = newFilteredVarsMap
-			default:
-				message := fmt.Sprintf("Error: element %v has wrong type. Map or slice is expected!", filteredVarsMap)
-				return nil, errors.New(message)
-			}
-		}
-	}
-	return filteredVarsMap, nil
 }
 
 // nodeWalk recursively descends nodes, updating vars.
