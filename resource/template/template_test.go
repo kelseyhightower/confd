@@ -109,7 +109,7 @@ type templateTest struct {
 	desc        string                  // description of the test (for helpful errors)
 	toml        string                  // toml file contents
 	tmpl        string                  // template file contents
-	expected    string                  // expected generated file contents
+	expected    interface{}                  // expected generated file contents
 	updateStore func(*TemplateResource) // function for setting values in store
 }
 
@@ -616,6 +616,58 @@ dir: /test/data
 		},
 	},
 	templateTest{
+		desc: "ipv4 lookup test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data",
+    "/test/data/abc",
+]
+`,
+		tmpl: `
+{{range lookupIPV4 "localhost"}}
+ip: {{.}}
+{{end}}
+`,
+		expected: `
+
+ip: 127.0.0.1
+
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", "parent")
+			tr.store.Set("/test/data/def", "child")
+		},
+	},
+	templateTest{
+		desc: "ipv6 lookup test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/data",
+    "/test/data/abc",
+]
+`,
+		tmpl: `
+{{range lookupIPV6 "localhost"}}
+ip: {{.}}
+{{end}}
+`,
+		expected: `
+
+ip: ::1
+
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/data", "parent")
+			tr.store.Set("/test/data/def", "child")
+		},
+	},
+	templateTest{
 		desc: "ip lookup test",
 		toml: `
 [template]
@@ -631,11 +683,25 @@ keys = [
 ip: {{.}}
 {{end}}
 `,
-		expected: `
+		expected: [...]string{
+`
 
 ip: 127.0.0.1
 
 `,
+`
+
+ip: 127.0.0.1
+
+ip: ::1
+
+`,
+`
+
+ip: ::1
+
+`,
+},
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", "parent")
 			tr.store.Set("/test/data/def", "child")
@@ -749,8 +815,18 @@ func ExecuteTestTemplate(tt templateTest, t *testing.T) {
 	if err != nil {
 		t.Errorf(tt.desc + ": failed to read StageFile: " + err.Error())
 	}
-	if string(actual) != tt.expected {
-		t.Errorf(fmt.Sprintf("%v: invalid StageFile. Expected %v, actual %v", tt.desc, tt.expected, string(actual)))
+	switch tt.expected.(type) {
+	case string:
+		if string(actual) != tt.expected.(string) {
+			t.Errorf(fmt.Sprintf("%v: invalid StageFile. Expected %v, actual %v", tt.desc, tt.expected, string(actual)))
+		}
+	case []string:
+		for _, expected := range tt.expected.([]string) {
+			if string(actual) == expected {
+				break
+			}
+		}
+		t.Errorf(fmt.Sprintf("%v: invalid StageFile. Possible expected values %v, actual %v", tt.desc, tt.expected, string(actual)))
 	}
 }
 
