@@ -109,7 +109,7 @@ type templateTest struct {
 	desc        string                  // description of the test (for helpful errors)
 	toml        string                  // toml file contents
 	tmpl        string                  // template file contents
-	expected    interface{}                  // expected generated file contents
+	expected    interface{}             // expected generated file contents
 	updateStore func(*TemplateResource) // function for setting values in store
 }
 
@@ -684,24 +684,24 @@ ip: {{.}}
 {{end}}
 `,
 		expected: [...]string{
-`
+			`
 
 ip: 127.0.0.1
 
 `,
-`
+			`
 
 ip: 127.0.0.1
 
 ip: ::1
 
 `,
-`
+			`
 
 ip: ::1
 
 `,
-},
+		},
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", "parent")
 			tr.store.Set("/test/data/def", "child")
