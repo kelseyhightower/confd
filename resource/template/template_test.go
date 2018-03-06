@@ -657,11 +657,15 @@ keys = [
 ip: {{.}}
 {{end}}
 `,
-		expected: `
-
+		expected: [...]string{
+			`
 ip: ::1
 
 `,
+			`
+
+`,
+},
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", "parent")
 			tr.store.Set("/test/data/def", "child")
