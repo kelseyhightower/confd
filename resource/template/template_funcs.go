@@ -184,7 +184,7 @@ func LookupIP(data string) []string {
 }
 
 func LookupIPV6(data string) []string {
-	addresses := make([]string, 0)
+	var addresses []string
 	for _, ip := range LookupIP(data) {
 		if strings.Contains(ip, ":") {
 			addresses = append(addresses, ip)
@@ -194,7 +194,7 @@ func LookupIPV6(data string) []string {
 }
 
 func LookupIPV4(data string) []string {
-	addresses := make([]string, 0)
+	var addresses []string
 	for _, ip := range LookupIP(data) {
 		if strings.Contains(ip, ".") {
 			addresses = append(addresses, ip)
