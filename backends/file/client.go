@@ -3,6 +3,8 @@ package file
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
+	"strconv"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
@@ -29,37 +31,45 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	if err != nil {
 		return vars, err
 	}
+
 	err = yaml.Unmarshal(data, &yamlMap)
 	if err != nil {
 		return vars, err
 	}
 
-	nodeWalk(yamlMap, "", vars)
-	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
+	err = nodeWalk(yamlMap, "/", vars)
+	if err != nil {
+		return vars, err
+	}
 
+VarsLoop:
+	for k, _ := range vars {
+		for _, key := range keys {
+			if strings.HasPrefix(k, key) {
+				continue VarsLoop
+			}
+		}
+		delete(vars, k)
+	}
+	log.Debug(fmt.Sprintf("Key Map: %#v", vars))
 	return vars, nil
 }
 
 // nodeWalk recursively descends nodes, updating vars.
-func nodeWalk(node map[interface{}]interface{}, key string, vars map[string]string) error {
-	for k, v := range node {
-		key := key + "/" + k.(string)
-
-		switch v.(type) {
-		case map[interface{}]interface{}:
-			nodeWalk(v.(map[interface{}]interface{}), key, vars)
-		case []interface{}:
-			for _, j := range v.([]interface{}) {
-				switch j.(type) {
-				case map[interface{}]interface{}:
-					nodeWalk(j.(map[interface{}]interface{}), key, vars)
-				case string:
-					vars[key+"/"+j.(string)] = ""
-				}
-			}
-		case string:
-			vars[key] = v.(string)
+func nodeWalk(node interface{}, key string, vars map[string]string) error {
+	switch node.(type) {
+	case []interface{}:
+		for i, j := range node.([]interface{}) {
+			key := path.Join(key, strconv.Itoa(i))
+			nodeWalk(j, key, vars)
 		}
+	case map[interface{}]interface{}:
+		for k, v := range node.(map[interface{}]interface{}) {
+			key := path.Join(key, k.(string))
+			nodeWalk(v, key, vars)
+		}
+	case string:
+		vars[key] = node.(string)
 	}
 	return nil
 }
