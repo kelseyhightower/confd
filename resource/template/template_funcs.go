@@ -33,6 +33,8 @@ func newFuncMap() map[string]interface{} {
 	m["replace"] = strings.Replace
 	m["trimSuffix"] = strings.TrimSuffix
 	m["lookupIP"] = LookupIP
+	m["lookupIPV4"] = LookupIPV4
+	m["lookupIPV6"] = LookupIPV6
 	m["lookupSRV"] = LookupSRV
 	m["fileExists"] = isFileExist
 	m["base64Encode"] = Base64Encode
@@ -179,6 +181,26 @@ func LookupIP(data string) []string {
 	}
 	sort.Strings(ipStrings)
 	return ipStrings
+}
+
+func LookupIPV6(data string) []string {
+	var addresses []string
+	for _, ip := range LookupIP(data) {
+		if strings.Contains(ip, ":") {
+			addresses = append(addresses, ip)
+		}
+	}
+	return addresses
+}
+
+func LookupIPV4(data string) []string {
+	var addresses []string
+	for _, ip := range LookupIP(data) {
+		if strings.Contains(ip, ".") {
+			addresses = append(addresses, ip)
+		}
+	}
+	return addresses
 }
 
 type sortSRV []*net.SRV
