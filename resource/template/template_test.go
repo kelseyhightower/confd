@@ -754,7 +754,8 @@ key: Value
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/data", `VmFsdWU=`)
 		},
-	}, templateTest{
+	},
+	templateTest{
 		desc: "seq test",
 		toml: `
 [template]
@@ -787,6 +788,29 @@ keys = [
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/count", "3")
 		},
+	},
+	templateTest{
+		desc: "slice test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+`,
+		tmpl: `
+{{ $sliceA := makeSlice "sliceA" -}}
+{{ $sliceB := makeSlice "sliceB" -}}
+{{ range (seq 1 3) -}}
+	{{ appendSlice $sliceA . -}}
+	{{ appendSlice $sliceB (add . 3) -}}
+{{ end -}}
+{{ rangeSlice $sliceA }}
+{{ rangeSlice $sliceB }}
+`,
+		expected: `
+[1 2 3]
+[4 5 6]
+`,
+		updateStore: func(tr *TemplateResource) {},
 	},
 }
 

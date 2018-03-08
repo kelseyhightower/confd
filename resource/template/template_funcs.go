@@ -43,6 +43,9 @@ func newFuncMap() map[string]interface{} {
 	m["reverse"] = Reverse
 	m["sortByLength"] = SortByLength
 	m["sortKVByLength"] = SortKVByLength
+	m["appendSlice"] = AppendSlice
+	m["makeSlice"] = MakeSlice
+	m["rangeSlice"] = RangeSlice
 	m["add"] = func(a, b int) int { return a + b }
 	m["sub"] = func(a, b int) int { return a - b }
 	m["div"] = func(a, b int) int { return a / b }
@@ -235,4 +238,44 @@ func Base64Encode(data string) string {
 func Base64Decode(data string) (string, error) {
 	s, err := base64.StdEncoding.DecodeString(data)
 	return string(s), err
+}
+
+type sliceTyp struct {
+	id   string
+	data []string
+}
+
+var globalSlices = make(map[string]sliceTyp)
+
+func AppendSlice(toSliceID string, str string) string {
+	if _, exist := globalSlices[toSliceID]; !exist {
+		globalSlices[toSliceID] = sliceTyp{
+			id:   toSliceID,
+			data: []string{str},
+		}
+	} else {
+		globalSlices[toSliceID] = sliceTyp{
+			id:   toSliceID,
+			data: append(globalSlices[toSliceID].data, str),
+		}
+	}
+	return ""
+}
+
+func MakeSlice(id ...string) string {
+	var ID = time.Now().String()
+	for _, i := range id {
+		ID = i
+	}
+
+	globalSlices[ID] = sliceTyp{
+		id:   ID,
+		data: []string{},
+	}
+
+	return ID
+}
+
+func RangeSlice(sliceID string) []string {
+	return globalSlices[sliceID].data
 }
