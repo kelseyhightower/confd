@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"path"
 	"strconv"
 	"time"
 
@@ -78,15 +79,55 @@ func (c *Client) getValue(suffix string) ([]byte, string, error) {
 	return all, res.Header.Get("Etag"), nil
 }
 
+// merge will return the union of maps a and b.  Keys in b will overwrite
+// keys in a if there are duplicates.  A reference to a is returned.
+func merge(a, b map[string]string) map[string]string {
+	for k, v := range b {
+		a[k] = v
+	}
+
+	return a
+}
+
+// formatResult is a helper function to handle building of a map from a varying
+// typed data structure.  The only possible error returned is a JSON
+// marshalling error which should not occur as the data was just unmarshaled.
+func formatResult(key string, data interface{}) (map[string]string, error) {
+	ret := make(map[string]string)
+
+	switch value := data.(type) {
+	case string:
+		ret[key] = value
+	case map[string]interface{}:
+		for k, v := range value {
+			r, err := formatResult(path.Join(key, k), v)
+			if err != nil {
+				return nil, err
+			}
+			ret = merge(ret, r)
+		}
+	default:
+		// Probably lists like for instance/tags -- return encoded JSON
+		blob, err := json.Marshal(data)
+		if err != nil {
+			// This shouldn't happen as we just Unmarshed() this data
+			log.Debug("Error marshaling JSON data while formatting results")
+			return nil, err
+		}
+		ret[key] = string(blob)
+	}
+
+	return ret, nil
+}
+
 // GetValues returns a map of the provided keys to their associated values in
-// the Google Metadata service.  Recursive lookups are done by default and
-// this does not support glob-style patterns in keys.  For keys that map to
-// a simple file or string value a simple string is returned.  For keys that
-// reference a directory entry or other complex data type a string containing
-// raw JSON encoded data is returned.  For a directory this will be a map of
-// sub-keys to values or other maps.  For the instance/tags key this will be
-// a JSON list of tags.  On error or key not found a non-nil error is returned
-// with a partially populated map.
+// the Google Metadata service.  Recursive lookups are done by default.  For
+// keys that map to a simple file or string value a simple string is returned.
+// For keys that reference a directory entry or other complex data type a
+// string containing raw JSON encoded data is returned.  For a directory this
+// will be a map of sub-keys to values or other maps.  For the instance/tags
+// key this will be a JSON list of tags.  On error or key not found a non-nil
+// error is returned with a partially populated map.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	var data interface{}
 	ret := make(map[string]string)
@@ -106,13 +147,12 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			return ret, err
 		}
 
-		// Type switch
-		switch data.(type) {
-		case string:
-			ret[i] = data.(string)
-		default:
-			ret[i] = string(blob)
+		hash, err := formatResult(i, data)
+		if err != nil {
+			return ret, err
 		}
+
+		ret = merge(ret, hash)
 	}
 
 	return ret, nil
