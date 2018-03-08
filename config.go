@@ -54,6 +54,7 @@ var (
 	roleID            string
 	secretID          string
 	yamlFile          string
+	yamlBase64        string
 )
 
 // A Config structure is used to configure confd.
@@ -86,6 +87,7 @@ type Config struct {
 	RoleID        string   `toml:"role_id"`
 	SecretID      string   `toml:"secret_id"`
 	YAMLFile      string   `toml:"file"`
+	YAMLBase64    string   `toml:"yamlBase64"`
 }
 
 func init() {
@@ -98,6 +100,7 @@ func init() {
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
+	flag.StringVar(&yamlBase64, "file-base64", "", "a comma separated list of YAML/JSON base64 strings")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -261,6 +264,7 @@ func initConfig() error {
 		RoleID:       config.RoleID,
 		SecretID:     config.SecretID,
 		YAMLFile:     config.YAMLFile,
+		YAMLBase64:   config.YAMLBase64,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -373,5 +377,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SecretID = secretID
 	case "file":
 		config.YAMLFile = yamlFile
+	case "file-base64":
+		config.YAMLBase64 = yamlBase64
 	}
 }

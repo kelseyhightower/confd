@@ -47,8 +47,8 @@
   revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
 
 [[constraint]]
-  name = "gopkg.in/yaml.v2"
-  branch = "v2"
+  name = "github.com/pastdev/clconf"
+  version = "1.0.0"
 
 [[override]]
   name = "github.com/ugorji/go"

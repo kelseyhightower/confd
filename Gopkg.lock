@@ -182,6 +182,12 @@
   version = "v0.8.1"
 
 [[projects]]
+  name = "github.com/imdario/mergo"
+  packages = ["."]
+  revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
+  version = "0.3.2"
+
+[[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   revision = "0b12d6b5"
@@ -205,6 +211,15 @@
   revision = "d0303fe809921458f417bcf828397a65db30a7e4"
 
 [[projects]]
+  name = "github.com/pastdev/clconf"
+  packages = [
+    "clconf",
+    "clconf/template"
+  ]
+  revision = "f3ae1cdd0c2c7512aced306d0896378c820ce6d3"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/samuel/go-zookeeper"
   packages = ["zk"]
   revision = "c4fab1ac1bec58281ad0667dc3f0907a9476ac47"
@@ -225,6 +240,12 @@
   name = "github.com/ugorji/go"
   packages = ["codec"]
   revision = "bdcc60b419d136a85cdf2e7cbcac34b3f1cd6e57"
+
+[[projects]]
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
+  version = "v1.20.0"
 
 [[projects]]
   branch = "master"
@@ -320,14 +341,14 @@
   version = "v1.7.5"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
+  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
+  version = "v2.1.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fe9515053e877ef8c267ffcf1549e155ea0f7cc10ed4bf6d5f8a184fde5d49c5"
+  inputs-digest = "d1dd6c3fd1a3c7dde823643d9d1344ea112b1c7068bbdbff0443008bcbcc2f3f"
   solver-name = "gps-cdcl"
   solver-version = 1

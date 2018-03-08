@@ -28,8 +28,11 @@ Usage of confd:
       confd conf directory (default "/etc/confd")
   -config-file string
       the confd config file
-  -file string
-      the YAML/JSON file to watch for changes
+  -file string[,string,...]
+      A comma delimited list of YAML/JSON files to merge together and watch for changes
+  -file-base64 string[,string,...]
+      A comma delimited list of base64 encoded YAML/JSON strings to merge with -file.
+      Values in these strings will override -file.
   -interval int
       backend polling interval (default 600)
   -keep-stage-file
