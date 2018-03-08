@@ -3,7 +3,9 @@ package file
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -16,30 +18,67 @@ var replacer = strings.NewReplacer("/", "_")
 
 // Client provides a shell for the yaml client
 type Client struct {
-	filepath string
+	filepath []string
 }
 
-func NewFileClient(filepath string) (*Client, error) {
+func NewFileClient(filepath []string) (*Client, error) {
 	return &Client{filepath}, nil
 }
 
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
+func readFile(path string, vars map[string]string) error {
 	yamlMap := make(map[interface{}]interface{})
-	vars := make(map[string]string)
-
-	data, err := ioutil.ReadFile(c.filepath)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return vars, err
+		return err
 	}
 
 	err = yaml.Unmarshal(data, &yamlMap)
 	if err != nil {
-		return vars, err
+		return err
 	}
 
 	err = nodeWalk(yamlMap, "/", vars)
 	if err != nil {
-		return vars, err
+		return err
+	}
+	return nil
+}
+
+func filesLookup(paths []string) ([]string, error) {
+	var filePaths []string
+	for _, path := range paths {
+		f, err := os.Stat(path)
+		if err != nil {
+			return nil, err
+		}
+		switch mode := f.Mode(); {
+		case mode.IsDir():
+			fileList := make([]string, 0)
+			e := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+				fileList = append(fileList, path)
+				return err
+			})
+			if e != nil {
+				return nil, e
+			}
+			filePaths = append(filePaths, fileList...)
+
+		case mode.IsRegular():
+			filePaths = append(filePaths, path)
+		}
+	}
+	return filePaths, nil
+}
+
+func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	vars := make(map[string]string)
+	filePaths, err := filesLookup(c.filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, path := range filePaths {
+		readFile(path, vars)
 	}
 
 VarsLoop:
@@ -85,9 +124,16 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}
 	defer watcher.Close()
 
-	err = watcher.Add(c.filepath)
+	filePaths, err := filesLookup(c.filepath)
 	if err != nil {
 		return 0, err
+	}
+
+	for _, path := range filePaths {
+		err = watcher.Add(path)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	for {

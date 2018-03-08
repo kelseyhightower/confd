@@ -53,7 +53,7 @@ var (
 	userID            string
 	roleID            string
 	secretID          string
-	yamlFile          string
+	yamlFile          Nodes
 )
 
 // A Config structure is used to configure confd.
@@ -85,7 +85,7 @@ type Config struct {
 	UserID        string   `toml:"user_id"`
 	RoleID        string   `toml:"role_id"`
 	SecretID      string   `toml:"secret_id"`
-	YAMLFile      string   `toml:"file"`
+	YAMLFile      []string `toml:"file"`
 }
 
 func init() {
@@ -97,7 +97,7 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
+	flag.Var(&yamlFile, "file", "the YAML/JSON file to watch for changes")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")

@@ -33,7 +33,7 @@ func New(config Config) (StoreClient, error) {
 	backendNodes := config.BackendNodes
 
 	if config.Backend == "file" {
-		log.Info("Backend source(s) set to " + config.YAMLFile)
+		log.Info("Backend source(s) set to " + strings.Join(config.YAMLFile, ", "))
 	} else {
 		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
 	}
