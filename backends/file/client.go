@@ -21,6 +21,11 @@ type Client struct {
 	filepath []string
 }
 
+type ResultError struct {
+	response uint64
+	err      error
+}
+
 func NewFileClient(filepath []string) (*Client, error) {
 	return &Client{filepath}, nil
 }
@@ -44,27 +49,79 @@ func readFile(path string, vars map[string]string) error {
 	return nil
 }
 
+func isDirectory(path string) (bool, error) {
+	f, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	switch mode := f.Mode(); {
+	case mode.IsDir():
+		return true, nil
+	case mode.IsRegular():
+		return false, nil
+	}
+	return false, nil
+}
+
 func filesLookup(paths []string) ([]string, error) {
 	var files []string
 	for _, path := range paths {
-		f, err := os.Stat(path)
+		isDir, err := isDirectory(path)
 		if err != nil {
 			return nil, err
 		}
-		switch mode := f.Mode(); {
-		case mode.IsDir():
-			e := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-				files = append(files, path)
-				return err
+		if isDir {
+			err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+				isDir, err := isDirectory(path)
+				if err != nil {
+					return err
+				}
+				if !isDir {
+					files = append(files, path)
+				}
+				return nil
 			})
-			if e != nil {
-				return nil, e
+			if err != nil {
+				return nil, err
 			}
-		case mode.IsRegular():
+		} else {
 			files = append(files, path)
 		}
 	}
 	return files, nil
+}
+
+func watcherTargetLookup(paths []string, watcher *fsnotify.Watcher) error {
+	for _, path := range paths {
+		isDir, err := isDirectory(path)
+		if err != nil {
+			return err
+		}
+		if isDir {
+			err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+				isDir, err := isDirectory(path)
+				if err != nil {
+					return err
+				}
+				if isDir {
+					err = watcher.Add(path)
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			err = watcher.Add(path)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
@@ -116,6 +173,30 @@ func nodeWalk(node interface{}, key string, vars map[string]string) error {
 	return nil
 }
 
+func (c *Client) watchChanges(watcher *fsnotify.Watcher, stopChan chan bool) ResultError {
+	outputChannel := make(chan ResultError)
+	go func() error {
+		for {
+			select {
+			case event := <-watcher.Events:
+				log.Debug("event:", event)
+				if event.Op&fsnotify.Write == fsnotify.Write ||
+					event.Op&fsnotify.Remove == fsnotify.Remove ||
+					event.Op&fsnotify.Create == fsnotify.Create ||
+					event.Op&fsnotify.Rename == fsnotify.Rename ||
+					event.Op&fsnotify.Chmod == fsnotify.Chmod {
+					outputChannel <- ResultError{response: 1, err: nil}
+				}
+			case err := <-watcher.Errors:
+				outputChannel <- ResultError{response: 0, err: err}
+			case <-stopChan:
+				outputChannel <- ResultError{response: 1, err: nil}
+			}
+		}
+	}()
+	return <-outputChannel
+}
+
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	if waitIndex == 0 {
 		return 1, nil
@@ -127,29 +208,13 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}
 	defer watcher.Close()
 
-	filePaths, err := filesLookup(c.filepath)
+	err = watcherTargetLookup(c.filepath, watcher)
 	if err != nil {
 		return 0, err
 	}
-
-	for _, path := range filePaths {
-		err = watcher.Add(path)
-		if err != nil {
-			return 0, err
-		}
-	}
-
-	for {
-		select {
-		case event := <-watcher.Events:
-			if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Remove == fsnotify.Remove {
-				return 1, nil
-			}
-		case err := <-watcher.Errors:
-			return 0, err
-		case <-stopChan:
-			return 0, nil
-		}
+	output := c.watchChanges(watcher, stopChan)
+	if output.response != 2 {
+		return output.response, output.err
 	}
 	return waitIndex, nil
 }
