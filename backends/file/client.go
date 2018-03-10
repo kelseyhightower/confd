@@ -109,6 +109,12 @@ func nodeWalk(node interface{}, key string, vars map[string]string) error {
 		}
 	case string:
 		vars[key] = node.(string)
+	case int:
+		vars[key] = strconv.Itoa(node.(int))
+	case bool:
+		vars[key] = strconv.FormatBool(node.(bool))
+	case float64:
+		vars[key] = strconv.FormatFloat(node.(float64), 'f', -1, 64)
 	}
 	return nil
 }
