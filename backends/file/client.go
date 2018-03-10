@@ -45,7 +45,7 @@ func readFile(path string, vars map[string]string) error {
 }
 
 func filesLookup(paths []string) ([]string, error) {
-	var filePaths []string
+	var files []string
 	for _, path := range paths {
 		f, err := os.Stat(path)
 		if err != nil {
@@ -53,21 +53,18 @@ func filesLookup(paths []string) ([]string, error) {
 		}
 		switch mode := f.Mode(); {
 		case mode.IsDir():
-			fileList := make([]string, 0)
 			e := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-				fileList = append(fileList, path)
+				files = append(files, path)
 				return err
 			})
 			if e != nil {
 				return nil, e
 			}
-			filePaths = append(filePaths, fileList...)
-
 		case mode.IsRegular():
-			filePaths = append(filePaths, path)
+			files = append(files, path)
 		}
 	}
-	return filePaths, nil
+	return files, nil
 }
 
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
