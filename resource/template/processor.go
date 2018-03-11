@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/log"
+	util "github.com/kelseyhightower/confd/util"
 )
 
 type Processor interface {
@@ -91,7 +92,7 @@ func (p *watchProcessor) Process() {
 
 func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
 	defer p.wg.Done()
-	keys := appendPrefix(t.Prefix, t.Keys)
+	keys := util.AppendPrefix(t.Prefix, t.Keys)
 	for {
 		index, err := t.storeClient.WatchPrefix(t.Prefix, keys, t.lastIndex, p.stopChan)
 		if err != nil {
@@ -111,11 +112,11 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	var lastError error
 	templates := make([]*TemplateResource, 0)
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
-	if !isFileExist(config.ConfDir) {
+	if !util.IsFileExist(config.ConfDir) {
 		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
 		return nil, nil
 	}
-	paths, err := recursiveFindFiles(config.ConfigDir, "*toml")
+	paths, _, err := util.Lookup(config.ConfigDir, "*toml")
 	if err != nil {
 		return nil, err
 	}

@@ -3,14 +3,13 @@ package file
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/kelseyhightower/confd/log"
+	util "github.com/kelseyhightower/confd/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -19,6 +18,7 @@ var replacer = strings.NewReplacer("/", "_")
 // Client provides a shell for the yaml client
 type Client struct {
 	filepath []string
+	filter string
 }
 
 type ResultError struct {
@@ -26,8 +26,8 @@ type ResultError struct {
 	err      error
 }
 
-func NewFileClient(filepath []string) (*Client, error) {
-	return &Client{filepath}, nil
+func NewFileClient(filepath []string, filter string) (*Client, error) {
+	return &Client{filepath: filepath, filter: filter}, nil
 }
 
 func readFile(path string, vars map[string]string) error {
@@ -49,86 +49,15 @@ func readFile(path string, vars map[string]string) error {
 	return nil
 }
 
-func isDirectory(path string) (bool, error) {
-	f, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-	switch mode := f.Mode(); {
-	case mode.IsDir():
-		return true, nil
-	case mode.IsRegular():
-		return false, nil
-	}
-	return false, nil
-}
-
-func filesLookup(paths []string) ([]string, error) {
-	var files []string
-	for _, path := range paths {
-		isDir, err := isDirectory(path)
+func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	vars := make(map[string]string)
+	var filePaths []string
+	for _, path := range c.filepath {
+		p, _, err := util.Lookup(path, c.filter)
 		if err != nil {
 			return nil, err
 		}
-		if isDir {
-			err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-				isDir, err := isDirectory(path)
-				if err != nil {
-					return err
-				}
-				if !isDir {
-					files = append(files, path)
-				}
-				return nil
-			})
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			files = append(files, path)
-		}
-	}
-	return files, nil
-}
-
-func watcherTargetLookup(paths []string, watcher *fsnotify.Watcher) error {
-	for _, path := range paths {
-		isDir, err := isDirectory(path)
-		if err != nil {
-			return err
-		}
-		if isDir {
-			err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-				isDir, err := isDirectory(path)
-				if err != nil {
-					return err
-				}
-				if isDir {
-					err = watcher.Add(path)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-		} else {
-			err = watcher.Add(path)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (c *Client) GetValues(keys []string) (map[string]string, error) {
-	vars := make(map[string]string)
-	filePaths, err := filesLookup(c.filepath)
-	if err != nil {
-		return nil, err
+		filePaths = append(filePaths, p...)
 	}
 
 	for _, path := range filePaths {
@@ -207,10 +136,28 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 		return 0, err
 	}
 	defer watcher.Close()
-
-	err = watcherTargetLookup(c.filepath, watcher)
-	if err != nil {
-		return 0, err
+	for _, path := range c.filepath {
+		isDir, err := util.IsDirectory(path)
+   	if err != nil {
+      	return 0, err
+   	}
+   	if isDir {
+			_, dirs, err := util.Lookup(path, "*")
+			if err != nil {
+				return 0, err
+			}
+			for _, dir := range dirs {
+				err = watcher.Add(dir)
+				if err != nil {
+					return 0, err
+				}
+			}
+		} else {
+			err = watcher.Add(path)
+			if err != nil {
+				return 0, err
+			}
+		}
 	}
 	output := c.watchChanges(watcher, stopChan)
 	if output.response != 2 {

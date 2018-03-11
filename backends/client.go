@@ -62,7 +62,7 @@ func New(config Config) (StoreClient, error) {
 	case "env":
 		return env.NewEnvClient()
 	case "file":
-		return file.NewFileClient(config.YAMLFile)
+		return file.NewFileClient(config.YAMLFile, config.Filter)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":    config.AppID,
