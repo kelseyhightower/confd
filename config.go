@@ -144,6 +144,7 @@ func initConfig() error {
 		Interval: 600,
 		Prefix:   "",
 		Scheme:   "http",
+		Filter:   "*",
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
