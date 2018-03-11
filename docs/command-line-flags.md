@@ -29,7 +29,9 @@ Usage of confd:
   -config-file string
       the confd config file
   -file string
-      the YAML/JSON file to watch for changes
+      list of files/directories with data represented in YAML to watch for changes
+  -filter string
+      regex for files and dirs filtering
   -interval int
       backend polling interval (default 600)
   -keep-stage-file
