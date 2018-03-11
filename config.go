@@ -87,7 +87,7 @@ type Config struct {
 	RoleID        string   `toml:"role_id"`
 	SecretID      string   `toml:"secret_id"`
 	YAMLFile      []string `toml:"file"`
-	Filter		  string `toml:"filter"`
+	Filter        string   `toml:"filter"`
 }
 
 func init() {

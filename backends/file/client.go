@@ -18,7 +18,7 @@ var replacer = strings.NewReplacer("/", "_")
 // Client provides a shell for the yaml client
 type Client struct {
 	filepath []string
-	filter string
+	filter   string
 }
 
 type ResultError struct {
@@ -138,10 +138,10 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	defer watcher.Close()
 	for _, path := range c.filepath {
 		isDir, err := util.IsDirectory(path)
-   	if err != nil {
-      	return 0, err
-   	}
-   	if isDir {
+		if err != nil {
+			return 0, err
+		}
+		if isDir {
 			_, dirs, err := util.Lookup(path, "*")
 			if err != nil {
 				return 0, err
