@@ -53,7 +53,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	var filePaths []string
 	for _, path := range c.filepath {
-		p, _, err := util.Lookup(path, c.filter)
+		p, err := util.RecursiveFilesLookup(path, c.filter)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,10 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 
 	for _, path := range filePaths {
-		readFile(path, vars)
+		err := readFile(path, vars)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 VarsLoop:
@@ -104,6 +107,7 @@ func nodeWalk(node interface{}, key string, vars map[string]string) error {
 
 func (c *Client) watchChanges(watcher *fsnotify.Watcher, stopChan chan bool) ResultError {
 	outputChannel := make(chan ResultError)
+	defer close(outputChannel)
 	go func() error {
 		for {
 			select {
@@ -111,9 +115,7 @@ func (c *Client) watchChanges(watcher *fsnotify.Watcher, stopChan chan bool) Res
 				log.Debug("event:", event)
 				if event.Op&fsnotify.Write == fsnotify.Write ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
-					event.Op&fsnotify.Create == fsnotify.Create ||
-					event.Op&fsnotify.Rename == fsnotify.Rename ||
-					event.Op&fsnotify.Chmod == fsnotify.Chmod {
+					event.Op&fsnotify.Create == fsnotify.Create {
 					outputChannel <- ResultError{response: 1, err: nil}
 				}
 			case err := <-watcher.Errors:
@@ -142,7 +144,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 			return 0, err
 		}
 		if isDir {
-			_, dirs, err := util.Lookup(path, "*")
+			dirs, err := util.RecursiveDirsLookup(path, "*")
 			if err != nil {
 				return 0, err
 			}

@@ -12,7 +12,7 @@ import (
 )
 
 // filestat return a FileInfo describing the named file.
-func filestat(name string) (fi FileInfo, err error) {
+func FileStat(name string) (fi FileInfo, err error) {
 	if IsFileExist(name) {
 		f, err := os.Open(name)
 		if err != nil {

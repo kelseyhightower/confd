@@ -23,7 +23,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		Scheme:        "http",
 		SecretKeyring: "",
 		Table:         "",
-		Filter:			"*",
+		Filter:        "*",
 	}
 	if err := initConfig(); err != nil {
 		t.Errorf(err.Error())

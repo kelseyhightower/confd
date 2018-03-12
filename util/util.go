@@ -40,11 +40,11 @@ func IsConfigChanged(src, dest string) (bool, error) {
 	if !IsFileExist(dest) {
 		return true, nil
 	}
-	d, err := filestat(dest)
+	d, err := FileStat(dest)
 	if err != nil {
 		return true, err
 	}
-	s, err := filestat(src)
+	s, err := FileStat(src)
 	if err != nil {
 		return true, err
 	}
@@ -80,12 +80,19 @@ func IsDirectory(path string) (bool, error) {
 	return false, nil
 }
 
-func Lookup(root string, pattern string) ([]string, []string, error) {
-	var files []string
-	var dirs []string
+func RecursiveFilesLookup(root string, pattern string) ([]string, error) {
+	return recursiveLookup(root, pattern, false)
+}
+
+func RecursiveDirsLookup(root string, pattern string) ([]string, error) {
+	return recursiveLookup(root, pattern, true)
+}
+
+func recursiveLookup(root string, pattern string, dirsLookup bool) ([]string, error) {
+	var result []string
 	isDir, err := IsDirectory(root)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if isDir {
 		err := filepath.Walk(root, func(root string, f os.FileInfo, err error) error {
@@ -98,19 +105,21 @@ func Lookup(root string, pattern string) ([]string, []string, error) {
 				if err != nil {
 					return err
 				}
-				if isDir {
-					dirs = append(dirs, root)
-				} else {
-					files = append(files, root)
+				if isDir && dirsLookup {
+					result = append(result, root)
+				} else if !isDir && !dirsLookup {
+					result = append(result, root)
 				}
 			}
 			return nil
 		})
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	} else {
-		files = append(files, root)
+		if !dirsLookup {
+			result = append(result, root)
+		}
 	}
-	return files, dirs, nil
+	return result, nil
 }

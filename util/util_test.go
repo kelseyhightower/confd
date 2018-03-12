@@ -96,7 +96,7 @@ func createDirStructure() (rootDir string, err error) {
 	return
 }
 
-func TestLookup(t *testing.T) {
+func TestRecursiveFilesLookup(t *testing.T) {
 	log.SetLevel("warn")
 	// Setup temporary directories
 	rootDir, err := createDirStructure()
@@ -104,7 +104,7 @@ func TestLookup(t *testing.T) {
 		t.Errorf("Failed to create temp dirs: %s", err.Error())
 	}
 	defer os.RemoveAll(rootDir)
-	files, _, err := Lookup(rootDir, "*toml")
+	files, err := RecursiveFilesLookup(rootDir, "*toml")
 	if err != nil {
 		t.Errorf("Failed to run recursiveFindFiles, got error: " + err.Error())
 	}
