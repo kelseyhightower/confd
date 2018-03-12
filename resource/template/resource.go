@@ -22,13 +22,13 @@ import (
 )
 
 type Config struct {
-	ConfDir       string
+	ConfDir       string `toml:"confdir"`
 	ConfigDir     string
 	KeepStageFile bool
-	Noop          bool
-	Prefix        string
+	Noop          bool   `toml:"noop"`
+	Prefix        string `toml:"prefix"`
 	StoreClient   backends.StoreClient
-	SyncOnly      bool
+	SyncOnly      bool `toml:"sync-only"`
 	TemplateDir   string
 	PGPPrivateKey []byte
 }
