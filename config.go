@@ -99,7 +99,7 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.Var(&yamlFile, "file", "the YAML file to watch for changes")
+	flag.Var(&yamlFile, "file", "the YAML file to watch for changes (only used with -backend=file)")
 	flag.StringVar(&filter, "filter", "*", "files filter (only used with -backend=file)")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
