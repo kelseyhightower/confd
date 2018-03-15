@@ -160,22 +160,47 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	// Use all operations on the same revision
+	var first_rev int64 = 0
 	vars := make(map[string]string)
-	getOps := make([]clientv3.Op, 0)
+	// Default ETCDv3 TXN limitation. Since it is configurable from v3.3,
+	// maybe an option should be added (also set max-txn=0 can disable Txn?)
+	maxTxnOps := 128
+	getOps := make([]clientv3.Op, 0, maxTxnOps)
+	doTxn := func (ops []clientv3.Op) error {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3) * time.Second)
+		
+		result, err := c.client.Txn(ctx).Then(getOps...).Commit()
+		cancel()
+		if err != nil {
+			return err
+		}
+		for _, r := range result.Responses {
+			for _, ev := range r.GetResponseRange().Kvs {
+				vars[string(ev.Key)] = string(ev.Value)
+			}
+		}
+		if first_rev == 0 {
+			// Save the revison of the first request
+			first_rev = result.Header.GetRevision()
+		}
+		return nil
+	}
 	for _, key := range keys {
 		getOps = append(getOps, clientv3.OpGet(key,
 											   clientv3.WithPrefix(),
-											   clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend)))
+											   clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend),
+											   clientv3.WithRev(first_rev)))
+		if len(getOps) >= maxTxnOps {
+			if err := doTxn(getOps); err != nil {
+				return vars, err
+			}
+			getOps = getOps[:0]
+		}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3) * time.Second)
-	result, err := c.client.Txn(ctx).Then(getOps...).Commit()
-	cancel()
-	if err != nil {
-		return vars, err
-	}
-	for _, r := range result.Responses {
-		for _, ev := range r.GetResponseRange().Kvs {
-			vars[string(ev.Key)] = string(ev.Value)
+	if len(getOps) > 0 {
+		if err := doTxn(getOps); err != nil {
+			return vars, err
 		}
 	}
 	return vars, nil
