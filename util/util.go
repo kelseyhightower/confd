@@ -20,6 +20,7 @@ func (n *Nodes) String() string {
 func (n *Nodes) Set(node string) error {
 	*n = append(*n, node)
 	return nil
+}
 
 // fileInfo describes a configuration file and is returned by fileStat.
 type FileInfo struct {
