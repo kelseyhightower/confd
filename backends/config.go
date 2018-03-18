@@ -23,6 +23,6 @@ type Config struct {
 	RoleID       string     `toml:"role_id"`
 	SecretID     string     `toml:"secret_id"`
 	YAMLFile     util.Nodes `toml:"file"`
-  Filter       string     `toml:"filter"`
+  	Filter       string     `toml:"filter"`
 	Role         string
 }
