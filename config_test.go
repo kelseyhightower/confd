@@ -14,7 +14,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 			Backend:      "etcd",
 			BackendNodes: []string{"http://127.0.0.1:4001"},
 			Scheme:       "http",
-			Filter:		  "*",
+			Filter:       "*",
 		},
 		TemplateConfig: TemplateConfig{
 			ConfDir:     "/etc/confd",
