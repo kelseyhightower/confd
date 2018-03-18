@@ -53,7 +53,8 @@ var (
 	userID            string
 	roleID            string
 	secretID          string
-	yamlFile          string
+	yamlFile          Nodes
+	filter            string
 )
 
 // A Config structure is used to configure confd.
@@ -85,7 +86,8 @@ type Config struct {
 	UserID        string   `toml:"user_id"`
 	RoleID        string   `toml:"role_id"`
 	SecretID      string   `toml:"secret_id"`
-	YAMLFile      string   `toml:"file"`
+	YAMLFile      []string `toml:"file"`
+	Filter        string   `toml:"filter"`
 }
 
 func init() {
@@ -97,7 +99,8 @@ func init() {
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
 	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
+	flag.Var(&yamlFile, "file", "the YAML file to watch for changes (only used with -backend=file)")
+	flag.StringVar(&filter, "filter", "*", "files filter (only used with -backend=file)")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
@@ -141,6 +144,7 @@ func initConfig() error {
 		Interval: 600,
 		Prefix:   "",
 		Scheme:   "http",
+		Filter:   "*",
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
@@ -261,6 +265,7 @@ func initConfig() error {
 		RoleID:       config.RoleID,
 		SecretID:     config.SecretID,
 		YAMLFile:     config.YAMLFile,
+		Filter:       config.Filter,
 	}
 	// Template configuration.
 	templateConfig = template.Config{
@@ -373,5 +378,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.SecretID = secretID
 	case "file":
 		config.YAMLFile = yamlFile
+	case "filter":
+		config.Filter = filter
 	}
 }

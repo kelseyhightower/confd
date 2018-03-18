@@ -18,6 +18,7 @@ type Config struct {
 	UserID       string
 	RoleID       string
 	SecretID     string
-	YAMLFile     string
+	YAMLFile     []string
+	Filter       string
 	Role         string
 }
