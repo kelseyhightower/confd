@@ -1,10 +1,3 @@
-/*
-Package log provides support for logging to stdout and stderr.
-
-Log entries will be logged in the following format:
-
-    timestamp hostname tag[pid]: SEVERITY Message
-*/
 package log
 
 import (
@@ -21,13 +14,14 @@ func init() {
 		Output: os.Stderr,
 		Level:  hclog.Trace,
 	})
-	if os.Args[1] == "internal-plugin" {
-		log = hclog.New(&hclog.LoggerOptions{
-			Output:     os.Stderr,
-			Level:      hclog.Trace,
-			JSONFormat: true,
-		})
-	}
+}
+
+func EnablePluginLogging() {
+	log = hclog.New(&hclog.LoggerOptions{
+		Output:     os.Stderr,
+		Level:      hclog.Trace,
+		JSONFormat: true,
+	})
 }
 
 func GetLogger() *hclog.Logger {
@@ -40,13 +34,6 @@ func SetLevel(level string) {
 		Output: os.Stderr,
 		Level:  hclog.LevelFromString(level),
 	})
-	if os.Args[1] == "internal-plugin" {
-		log = hclog.New(&hclog.LoggerOptions{
-			Output:     os.Stderr,
-			Level:      hclog.LevelFromString(level),
-			JSONFormat: true,
-		})
-	}
 }
 
 // Debug logs a message with severity DEBUG.

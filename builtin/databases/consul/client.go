@@ -83,7 +83,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for {
 		_, meta, err := c.client.List(prefix, &api.QueryOptions{WaitIndex: index})
 		if err != nil {
-			log.Error("%s", err.Error())
+			log.Error(err.Error())
 			time.Sleep(2 * time.Second)
 			continue
 		}

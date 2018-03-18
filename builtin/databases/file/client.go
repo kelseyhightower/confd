@@ -89,7 +89,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 				return nil
 			}
 		case err := <-watcher.Errors:
-			log.Error("%s", err.Error())
+			log.Error(err.Error())
 		}
 	}
 }

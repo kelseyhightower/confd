@@ -64,8 +64,6 @@ func RunPlugin(args []string) int {
 	pluginType := args[0]
 	pluginName := args[1]
 
-	// log.SetPrefix(fmt.Sprintf("%s-%s (internal) ", pluginName, pluginType))
-
 	switch pluginType {
 	case confdplugin.DatabasePluginName:
 		database, found := InternalDatabases[pluginName]

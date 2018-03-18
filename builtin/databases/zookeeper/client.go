@@ -128,7 +128,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 				for dir := filepath.Dir(k); dir != "/"; dir = filepath.Dir(dir) {
 					if _, ok := watchMap[dir]; !ok {
 						watchMap[dir] = ""
-						log.Info("Watching: %s", dir)
+						log.Debug("Watching: %s", dir)
 						go c.watch(dir, respChan, cancelRoutine)
 					}
 				}
@@ -141,7 +141,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for k := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
-				log.Info("Watching: %s", k)
+				log.Debug("Watching: %s", k)
 				go c.watch(k, respChan, cancelRoutine)
 				break
 			}
@@ -151,7 +151,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, results chan string) 
 	for {
 		err := <-respChan
 		if err != nil {
-			log.Error("%s", err.Error())
+			log.Error(err.Error())
 			time.Sleep(2 * time.Second)
 			continue
 		}

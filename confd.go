@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"runtime"
@@ -18,6 +19,7 @@ func main() {
 
 func mainExitCode() int {
 	if len(os.Args) > 1 && os.Args[1] == "internal-plugin" {
+		log.EnablePluginLogging()
 		log.Info("Plugin is about to start")
 		exitCode := backends.RunPlugin(os.Args[2:])
 		log.Info("Plugin is about to exit with %#v exit code", exitCode)
@@ -25,7 +27,7 @@ func mainExitCode() int {
 	}
 	flag.Parse()
 	if printVersion {
-		log.Info("confd %s (Git SHA: %s, Go Version: %s)\n", Version, GitSHA, runtime.Version())
+		fmt.Printf("confd %s (Git SHA: %s, Go Version: %s)\n", Version, GitSHA, runtime.Version())
 		os.Exit(0)
 	}
 	if err := initConfig(); err != nil {
