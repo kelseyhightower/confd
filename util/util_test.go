@@ -20,14 +20,14 @@ import (
 // │   ├── sub1.toml
 // │   └── sub12.toml
 // └── subDir2
-//			├── sub2.other
-//			├── sub2.toml
-//			├── sub22.toml
-//			└── subSubDir
-//					├── subsub.other
-//					├── subsub.toml
-//					└── subsub2.toml
-func createRecursiveDirs() (rootDir string, err error) {
+//       ├── sub2.other
+//       ├── sub2.toml
+//       ├── sub22.toml
+//       └── subSubDir
+//             ├── subsub.other
+//             ├── subsub.toml
+//             └── subsub2.toml
+func createDirStructure() (rootDir string, err error) {
 	mod := os.FileMode(0755)
 	flag := os.O_RDWR | os.O_CREATE | os.O_EXCL
 	rootDir, err = ioutil.TempDir("", "")
@@ -96,15 +96,15 @@ func createRecursiveDirs() (rootDir string, err error) {
 	return
 }
 
-func TestRecursiveFindFiles(t *testing.T) {
+func TestRecursiveFilesLookup(t *testing.T) {
 	log.SetLevel("warn")
 	// Setup temporary directories
-	rootDir, err := createRecursiveDirs()
+	rootDir, err := createDirStructure()
 	if err != nil {
 		t.Errorf("Failed to create temp dirs: %s", err.Error())
 	}
 	defer os.RemoveAll(rootDir)
-	files, err := recursiveFindFiles(rootDir, "*toml")
+	files, err := RecursiveFilesLookup(rootDir, "*toml")
 	if err != nil {
 		t.Errorf("Failed to run recursiveFindFiles, got error: " + err.Error())
 	}
@@ -122,5 +122,63 @@ func TestRecursiveFindFiles(t *testing.T) {
 		if f != files[i] {
 			t.FailNow()
 		}
+	}
+}
+
+func TestIsConfigChangedTrue(t *testing.T) {
+	log.SetLevel("warn")
+	src, err := ioutil.TempFile("", "src")
+	defer os.Remove(src.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = src.WriteString("foo")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	dest, err := ioutil.TempFile("", "dest")
+	defer os.Remove(dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = dest.WriteString("foo")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	status, err := IsConfigChanged(src.Name(), dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if status == true {
+		t.Errorf("Expected IsConfigChanged(src, dest) to be %v, got %v", true, status)
+	}
+}
+
+func TestIsConfigChangedFalse(t *testing.T) {
+	log.SetLevel("warn")
+	src, err := ioutil.TempFile("", "src")
+	defer os.Remove(src.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = src.WriteString("src")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	dest, err := ioutil.TempFile("", "dest")
+	defer os.Remove(dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_, err = dest.WriteString("dest")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	status, err := IsConfigChanged(src.Name(), dest.Name())
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if status == false {
+		t.Errorf("Expected sameConfig(src, dest) to be %v, got %v", false, status)
 	}
 }

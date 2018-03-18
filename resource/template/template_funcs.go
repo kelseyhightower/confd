@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	util "github.com/kelseyhightower/confd/util"
 	"github.com/kelseyhightower/memkv"
 )
 
@@ -36,7 +37,7 @@ func newFuncMap() map[string]interface{} {
 	m["lookupIPV4"] = LookupIPV4
 	m["lookupIPV6"] = LookupIPV6
 	m["lookupSRV"] = LookupSRV
-	m["fileExists"] = isFileExist
+	m["fileExists"] = util.IsFileExist
 	m["base64Encode"] = Base64Encode
 	m["base64Decode"] = Base64Decode
 	m["parseBool"] = strconv.ParseBool
