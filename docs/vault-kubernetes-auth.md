@@ -4,8 +4,8 @@ These are steps to get vault with Kubernetes auth working on minikube.
 
 - Deploy Helm
   ```
-  # Install Helm - on macOS
-  brew install kubernetes-helm
+  # Install Helm
+  Use the correct method for your OS from https://docs.helm.sh/using_helm/#installing-the-helm-client
   # Deploy tiller into the cluster
   helm init
 
@@ -14,8 +14,8 @@ These are steps to get vault with Kubernetes auth working on minikube.
   # Add Vault chart
   helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
   # Install Vault
-  # Currently the chart has Vault 0.8.2 and we need 0.8.3 (but PR is pending)
-  helm install incubator/vault --name vault --set vault.dev=true --set image.tag="0.8.3" 
+  # We need at least Vault 0.8.3
+  helm install incubator/vault --name vault --set vault.dev=true --set image.tag="0.9.5"
   ```
 
 - Enable Kubernetes backend
@@ -28,14 +28,14 @@ These are steps to get vault with Kubernetes auth working on minikube.
   export VAULT_TOKEN=$(cat /root/.vault-token)
   # Enable Kube auth backend
   vault auth-enable kubernetes
-  # Configure Kube auth bacckend
+  # Configure Kube auth backend
   vault write auth/kubernetes/config \
     kubernetes_host=https://kubernetes \
     kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   # Create Vault policy for testing
   vault write sys/policy/test \
     rules='path "secret/*" { capabilities = ["create", "read"] }'
-  # Cretate role for confd
+  # Create role for confd
   vault write auth/kubernetes/role/confd \
     bound_service_account_names=vault-auth \
     bound_service_account_namespaces=default \
@@ -84,4 +84,4 @@ These are steps to get vault with Kubernetes auth working on minikube.
 - Check `/tmp/test.conf`, it should contain your secret
   ```
   cat /tmp/test.conf
-  ``` 
+  ```
