@@ -1,4 +1,4 @@
-package template
+package util
 
 import (
 	"crypto/md5"

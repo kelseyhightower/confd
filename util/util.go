@@ -1,4 +1,4 @@
-package template
+package util
 
 import (
 	"fmt"
@@ -7,6 +7,20 @@ import (
 	"path"
 	"path/filepath"
 )
+
+// Nodes is a custom flag Var representing a list of etcd nodes.
+type Nodes []string
+
+// String returns the string representation of a node var.
+func (n *Nodes) String() string {
+	return fmt.Sprintf("%s", *n)
+}
+
+// Set appends the node to the etcd node list.
+func (n *Nodes) Set(node string) error {
+	*n = append(*n, node)
+	return nil
+}
 
 // fileInfo describes a configuration file and is returned by fileStat.
 type FileInfo struct {
