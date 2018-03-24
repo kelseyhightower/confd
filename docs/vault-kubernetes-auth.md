@@ -26,15 +26,25 @@ These are steps to get vault with Kubernetes auth working on minikube.
   kubectl exec -i -t ${POD_NAME} sh
   # Set env vars for Vault client
   export VAULT_TOKEN=$(cat /root/.vault-token)
+  # Set Vault host URL (do this everytime you exec back into container)
+  export VAULT_ADDR=http://127.0.0.1:8200
   # Enable Kube auth backend
-  vault auth-enable kubernetes
+  vault auth enable kubernetes
   # Configure Kube auth backend
   vault write auth/kubernetes/config \
     kubernetes_host=https://kubernetes \
     kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   # Create Vault policy for testing
-  vault write sys/policy/test \
-    rules='path "secret/*" { capabilities = ["create", "read"] }'
+  vault policy write test -<<EOF
+  path "secret/*" {
+    capabilities = ["create"]
+  }
+
+  path "secret/foo" {
+    capabilities = ["read"]
+  }
+  EOF
+
   # Create role for confd
   vault write auth/kubernetes/role/confd \
     bound_service_account_names=vault-auth \
@@ -43,10 +53,14 @@ These are steps to get vault with Kubernetes auth working on minikube.
     ttl=1h
   # Write test secret
   vault write secret/foo value=bar
+
+  # Now exit vault container
+  exit
   ```
   
 - Create RBAC (if used) rule to allow acccess to TokenReview API
   ```
+  kubectl create -f - <<EOF
   apiVersion: rbac.authorization.k8s.io/v1beta1
   kind: ClusterRoleBinding
   metadata:
@@ -60,12 +74,17 @@ These are steps to get vault with Kubernetes auth working on minikube.
   - kind: ServiceAccount
     name: vault-auth
     namespace: default
+  EOF
   ```
 
 - Start a pod with confd and get a secret
   ```
+  # Create service account for kube auth
+  kubectl create serviceaccount vault-auth
+  # Start pod
   kubectl run test -i -t --image=quay.io/stepanstipl/test:confd-v7 \
-    --restart=Never -- sh 
+    --overrides='{ "apiVersion": "v1", "spec": {"serviceAccount": "vault-auth", "serviceAccountName": "vault-auth"} }' \
+    --restart=Never -- sh
   # Inside the pod
   # Create confd config
   mkdir -p /etc/confd/conf.d /etc/confd/templates
@@ -78,7 +97,7 @@ These are steps to get vault with Kubernetes auth working on minikube.
   # And template
   echo '{{getv "/secret/foo"}}' > /etc/confd/templates/test.conf.tmpl
   # and finally run confd
-  confd -onetime -backend vault -auth-type kubernetes -role-id confd -node http://unrealistic-sabertooth-vault:8200 -log-level debug
+  confd -onetime -backend vault -auth-type kubernetes -role confd -node http://vault-vault:8200 -log-level debug
   ```
 
 - Check `/tmp/test.conf`, it should contain your secret
