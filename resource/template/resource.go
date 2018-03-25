@@ -80,7 +80,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
 
-	tr := tc.TemplateResource
+	tr := &tc.TemplateResource
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
 	tr.storeClient = config.StoreClient
@@ -99,7 +99,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 
 	if len(config.PGPPrivateKey) > 0 {
 		tr.PGPPrivateKey = config.PGPPrivateKey
-		addCryptFuncs(&tr)
+		addCryptFuncs(tr)
 	}
 
 	if tr.Src == "" {
@@ -115,7 +115,7 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	}
 
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-	return &tr, nil
+	return tr, nil
 }
 
 func addCryptFuncs(tr *TemplateResource) {

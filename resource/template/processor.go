@@ -71,8 +71,12 @@ type watchProcessor struct {
 }
 
 func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
-	var wg sync.WaitGroup
-	return &watchProcessor{config, stopChan, doneChan, errChan, wg}
+	return &watchProcessor{
+		config:   config,
+		stopChan: stopChan,
+		doneChan: doneChan,
+		errChan:  errChan,
+	}
 }
 
 func (p *watchProcessor) Process() {
@@ -114,7 +118,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
 	if !util.IsFileExist(config.ConfDir) {
 		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
-		return nil, nil
+		return nil, fmt.Errorf("confdir '%s' does not exist", config.ConfDir)
 	}
 	paths, err := util.RecursiveFilesLookup(config.ConfigDir, "*toml")
 	if err != nil {

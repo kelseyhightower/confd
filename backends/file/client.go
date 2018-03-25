@@ -165,5 +165,4 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	if output.response != 2 {
 		return output.response, output.err
 	}
-	return waitIndex, nil
 }
