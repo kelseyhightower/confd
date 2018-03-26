@@ -66,7 +66,9 @@ func (c *Client) getValue(suffix string) ([]byte, string, error) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode == http.StatusNotFound {
-		return nil, "0", fmt.Errorf("metadata key not found: %s", url)
+		// Not a fatal error, let confd and the templates deal with missing keys
+		log.Debug("Google Metadata: metadata key not found: %s", url)
+		return nil, "0", nil
 	}
 	if res.StatusCode != 200 {
 		return nil, "0", fmt.Errorf("status code %d trying to fetch %s", res.StatusCode, url)
