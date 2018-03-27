@@ -141,6 +141,10 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			log.Info("Google Metadata: Error fetching data: %s", err.Error())
 			return ret, err
 		}
+		if blob == nil {
+			// empty result set
+			continue
+		}
 
 		// JSON unmarshal the data so we can make some decisions based on it.
 		err = json.Unmarshal(blob, &data)
