@@ -17,18 +17,19 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
+	util "github.com/kelseyhightower/confd/util"
 	"github.com/kelseyhightower/memkv"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
 type Config struct {
-	ConfDir       string
+	ConfDir       string `toml:"confdir"`
 	ConfigDir     string
 	KeepStageFile bool
-	Noop          bool
-	Prefix        string
+	Noop          bool   `toml:"noop"`
+	Prefix        string `toml:"prefix"`
 	StoreClient   backends.StoreClient
-	SyncOnly      bool
+	SyncOnly      bool `toml:"sync-only"`
 	TemplateDir   string
 	PGPPrivateKey []byte
 }
@@ -176,7 +177,7 @@ func (t *TemplateResource) setVars() error {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
+	result, err := t.storeClient.GetValues(util.AppendPrefix(t.Prefix, t.Keys))
 	if err != nil {
 		return err
 	}
@@ -197,7 +198,7 @@ func (t *TemplateResource) setVars() error {
 func (t *TemplateResource) createStageFile() error {
 	log.Debug("Using source template " + t.Src)
 
-	if !isFileExist(t.Src) {
+	if !util.IsFileExist(t.Src) {
 		return errors.New("Missing template: " + t.Src)
 	}
 
@@ -243,7 +244,7 @@ func (t *TemplateResource) sync() error {
 	}
 
 	log.Debug("Comparing candidate config to " + t.Dest)
-	ok, err := sameConfig(staged, t.Dest)
+	ok, err := util.IsConfigChanged(staged, t.Dest)
 	if err != nil {
 		log.Error(err.Error())
 	}
@@ -251,7 +252,7 @@ func (t *TemplateResource) sync() error {
 		log.Warning("Noop mode enabled. " + t.Dest + " will not be modified")
 		return nil
 	}
-	if !ok {
+	if ok {
 		log.Info("Target config " + t.Dest + " out of sync")
 		if !t.syncOnly && t.CheckCmd != "" {
 			if err := t.check(); err != nil {
@@ -364,7 +365,7 @@ func (t *TemplateResource) process() error {
 // setFileMode sets the FileMode.
 func (t *TemplateResource) setFileMode() error {
 	if t.Mode == "" {
-		if !isFileExist(t.Dest) {
+		if !util.IsFileExist(t.Dest) {
 			t.FileMode = 0644
 		} else {
 			fi, err := os.Stat(t.Dest)

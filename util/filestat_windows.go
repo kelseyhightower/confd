@@ -1,6 +1,4 @@
-// +build !windows
-
-package template
+package util
 
 import (
 	"crypto/md5"
@@ -8,11 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"syscall"
 )
 
-// fileStat return a fileInfo describing the named file.
-func fileStat(name string) (fi fileInfo, err error) {
+// filestat return a FileInfo describing the named file.
+func FileStat(name string) (fi FileInfo, err error) {
 	if isFileExist(name) {
 		f, err := os.Open(name)
 		if err != nil {
@@ -20,8 +17,6 @@ func fileStat(name string) (fi fileInfo, err error) {
 		}
 		defer f.Close()
 		stats, _ := f.Stat()
-		fi.Uid = stats.Sys().(*syscall.Stat_t).Uid
-		fi.Gid = stats.Sys().(*syscall.Stat_t).Gid
 		fi.Mode = stats.Mode()
 		h := md5.New()
 		io.Copy(h, f)
