@@ -18,7 +18,7 @@ type Watch struct {
 	// Last seen revision
 	revision int64
 	// A channel to wait, will be closed after revision changes
-	cond chan bool
+	cond chan struct{}
 	// Use RWMutex to protect cond variable
 	rwl sync.RWMutex
 }
@@ -52,11 +52,11 @@ func (w *Watch) update(newRevision int64){
 	defer w.rwl.Unlock()
 	w.revision = newRevision
 	close(w.cond)
-	w.cond = make(chan bool)
+	w.cond = make(chan struct{})
 }
 
 func createWatch(client *clientv3.Client, prefix string) (*Watch, error) {
-	w := &Watch{0, make(chan bool), sync.RWMutex{}}
+	w := &Watch{0, make(chan struct{}), sync.RWMutex{}}
 	go func() {
 		rch := client.Watch(context.Background(), prefix, clientv3.WithPrefix(),
 							clientv3.WithCreatedNotify())
@@ -227,9 +227,9 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	c.wm.Unlock()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	cancelRoutine := make(chan bool)
+	cancelRoutine := make(chan struct{})
 	defer cancel()
-
+	defer close(cancelRoutine)
 	go func() {
 		select {
 		case <-stopChan:
