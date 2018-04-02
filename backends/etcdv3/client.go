@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -166,18 +167,36 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	// Default ETCDv3 TXN limitation. Since it is configurable from v3.3,
 	// maybe an option should be added (also set max-txn=0 can disable Txn?)
 	maxTxnOps := 128
-	getOps := make([]clientv3.Op, 0, maxTxnOps)
-	doTxn := func (ops []clientv3.Op) error {
+	getOps := make([]string, 0, maxTxnOps)
+	doTxn := func (ops []string) error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3) * time.Second)
+		defer cancel()
 		
-		result, err := c.client.Txn(ctx).Then(getOps...).Commit()
-		cancel()
+		txnOps := make([]clientv3.Op, 0, maxTxnOps)
+		
+		for _, k := range ops {
+			txnOps = append(txnOps, clientv3.OpGet(k,
+											   clientv3.WithPrefix(),
+											   clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend),
+											   clientv3.WithRev(first_rev)))
+		}
+		
+		result, err := c.client.Txn(ctx).Then(txnOps...).Commit()
 		if err != nil {
 			return err
 		}
-		for _, r := range result.Responses {
+		for i, r := range result.Responses {
+			originKey := ops[i]
+			// append a '/' if not already exists
+			originKeyFixed := originKey
+			if !strings.HasSuffix(originKeyFixed, "/") {
+				originKeyFixed = originKey + "/"
+			}
 			for _, ev := range r.GetResponseRange().Kvs {
-				vars[string(ev.Key)] = string(ev.Value)
+				k := string(ev.Key)
+				if k == originKey || strings.HasPrefix(k, originKeyFixed) {
+					vars[string(ev.Key)] = string(ev.Value)
+				}
 			}
 		}
 		if first_rev == 0 {
@@ -187,10 +206,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		return nil
 	}
 	for _, key := range keys {
-		getOps = append(getOps, clientv3.OpGet(key,
-											   clientv3.WithPrefix(),
-											   clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend),
-											   clientv3.WithRev(first_rev)))
+		getOps = append(getOps, key)
 		if len(getOps) >= maxTxnOps {
 			if err := doTxn(getOps); err != nil {
 				return vars, err
