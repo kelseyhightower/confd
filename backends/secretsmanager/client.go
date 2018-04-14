@@ -34,7 +34,7 @@ func New() (*Client, error) {
 			Endpoint: &endpoint,
 		}
 	}else{
-		c = $aws.Config{
+		c = &aws.Config{
 			SigningNameDerived: false
 		}
 	}
