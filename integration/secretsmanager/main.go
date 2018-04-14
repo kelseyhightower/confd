@@ -62,5 +62,5 @@ func main() {
 	db = make(map[string]string)
 	http.HandleFunc("/", handler)
 	log.Println("Starting AWS Secrets Manager HTTP mocking server")
-	http.ListenAndServe(":8001", nil)
+	http.ListenAndServe(":8002", nil)
 }

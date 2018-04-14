@@ -6,7 +6,7 @@ export AWS_ACCESS_KEY_ID="foo"
 export AWS_SECRET_ACCESS_KEY="bar"
 export AWS_DEFAULT_REGION="us-east-1"
 export AWS_REGION="us-east-1"
-export SECRETSMANAGER_ENDPOINT_URL="http://localhost:8001"
+export SECRETSMANAGER_ENDPOINT_URL="http://localhost:8002"
 
 # aws secretsmanager describe-secret --secret-id tutorials/MyFirstTutorialSecret
 aws secretsmanager  create-secret --name "/key" --secret-string "foobar" --endpoint-url $SECRETSMANAGER_ENDPOINT_URL

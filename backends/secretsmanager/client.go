@@ -29,7 +29,7 @@ func New() (*Client, error) {
 	var c *aws.Config
 	if os.Getenv("SECRETSMANAGER_LOCAL") != "" {
 		log.Debug("SECRETSMANAGER_LOCAL is set")
-		endpoint := "http://localhost:8001"
+		endpoint := "http://localhost:8002"
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}
