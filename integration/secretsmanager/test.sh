@@ -36,14 +36,3 @@ if [ $? -eq 0 ]
 then
         exit 1
 fi
-
-# Run confd without AWS credentials, expecting it to fail
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_ACCESS_KEY
-
-confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend secretsmanager --table confd
-if [ $? -eq 0 ]
-then
-        exit 1
-fi
-echo "test completed"
