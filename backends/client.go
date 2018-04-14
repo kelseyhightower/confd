@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jrhoward/confd/backends/secretsmanager"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
@@ -83,6 +84,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
 		return ssm.New()
+	case "secretsmanager":
+		return secretsmanager.New()
 	}
 	return nil, errors.New("Invalid backend")
 }
