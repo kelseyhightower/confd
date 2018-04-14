@@ -33,6 +33,10 @@ func New() (*Client, error) {
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}
+	}else{
+		c = $aws.Config{
+			SigningNameDerived: false
+		}
 	}
 	// Create the service's client with the session.
 	svc := secretsmanager.New(sess, c)
