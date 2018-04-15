@@ -52,13 +52,13 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	var err error
 	knownkeys, _ := c.buildNestedSecretsMap(keys)
-	log.Printf("Known keys %v", knownkeys)
+	log.Debug("Known keys %v", knownkeys)
 	for _, key := range keys {
-		log.Printf("Processing key=%s", key)
+		log.Debug("Processing key=%s", key)
 		var resp SecretString
 		if strings.HasPrefix(key, delim) {
 			keyRoot := knownkeys[delim+(strings.Split(key, "/")[1])]
-			log.Println(keyRoot)
+			log.Debug("key root: %v", keyRoot)
 			for _, element := range keyRoot {
 				resp, err = c.getSecretValue(element)
 				if err != nil {
@@ -86,7 +86,7 @@ func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, erro
 	}
 	resp, err := c.client.ListSecrets(param)
 	if err != nil {
-		log.Println(err)
+		log.Debug("Error: %v", err)
 		return secrets, err
 	}
 
@@ -111,14 +111,14 @@ func (c *Client) getSecretValue(name string) (SecretString, error) {
 		SecretId:     aws.String(name),
 		VersionStage: aws.String("AWSCURRENT"),
 	}
-	log.Printf("Searching with %v", params)
+	log.Debug("Searching with %v", params)
 
 	resp, err := c.client.GetSecretValue(params)
 	if err != nil {
 		log.Fatal("Error %v", err)
 		return SecretString{}, err
 	}
-	log.Printf("Found %s", *resp.SecretString)
+	log.Debug("Found %s", *resp.SecretString)
 	secret := SecretString{
 		Name:   *resp.Name,
 		Secret: *resp.SecretString,
@@ -136,5 +136,5 @@ func main() {
 	client, _ := New()
 	values := []string{"/myapp", "/key", "/database", "/upstream", "/prefix", "a/random/secret"}
 	resp, _ := client.GetValues(values)
-	log.Printf("secrets: %+v \n", resp)
+	log.Debug("secrets: %+v \n", resp)
 }
