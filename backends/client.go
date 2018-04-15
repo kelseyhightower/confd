@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jrhoward/confd/backends/secretsmanager"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
@@ -12,7 +13,6 @@ import (
 	"github.com/kelseyhightower/confd/backends/file"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
-	"github.com/kelseyhightower/confd/backends/secretsmanager"
 	"github.com/kelseyhightower/confd/backends/ssm"
 	"github.com/kelseyhightower/confd/backends/vault"
 	"github.com/kelseyhightower/confd/backends/zookeeper"

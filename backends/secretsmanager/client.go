@@ -4,6 +4,7 @@ package secretsmanager
 
 import (
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -14,6 +15,13 @@ import (
 type Client struct {
 	client *secretsmanager.SecretsManager
 }
+
+type SecretString struct {
+	Name   string
+	Secret string
+}
+
+const delim = "/"
 
 func New() (*Client, error) {
 	log.Debug("creating secretsmanager client")
@@ -43,30 +51,78 @@ func New() (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	var err error
+	knownkeys, _ := c.buildNestedSecretsMap(keys)
+	log.Printf("Known keys %v", knownkeys)
 	for _, key := range keys {
-		log.Debug("Processing key=%s", key)
-		var resp map[string]string
-		resp, err = c.getSecretValue(key)
-		if err != nil {
-			return vars, err
+		log.Printf("Processing key=%s", key)
+		var resp SecretString
+		if strings.HasPrefix(key, delim) {
+			keyRoot := knownkeys[delim+(strings.Split(key, "/")[1])]
+			log.Println(keyRoot)
+			for _, element := range keyRoot {
+				resp, err = c.getSecretValue(element)
+				if err != nil {
+					return vars, err
+				}
+				vars[resp.Name] = resp.Secret
+			}
+
+		} else {
+			resp, err = c.getSecretValue(key)
+			if err != nil {
+				return vars, err
+			}
+			vars[resp.Name] = resp.Secret
 		}
-		for k, v := range resp {
-			vars[k] = v
-		}
+
 	}
 	return vars, nil
 }
 
-func (c *Client) getSecretValue(name string) (map[string]string, error) {
-	secret := make(map[string]string)
-	params := &secretsmanager.GetSecretValueInput{
-		SecretId: aws.String(name),
+func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, error) {
+	secrets := make(map[string][]string)
+	param := &secretsmanager.ListSecretsInput{
+		MaxResults: aws.Int64(100),
 	}
+	resp, err := c.client.ListSecrets(param)
+	if err != nil {
+		log.Println(err)
+		return secrets, err
+	}
+
+	for _, element := range resp.SecretList {
+		if strings.HasPrefix(*element.Name, delim) {
+			nested := strings.Split(*element.Name, delim)
+			prefix := delim + nested[1]
+			if secrets[prefix] == nil {
+				// create new slice with name
+				secrets[prefix] = []string{*element.Name}
+			} else {
+				//append to slice
+				secrets[prefix] = append(secrets[prefix], *element.Name)
+			}
+		}
+	}
+	return secrets, err
+}
+
+func (c *Client) getSecretValue(name string) (SecretString, error) {
+	params := &secretsmanager.GetSecretValueInput{
+		SecretId:     aws.String(name),
+		VersionStage: aws.String("AWSCURRENT"),
+	}
+	log.Printf("Searching with %v", params)
+
 	resp, err := c.client.GetSecretValue(params)
 	if err != nil {
-		return secret, err
+		log.Fatal("Error %v", err)
+		return SecretString{}, err
 	}
-	secret[*resp.Name] = *resp.SecretString
+	log.Printf("Found %s", *resp.SecretString)
+	secret := SecretString{
+		Name:   *resp.Name,
+		Secret: *resp.SecretString,
+	}
 	return secret, nil
 }
 
@@ -74,4 +130,11 @@ func (c *Client) getSecretValue(name string) (map[string]string, error) {
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	<-stopChan
 	return 0, nil
+}
+
+func main() {
+	client, _ := New()
+	values := []string{"/myapp", "/key", "/database", "/upstream", "/prefix", "a/random/secret"}
+	resp, _ := client.GetValues(values)
+	log.Printf("secrets: %+v \n", resp)
 }
