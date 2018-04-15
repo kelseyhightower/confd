@@ -49,7 +49,7 @@ func New() (*Client, error) {
 // GetValues retrieves the values for the given keys from AWS Secrets Manager
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
-	allkeys := make([]string)
+	allkeys := make([]string, 0)
 	knownkeys, err := c.buildNestedSecretsMap(keys)
 	if err != nil {
 		return vars, err
@@ -58,14 +58,14 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		log.Debug("Processing key=%s", key)
 		if strings.HasPrefix(key, delim) {
 			keyRoot := delim + (strings.Split(key, delim)[1])
-			allkeys = append(allkeys, knownkeys[keyRoot])
+			allkeys = append(allkeys, knownkeys[keyRoot]...)
 			delete(knownkeys, keyRoot)
 		} else {
 			allkeys = append(allkeys, key)
 		}
 	}
 	for _, element := range allkeys {
-		resp, err = c.getSecretValue(element)
+		resp, err := c.getSecretValue(element)
 		if err != nil {
 			return vars, err
 		}
