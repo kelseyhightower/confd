@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	//"io/ioutil"
 	"log"
 	"net/http"
-	//"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
@@ -47,6 +45,35 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			VersionId:    aws.String("abcd"),
 		}
 		resp, err := jsonutil.BuildJSON(GetSecretValueOutput)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, string(resp))
+		return
+	case "secretsmanager.ListSecrets":
+		defer r.Body.Close()
+		var b secretsmanager.ListSecretsInput
+		err := jsonutil.UnmarshalJSON(&b, r.Body)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("Body=%#v\n", b)
+		log.Printf("DB: Getting All key")
+
+		var secretList []*secretsmanager.SecretListEntry
+
+		for k, _ := range db {
+			entry := secretsmanager.SecretListEntry{
+				Name: aws.String(k),
+			}
+			secretList = append(secretList, &entry)
+		}
+		ListSecretsOutput := &secretsmanager.ListSecretsOutput{
+			NextToken:  aws.String(""),
+			SecretList: secretList,
+		}
+		log.Printf("Entries:%v ", ListSecretsOutput)
+		resp, err := jsonutil.BuildJSON(ListSecretsOutput)
 		if err != nil {
 			panic(err)
 		}

@@ -12,6 +12,8 @@ import (
 	"github.com/kelseyhightower/confd/log"
 )
 
+const delim = "/"
+
 type Client struct {
 	client *secretsmanager.SecretsManager
 }
@@ -21,10 +23,7 @@ type SecretString struct {
 	Secret string
 }
 
-const delim = "/"
-
 func New() (*Client, error) {
-	log.Debug("creating secretsmanager client")
 	// Create a session to share configuration, and load external configuration.
 	sess := session.New()
 
@@ -50,36 +49,33 @@ func New() (*Client, error) {
 // GetValues retrieves the values for the given keys from AWS Secrets Manager
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
-	var err error
-	knownkeys, _ := c.buildNestedSecretsMap(keys)
-	log.Debug("Known keys %v", knownkeys)
+	allkeys := make([]string)
+	knownkeys, err := c.buildNestedSecretsMap(keys)
+	if err != nil {
+		return vars, err
+	}
 	for _, key := range keys {
 		log.Debug("Processing key=%s", key)
-		var resp SecretString
 		if strings.HasPrefix(key, delim) {
-			keyRoot := knownkeys[delim+(strings.Split(key, delim)[1])]
-			log.Debug("key root: %v", keyRoot)
-			for _, element := range keyRoot {
-				resp, err = c.getSecretValue(element)
-				if err != nil {
-					return vars, err
-				}
-				vars[resp.Name] = resp.Secret
-			}
-			// remove the the key as all have been processed
-
+			keyRoot := delim + (strings.Split(key, delim)[1])
+			allkeys = append(allkeys, knownkeys[keyRoot])
+			delete(knownkeys, keyRoot)
 		} else {
-			resp, err = c.getSecretValue(key)
-			if err != nil {
-				return vars, err
-			}
-			vars[resp.Name] = resp.Secret
+			allkeys = append(allkeys, key)
 		}
-
+	}
+	for _, element := range allkeys {
+		resp, err = c.getSecretValue(element)
+		if err != nil {
+			return vars, err
+		}
+		vars[resp.Name] = resp.Secret
 	}
 	return vars, nil
 }
 
+// buildNestedSecretsMap build a list of nested keys by calling describe keys
+// and looking for keys of the format /x/*
 func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, error) {
 	secrets := make(map[string][]string)
 	param := &secretsmanager.ListSecretsInput{
@@ -106,6 +102,7 @@ func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, erro
 	return secrets, err
 }
 
+// Retreive value from AWS
 func (c *Client) getSecretValue(name string) (SecretString, error) {
 	params := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(name),
