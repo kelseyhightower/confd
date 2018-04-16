@@ -26,7 +26,7 @@ type SecretString struct {
 	Secret string
 }
 
-var re = regexp.MustCompile("/[0-9A-Za-z_+=,.@-]+")
+var re = regexp.MustCompile("^/[0-9A-Za-z_+=,.@-]+")
 
 func New() (*Client, error) {
 	// Create a session to share configuration, and load external configuration.
