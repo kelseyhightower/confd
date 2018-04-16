@@ -2,9 +2,12 @@ package secretsmanager
 
 //see https://docs.aws.amazon.com/sdk-for-go/api/service/secretsmanager/
 
+// Secrets Manager does not have the equivelent of variables defined by paths eg /varroot/var1, /varoot/var2.
+// Consequently we have to parse the secrets and look for '/' to emulate that functionality
+
 import (
 	"os"
-	"strings"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -23,6 +26,8 @@ type SecretString struct {
 	Secret string
 }
 
+var re = regexp.MustCompile("/[0-9A-Za-z_+=,.@-]+")
+
 func New() (*Client, error) {
 	// Create a session to share configuration, and load external configuration.
 	sess := session.New()
@@ -32,7 +37,6 @@ func New() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var c *aws.Config
 	if os.Getenv("SECRETSMANAGER_LOCAL") != "" {
 		log.Debug("SECRETSMANAGER_LOCAL is set")
@@ -56,10 +60,9 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 	for _, key := range keys {
 		log.Debug("Processing key=%s", key)
-		if strings.HasPrefix(key, delim) {
-			keyRoot := delim + (strings.Split(key, delim)[1])
-			allkeys = append(allkeys, knownkeys[keyRoot]...)
-			delete(knownkeys, keyRoot)
+		if rootKey := re.FindString(key); len(rootKey) > 0 {
+			allkeys = append(allkeys, knownkeys[rootKey]...)
+			delete(knownkeys, rootKey)
 		} else {
 			allkeys = append(allkeys, key)
 		}
@@ -87,15 +90,13 @@ func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, erro
 	}
 
 	for _, element := range resp.SecretList {
-		if strings.HasPrefix(*element.Name, delim) {
-			nested := strings.Split(*element.Name, delim)
-			prefix := delim + nested[1]
-			if secrets[prefix] == nil {
+		if rootKey := re.FindString(*element.Name); len(rootKey) > 0 {
+			if secrets[rootKey] == nil {
 				// create new slice with name
-				secrets[prefix] = []string{*element.Name}
+				secrets[rootKey] = []string{*element.Name}
 			} else {
 				//append to slice
-				secrets[prefix] = append(secrets[prefix], *element.Name)
+				secrets[rootKey] = append(secrets[rootKey], *element.Name)
 			}
 		}
 	}
