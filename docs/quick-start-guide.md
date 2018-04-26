@@ -15,6 +15,7 @@ confd supports the following backends:
 * dynamodb
 * rancher
 * ssm (AWS Simple Systems Manager Parameter Store)
+* secretsmanager ( AWS secrets Manager)
 
 ### Add keys
 
@@ -93,6 +94,13 @@ This backend consumes the [Rancher](https://www.rancher.com) metadata service. F
 ```
 aws ssm put-parameter --name "/myapp/database/url" --type "String" --value "db.example.com"
 aws ssm put-parameter --name "/myapp/database/user" --type "SecureString" --value "rob"
+```
+
+#### secretsmanager
+
+```
+aws secretsmanager  create-secret --name "/myapp/database/url" --secret-string "db.example.com"
+aws secretsmanager  create-secret --name "/myapp/database/user" --secret-string "rob"
 ```
 
 ### Create the confdir
@@ -208,6 +216,12 @@ database_user = rob
 
 ```
 confd -onetime -backend ssm
+```
+
+#### secretsmanager
+
+```
+confd -onetime -backend secretsmanager
 ```
 
 ## Advanced Example
