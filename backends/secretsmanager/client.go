@@ -7,15 +7,14 @@ package secretsmanager
 
 import (
 	"os"
-	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/kelseyhightower/confd/log"
 )
-
-const delim = "/"
 
 type Client struct {
 	client *secretsmanager.SecretsManager
@@ -25,8 +24,6 @@ type SecretString struct {
 	Name   string
 	Secret string
 }
-
-var re = regexp.MustCompile("^/[0-9A-Za-z_+=,.@-]+")
 
 func New() (*Client, error) {
 	// Create a session to share configuration, and load external configuration.
@@ -54,19 +51,37 @@ func New() (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	allkeys := make([]string, 0)
-	knownkeys, err := c.buildNestedSecretsMap(keys)
+	knownkeys, err := c.buildNestedSecretsSlice()
 	if err != nil {
 		return vars, err
 	}
-	for _, key := range keys {
-		log.Debug("Processing key=%s", key)
-		if rootKey := re.FindString(key); len(rootKey) > 0 {
-			allkeys = append(allkeys, knownkeys[rootKey]...)
-			delete(knownkeys, rootKey)
+	sort.Strings(knownkeys)
+	sort.Strings(keys)
+	log.Debug("known keys =%v \n keys =%v", knownkeys, keys)
+
+	ilen := len(keys)
+	klen := len(knownkeys)
+	i := 0
+	// This works because both sets of keys are sorted
+	// and we keep a reference of where we are up to
+	for k := 0; k < klen && i < ilen; {
+		found := false
+		for k < klen && i < ilen && strings.HasPrefix(knownkeys[k], keys[i]) {
+			found = true
+			allkeys = append(allkeys, knownkeys[k])
+			k++
+		}
+		if k >= klen || i >= ilen {
+			break
+		} else if found || keys[i] < knownkeys[k] {
+			// increment the key
+			i++
 		} else {
-			allkeys = append(allkeys, key)
+			// go to the next known key
+			k++
 		}
 	}
+
 	for _, element := range allkeys {
 		resp, err := c.getSecretValue(element)
 		if err != nil {
@@ -77,10 +92,10 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	return vars, nil
 }
 
-// buildNestedSecretsMap build a list of nested keys by calling describe keys
+// buildNestedSecretsSlice build a slice of nested keys by calling describe keys
 // and looking for keys of the format /x/*
-func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, error) {
-	secrets := make(map[string][]string)
+func (c *Client) buildNestedSecretsSlice() ([]string, error) {
+	secrets := make([]string, 0)
 	param := &secretsmanager.ListSecretsInput{
 		MaxResults: aws.Int64(100),
 	}
@@ -90,15 +105,7 @@ func (c *Client) buildNestedSecretsMap(keys []string) (map[string][]string, erro
 	}
 
 	for _, element := range resp.SecretList {
-		if rootKey := re.FindString(*element.Name); len(rootKey) > 0 {
-			if secrets[rootKey] == nil {
-				// create new slice with name
-				secrets[rootKey] = []string{*element.Name}
-			} else {
-				//append to slice
-				secrets[rootKey] = append(secrets[rootKey], *element.Name)
-			}
-		}
+		secrets = append(secrets, *element.Name)
 	}
 	return secrets, err
 }
