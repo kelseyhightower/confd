@@ -68,6 +68,7 @@ func New(config Config) (StoreClient, error) {
 			"app-id":    config.AppID,
 			"user-id":   config.UserID,
 			"role-id":   config.RoleID,
+                        "kube-id":   config.KubeID,
 			"secret-id": config.SecretID,
 			"username":  config.Username,
 			"password":  config.Password,
