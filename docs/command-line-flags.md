@@ -27,11 +27,11 @@ Usage of confd:
   -confdir string
       confd conf directory (default "/etc/confd")
   -config-file string
-      the confd config file
-  -file string
-      list of files/directories with data represented in YAML to watch for changes
+      the confd config file (default "/etc/confd/confd.toml")
+  -file value
+      the YAML file to watch for changes (only used with -backend=file)
   -filter string
-      regex for files and dirs filtering
+      files filter (only used with -backend=file) (default "*")
   -interval int
       backend polling interval (default 600)
   -keep-stage-file
@@ -49,13 +49,15 @@ Usage of confd:
   -prefix string
       key path prefix
   -role-id string
-      Vault role-id to use with the AppRole, Kubernetes backend (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes)
+      Vault role-id to use with the AppRole, Kubernetes backends (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes)
   -scheme string
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
   -secret-id string
       Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)
   -secret-keyring string
       path to armored PGP secret keyring (for use with crypt functions)
+  -separator string
+      the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)
   -srv-domain string
       the name of the resource record
   -srv-record string
@@ -64,12 +66,12 @@ Usage of confd:
       sync without check_cmd and reload_cmd
   -table string
       the name of the DynamoDB table (only used with -backend=dynamodb)
-  -separator string
-      the separator to replace '/' with when looking up keys in the backend, prefixed "/" will also be removed (only used with -backend=redis, default "/")
   -user-id string
       Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)
   -username string
       the username to authenticate as (only used with vault and etcd backends)
+  -vault-path string
+      Vault mount path of the auth method (only used with -backend=vault)
   -version
       print version and exit
   -watch
