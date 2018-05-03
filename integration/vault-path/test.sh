@@ -1,9 +1,12 @@
 #!/bin/bash
 
-vault mount -path database generic
-vault mount -path key generic
-vault mount -path upstream generic
-vault mount -path nested generic
+export HOSTNAME="localhost"
+export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
+
+vault secrets enable -path database kv
+vault secrets enable -path key kv
+vault secrets enable -path upstream kv
+vault secrets enable -path nested kv
 
 vault write key value=foobar
 vault write database/host value=127.0.0.1
@@ -22,7 +25,7 @@ echo 'path "*" {
 
 vault write sys/policy/my-policy policy=@my-policy.hcl
 
-vault write auth/test/role/my-role secret_id_ttl=120m token_num_uses=1000 token_ttl=60m token_max_ttl=120m secret_id_num_uses=10000
+vault write auth/test/role/my-role secret_id_ttl=120m token_num_uses=1000 token_ttl=60m token_max_ttl=120m secret_id_num_uses=10000 policies=my-policy
 
 export ROLE_ID=$(vault read -field=role_id auth/test/role/my-role/role-id)
 export SECRET_ID=$(vault write -f -field=secret_id auth/test/role/my-role/secret-id)
