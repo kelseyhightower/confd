@@ -7,6 +7,9 @@ import (
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/plugin/proto"
 	context "golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/transport"
 )
 
 // GRPCClient is an implementation of Database that talks over gRPC
@@ -50,6 +53,10 @@ func (c *GRPCClient) WatchPrefix(prefix string, keys []string, results chan stri
 			return nil
 		}
 		if err != nil {
+			status, _ := status.FromError(err)
+			if status.Message() == grpc.ErrClientConnClosing.Error() || status.Message() == transport.ErrConnClosing.Desc {
+				return nil
+			}
 			return err
 		}
 		results <- ""
@@ -84,6 +91,11 @@ func (s *GRPCServer) WatchPrefix(
 	stream proto.Database_WatchPrefixServer) error {
 	results := make(chan string)
 	go s.Database.WatchPrefix(req.Prefix, req.Keys, results)
+	go func() {
+		ctx := stream.Context()
+		<-ctx.Done()
+		close(results)
+	}()
 	for range results {
 		err := stream.Send(&proto.WatchPrefixResponse{})
 		if err != nil {
