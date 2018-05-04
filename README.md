@@ -17,7 +17,7 @@
 
 ## Building
 
-Go 1.8 is required to build confd, which uses the new vendor directory.
+Go 1.10 is required to build confd, which uses the new vendor directory.
 
 ```
 $ mkdir -p $GOPATH/src/github.com/kelseyhightower
