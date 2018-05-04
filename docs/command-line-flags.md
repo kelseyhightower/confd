@@ -46,6 +46,8 @@ Usage of confd:
       run once and exit
   -password string
       the password to authenticate with (only used with vault and etcd backends)
+  -path string
+      Vault mount path of the auth method (only used with -backend=vault)
   -prefix string
       key path prefix
   -role-id string
@@ -70,8 +72,6 @@ Usage of confd:
       Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)
   -username string
       the username to authenticate as (only used with vault and etcd backends)
-  -vault-path string
-      Vault mount path of the auth method (only used with -backend=vault)
   -version
       print version and exit
   -watch

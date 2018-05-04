@@ -35,7 +35,7 @@ Optional:
 * `secret_id` (string) - Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role).
 * `file` (array of strings) - The YAML file to watch for changes (only used with -backend=file).
 * `filter` (string) - Files filter (only used with -backend=file) (default "*").
-* `vault_path` (string) - Vault mount path of the auth method (only used with -backend=vault).
+* `path` (string) - Vault mount path of the auth method (only used with -backend=vault).
 
 Example:
 

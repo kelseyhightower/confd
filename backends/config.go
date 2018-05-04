@@ -24,6 +24,6 @@ type Config struct {
 	SecretID     string     `toml:"secret_id"`
 	YAMLFile     util.Nodes `toml:"file"`
 	Filter       string     `toml:"filter"`
-	VaultPath    string     `toml:"vault_path"`
+	Path         string     `toml:"path"`
 	Role         string
 }

@@ -37,5 +37,5 @@ confd --onetime --log-level debug \
       --auth-type app-role \
       --role-id $ROLE_ID \
       --secret-id $SECRET_ID \
-      --vault-path=test \
+      --path=test \
       --node http://127.0.0.1:8200
