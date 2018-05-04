@@ -22,6 +22,20 @@ Optional:
 * `srv_record` (string) - The SRV record to search for backends nodes.
 * `sync-only` (bool) - sync without check_cmd and reload_cmd.
 * `watch` (bool) - Enable watch support.
+* `auth_token` (string) - Auth bearer token to use.
+* `auth_type` (string) - Vault auth backend type to use.
+* `basic_auth` (bool) - Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd).
+* `table` (string) - The name of the DynamoDB table (only used with -backend=dynamodb).
+* `separator` (string) - The separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)
+* `username` (string) - The username to authenticate as (only used with vault and etcd backends).
+* `password` (string) - The password to authenticate with (only used with vault and etcd backends).
+* `app_id` (string) - Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id).
+* `user_id` (string) - Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id).
+* `role_id` (string) - Vault role-id to use with the AppRole, Kubernetes backends (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes).
+* `secret_id` (string) - Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role).
+* `file` (array of strings) - The YAML file to watch for changes (only used with -backend=file).
+* `filter` (string) - Files filter (only used with -backend=file) (default "*").
+* `path` (string) - Vault mount path of the auth method (only used with -backend=vault).
 
 Example:
 
