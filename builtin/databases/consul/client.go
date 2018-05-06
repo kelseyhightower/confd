@@ -51,9 +51,11 @@ func (c *Client) Configure(configRaw map[string]string) error {
 		caCertPool.AppendCertsFromPEM(ca)
 		tlsConfig.RootCAs = caCertPool
 	}
-	conf.HttpClient.Transport = &http.Transport{
-		TLSClientConfig: tlsConfig,
+	conf.Transport.TLSClientConfig = tlsConfig
+	conf.HttpClient = &http.Client{
+		Transport: conf.Transport,
 	}
+
 	client, err := api.NewClient(conf)
 	if err != nil {
 		return err
