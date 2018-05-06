@@ -116,11 +116,6 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 		return err
 	}
 
-	// if the token has already been set
-	if c.Token() != "" {
-		return nil
-	}
-
 	if secret == nil || secret.Auth == nil {
 		return errors.New("Unable to authenticate")
 	}
