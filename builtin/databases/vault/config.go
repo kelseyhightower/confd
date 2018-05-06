@@ -13,4 +13,5 @@ type Config struct {
 	SecretID string `mapstructure:"secret-id"`
 	AuthType string `mapstructure:"authType"`
 	Address  string `mapstructure:"address"`
+	Path     string `mapstructure:"path"`
 }

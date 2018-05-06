@@ -46,7 +46,7 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 	// Configure each type of database
 	c := make(map[string]string)
 	if config.Backend == "file" {
-		log.Info("Backend source(s) set to " + config.YAMLFile)
+		log.Info("Backend source(s) set to " + strings.Join(config.YAMLFile, ", "))
 	} else {
 		log.Info("Backend source(s) set to " + strings.Join(config.BackendNodes, ", "))
 	}
@@ -92,8 +92,10 @@ func New(config Config) (confd.Database, *plugin.Client, error) {
 		c["cert"] = config.ClientCert
 		c["key"] = config.ClientKey
 		c["caCert"] = config.ClientCaKeys
+		c["path"] = config.Path
 	case "file":
-		c["yamlFile"] = config.YAMLFile
+		c["yamlFile"] = strings.Join(config.YAMLFile, ",")
+		c["filter"] = config.Filter
 	}
 	database.Configure(c)
 

@@ -26,7 +26,7 @@ func mainExitCode() int {
 		return exitCode
 	}
 	flag.Parse()
-	if printVersion {
+	if config.PrintVersion {
 		fmt.Printf("confd %s (Git SHA: %s, Go Version: %s)\n", Version, GitSHA, runtime.Version())
 		os.Exit(0)
 	}
@@ -37,7 +37,7 @@ func mainExitCode() int {
 
 	log.Info("Starting confd")
 
-	database, client, err := backends.New(backendsConfig)
+	database, client, err := backends.New(config.BackendsConfig)
 	if err != nil {
 		log.Error("Failed to connect to a plugin. %s", err.Error())
 		return 1
@@ -47,9 +47,9 @@ func mainExitCode() int {
 		client.Kill()
 	}()
 
-	templateConfig.Database = database
-	if onetime {
-		if err := template.Process(templateConfig); err != nil {
+	config.TemplateConfig.Database = database
+	if config.OneTime {
+		if err := template.Process(config.TemplateConfig); err != nil {
 			log.Error("Failed to process a template. %s", err.Error())
 			return 1
 		}
@@ -68,9 +68,9 @@ func mainExitCode() int {
 	var processor template.Processor
 	switch {
 	case config.Watch:
-		processor = template.WatchProcessor(templateConfig, doneChan, errChan)
+		processor = template.WatchProcessor(config.TemplateConfig, doneChan, errChan)
 	default:
-		processor = template.IntervalProcessor(templateConfig, doneChan, errChan, config.Interval)
+		processor = template.IntervalProcessor(config.TemplateConfig, doneChan, errChan, config.Interval)
 	}
 
 	go processor.Process()

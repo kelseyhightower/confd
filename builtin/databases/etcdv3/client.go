@@ -80,22 +80,67 @@ func (c *Client) Configure(configRaw map[string]string) error {
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
-
 	client, err := clientv3.New(c.cfg)
 	if err != nil {
 		return vars, err
 	}
 	defer client.Close()
 
-	for _, key := range keys {
+	// Use all operations on the same revision
+	var first_rev int64 = 0
+	// Default ETCDv3 TXN limitation. Since it is configurable from v3.3,
+	// maybe an option should be added (also set max-txn=0 can disable Txn?)
+	maxTxnOps := 128
+	getOps := make([]string, 0, maxTxnOps)
+	doTxn := func(ops []string) error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)
-		resp, err := client.Get(ctx, key, clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
-		cancel()
-		if err != nil {
-			return vars, err
+		defer cancel()
+
+		txnOps := make([]clientv3.Op, 0, maxTxnOps)
+
+		for _, k := range ops {
+			txnOps = append(txnOps, clientv3.OpGet(k,
+				clientv3.WithPrefix(),
+				clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend),
+				clientv3.WithRev(first_rev)))
 		}
-		for _, ev := range resp.Kvs {
-			vars[string(ev.Key)] = string(ev.Value)
+
+		result, err := client.Txn(ctx).Then(txnOps...).Commit()
+		if err != nil {
+			return err
+		}
+		for i, r := range result.Responses {
+			originKey := ops[i]
+			// append a '/' if not already exists
+			originKeyFixed := originKey
+			if !strings.HasSuffix(originKeyFixed, "/") {
+				originKeyFixed = originKey + "/"
+			}
+			for _, ev := range r.GetResponseRange().Kvs {
+				k := string(ev.Key)
+				if k == originKey || strings.HasPrefix(k, originKeyFixed) {
+					vars[string(ev.Key)] = string(ev.Value)
+				}
+			}
+		}
+		if first_rev == 0 {
+			// Save the revison of the first request
+			first_rev = result.Header.GetRevision()
+		}
+		return nil
+	}
+	for _, key := range keys {
+		getOps = append(getOps, key)
+		if len(getOps) >= maxTxnOps {
+			if err := doTxn(getOps); err != nil {
+				return vars, err
+			}
+			getOps = getOps[:0]
+		}
+	}
+	if len(getOps) > 0 {
+		if err := doTxn(getOps); err != nil {
+			return vars, err
 		}
 	}
 	return vars, nil

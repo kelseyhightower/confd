@@ -3,10 +3,10 @@
 export HOSTNAME="localhost"
 export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
 
-vault mount -path database generic
-vault mount -path key generic
-vault mount -path upstream generic
-vault mount -path nested generic
+vault secrets enable -path database kv
+vault secrets enable -path key kv
+vault secrets enable -path upstream kv
+vault secrets enable -path nested kv
 
 vault write key value=foobar
 vault write database/host value=127.0.0.1

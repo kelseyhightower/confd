@@ -17,110 +17,61 @@ import (
 	"github.com/kelseyhightower/confd/resource/template"
 )
 
-var (
-	configFile        = ""
-	defaultConfigFile = "/etc/confd/confd.toml"
-	authToken         string
-	authType          string
-	backend           string
-	basicAuth         bool
-	clientCaKeys      string
-	clientCert        string
-	clientKey         string
-	confdir           string
-	config            Config // holds the global confd config.
-	interval          int
-	keepStageFile     bool
-	logLevel          string
-	nodes             Nodes
-	noop              bool
-	onetime           bool
-	prefix            string
-	printVersion      bool
-	secretKeyring     string
-	scheme            string
-	srvDomain         string
-	srvRecord         string
-	syncOnly          bool
-	table             string
-	separator         string
-	templateConfig    template.Config
-	backendsConfig    backends.Config
-	username          string
-	password          string
-	watch             bool
-	appID             string
-	userID            string
-	roleID            string
-	secretID          string
-	yamlFile          string
-)
+type TemplateConfig = template.Config
+type BackendsConfig = backends.Config
 
 // A Config structure is used to configure confd.
 type Config struct {
-	AuthToken     string   `toml:"auth_token"`
-	AuthType      string   `toml:"auth_type"`
-	Backend       string   `toml:"backend"`
-	BasicAuth     bool     `toml:"basic_auth"`
-	BackendNodes  []string `toml:"nodes"`
-	ClientCaKeys  string   `toml:"client_cakeys"`
-	ClientCert    string   `toml:"client_cert"`
-	ClientKey     string   `toml:"client_key"`
-	ConfDir       string   `toml:"confdir"`
-	Interval      int      `toml:"interval"`
-	SecretKeyring string   `toml:"secret_keyring"`
-	Noop          bool     `toml:"noop"`
-	Password      string   `toml:"password"`
-	Prefix        string   `toml:"prefix"`
-	SRVDomain     string   `toml:"srv_domain"`
-	SRVRecord     string   `toml:"srv_record"`
-	Scheme        string   `toml:"scheme"`
-	SyncOnly      bool     `toml:"sync-only"`
-	Table         string   `toml:"table"`
-	Separator     string   `toml:"separator"`
-	Username      string   `toml:"username"`
-	LogLevel      string   `toml:"log-level"`
-	Watch         bool     `toml:"watch"`
-	AppID         string   `toml:"app_id"`
-	UserID        string   `toml:"user_id"`
-	RoleID        string   `toml:"role_id"`
-	SecretID      string   `toml:"secret_id"`
-	YAMLFile      string   `toml:"file"`
+	TemplateConfig
+	BackendsConfig
+	Interval      int    `toml:"interval"`
+	SecretKeyring string `toml:"secret_keyring"`
+	SRVDomain     string `toml:"srv_domain"`
+	SRVRecord     string `toml:"srv_record"`
+	LogLevel      string `toml:"log-level"`
+	Watch         bool   `toml:"watch"`
+	PrintVersion  bool
+	ConfigFile    string
+	OneTime       bool
 }
 
+var config Config
+
 func init() {
-	flag.StringVar(&authToken, "auth-token", "", "Auth bearer token to use")
-	flag.StringVar(&backend, "backend", "etcd", "backend to use")
-	flag.BoolVar(&basicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd)")
-	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
-	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
-	flag.StringVar(&clientKey, "client-key", "", "the client key")
-	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
-	flag.StringVar(&configFile, "config-file", "", "the confd config file")
-	flag.StringVar(&yamlFile, "file", "", "the YAML/JSON file to watch for changes")
-	flag.IntVar(&interval, "interval", 600, "backend polling interval")
-	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
-	flag.StringVar(&logLevel, "log-level", "", "level which confd should log messages")
-	flag.Var(&nodes, "node", "list of backend nodes")
-	flag.BoolVar(&noop, "noop", false, "only show pending changes")
-	flag.BoolVar(&onetime, "onetime", false, "run once and exit")
-	flag.StringVar(&prefix, "prefix", "", "key path prefix")
-	flag.BoolVar(&printVersion, "version", false, "print version and exit")
-	flag.StringVar(&scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
-	flag.StringVar(&secretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
-	flag.StringVar(&srvDomain, "srv-domain", "", "the name of the resource record")
-	flag.StringVar(&srvRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
-	flag.BoolVar(&syncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
-	flag.StringVar(&authType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
-	flag.StringVar(&appID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
-	flag.StringVar(&userID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
-	flag.StringVar(&roleID, "role-id", "", "Vault role-id to use with the AppRole, Kubernetes backends (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes)")
-	flag.StringVar(&secretID, "secret-id", "", "Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)")
-	flag.StringVar(&table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
-	flag.StringVar(&separator, "separator", "", "the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)")
-	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
-	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
-	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.StringVar(&config.AuthToken, "auth-token", "", "Auth bearer token to use")
+	flag.StringVar(&config.Backend, "backend", "etcd", "backend to use")
+	flag.BoolVar(&config.BasicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd)")
+	flag.StringVar(&config.ClientCaKeys, "client-ca-keys", "", "client ca keys")
+	flag.StringVar(&config.ClientCert, "client-cert", "", "the client cert")
+	flag.StringVar(&config.ClientKey, "client-key", "", "the client key")
+	flag.StringVar(&config.ConfDir, "confdir", "/etc/confd", "confd conf directory")
+	flag.StringVar(&config.ConfigFile, "config-file", "/etc/confd/confd.toml", "the confd config file")
+	flag.Var(&config.YAMLFile, "file", "the YAML file to watch for changes (only used with -backend=file)")
+	flag.StringVar(&config.Filter, "filter", "*", "files filter (only used with -backend=file)")
+	flag.IntVar(&config.Interval, "interval", 600, "backend polling interval")
+	flag.BoolVar(&config.KeepStageFile, "keep-stage-file", false, "keep staged files")
+	flag.StringVar(&config.LogLevel, "log-level", "", "level which confd should log messages")
+	flag.Var(&config.BackendNodes, "node", "list of backend nodes")
+	flag.BoolVar(&config.Noop, "noop", false, "only show pending changes")
+	flag.BoolVar(&config.OneTime, "onetime", false, "run once and exit")
+	flag.StringVar(&config.Prefix, "prefix", "", "key path prefix")
+	flag.BoolVar(&config.PrintVersion, "version", false, "print version and exit")
+	flag.StringVar(&config.Scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
+	flag.StringVar(&config.SecretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
+	flag.StringVar(&config.SRVDomain, "srv-domain", "", "the name of the resource record")
+	flag.StringVar(&config.SRVRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
+	flag.BoolVar(&config.SyncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
+	flag.StringVar(&config.AuthType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
+	flag.StringVar(&config.AppID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
+	flag.StringVar(&config.UserID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
+	flag.StringVar(&config.RoleID, "role-id", "", "Vault role-id to use with the AppRole, Kubernetes backends (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes)")
+	flag.StringVar(&config.SecretID, "secret-id", "", "Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)")
+	flag.StringVar(&config.Path, "path", "", "Vault mount path of the auth method (only used with -backend=vault)")
+	flag.StringVar(&config.Table, "table", "", "the name of the DynamoDB table (only used with -backend=dynamodb)")
+	flag.StringVar(&config.Separator, "separator", "", "the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)")
+	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
+	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
+	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -129,28 +80,16 @@ func init() {
 // settings from flags set on the command line.
 // It returns an error if any.
 func initConfig() error {
-	if configFile == "" {
-		if _, err := os.Stat(defaultConfigFile); !os.IsNotExist(err) {
-			configFile = defaultConfigFile
-		}
-	}
-	// Set defaults.
-	config = Config{
-		Backend:  "etcd",
-		ConfDir:  "/etc/confd",
-		Interval: 600,
-		Prefix:   "",
-		Scheme:   "http",
-	}
-	// Update config from the TOML configuration file.
-	if configFile == "" {
+	_, err := os.Stat(config.ConfigFile)
+	if os.IsNotExist(err) {
 		log.Debug("Skipping confd config file.")
 	} else {
-		log.Debug("Loading " + configFile)
-		configBytes, err := ioutil.ReadFile(configFile)
+		log.Debug("Loading " + config.ConfigFile)
+		configBytes, err := ioutil.ReadFile(config.ConfigFile)
 		if err != nil {
 			return err
 		}
+
 		_, err = toml.Decode(string(configBytes), &config)
 		if err != nil {
 			return err
@@ -160,16 +99,13 @@ func initConfig() error {
 	// Update config from environment variables.
 	processEnv()
 
-	// Update config from commandline flags.
-	processFlags()
-	var pgpPrivateKey []byte
 	if config.SecretKeyring != "" {
 		kr, err := os.Open(config.SecretKeyring)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		defer kr.Close()
-		pgpPrivateKey, err = ioutil.ReadAll(kr)
+		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -240,38 +176,8 @@ func initConfig() error {
 	if config.Backend == "dynamodb" && config.Table == "" {
 		return errors.New("No DynamoDB table configured")
 	}
-
-	backendsConfig = backends.Config{
-		AuthToken:    config.AuthToken,
-		AuthType:     config.AuthType,
-		Backend:      config.Backend,
-		BasicAuth:    config.BasicAuth,
-		ClientCaKeys: config.ClientCaKeys,
-		ClientCert:   config.ClientCert,
-		ClientKey:    config.ClientKey,
-		BackendNodes: config.BackendNodes,
-		Password:     config.Password,
-		Scheme:       config.Scheme,
-		Table:        config.Table,
-		Separator:    config.Separator,
-		Username:     config.Username,
-		AppID:        config.AppID,
-		UserID:       config.UserID,
-		RoleID:       config.RoleID,
-		SecretID:     config.SecretID,
-		YAMLFile:     config.YAMLFile,
-	}
-	// Template configuration.
-	templateConfig = template.Config{
-		ConfDir:       config.ConfDir,
-		ConfigDir:     filepath.Join(config.ConfDir, "conf.d"),
-		KeepStageFile: keepStageFile,
-		Noop:          config.Noop,
-		Prefix:        config.Prefix,
-		SyncOnly:      config.SyncOnly,
-		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
-		PGPPrivateKey: pgpPrivateKey,
-	}
+	config.ConfigDir = filepath.Join(config.ConfDir, "conf.d")
+	config.TemplateDir = filepath.Join(config.ConfDir, "templates")
 	return nil
 }
 
@@ -291,86 +197,19 @@ func getBackendNodesFromSRV(record string) ([]string, error) {
 	return nodes, nil
 }
 
-// processFlags iterates through each flag set on the command line and
-// overrides corresponding configuration settings.
-func processFlags() {
-	flag.Visit(setConfigFromFlag)
-}
-
 func processEnv() {
 	cakeys := os.Getenv("CONFD_CLIENT_CAKEYS")
-	if len(cakeys) > 0 {
+	if len(cakeys) > 0 && config.ClientCaKeys == "" {
 		config.ClientCaKeys = cakeys
 	}
 
 	cert := os.Getenv("CONFD_CLIENT_CERT")
-	if len(cert) > 0 {
+	if len(cert) > 0 && config.ClientCert == "" {
 		config.ClientCert = cert
 	}
 
 	key := os.Getenv("CONFD_CLIENT_KEY")
-	if len(key) > 0 {
+	if len(key) > 0 && config.ClientKey == "" {
 		config.ClientKey = key
-	}
-}
-
-func setConfigFromFlag(f *flag.Flag) {
-	switch f.Name {
-	case "auth-token":
-		config.AuthToken = authToken
-	case "auth-type":
-		config.AuthType = authType
-	case "backend":
-		config.Backend = backend
-	case "basic-auth":
-		config.BasicAuth = basicAuth
-	case "client-cert":
-		config.ClientCert = clientCert
-	case "client-key":
-		config.ClientKey = clientKey
-	case "client-ca-keys":
-		config.ClientCaKeys = clientCaKeys
-	case "confdir":
-		config.ConfDir = confdir
-	case "node":
-		config.BackendNodes = nodes
-	case "interval":
-		config.Interval = interval
-	case "noop":
-		config.Noop = noop
-	case "password":
-		config.Password = password
-	case "prefix":
-		config.Prefix = prefix
-	case "scheme":
-		config.Scheme = scheme
-	case "secret-keyring":
-		config.SecretKeyring = secretKeyring
-	case "srv-domain":
-		config.SRVDomain = srvDomain
-	case "srv-record":
-		config.SRVRecord = srvRecord
-	case "sync-only":
-		config.SyncOnly = syncOnly
-	case "table":
-		config.Table = table
-	case "separator":
-		config.Separator = separator
-	case "username":
-		config.Username = username
-	case "log-level":
-		config.LogLevel = logLevel
-	case "watch":
-		config.Watch = watch
-	case "app-id":
-		config.AppID = appID
-	case "user-id":
-		config.UserID = userID
-	case "role-id":
-		config.RoleID = roleID
-	case "secret-id":
-		config.SecretID = secretID
-	case "file":
-		config.YAMLFile = yamlFile
 	}
 }

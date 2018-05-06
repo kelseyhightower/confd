@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	env "github.com/kelseyhightower/confd/builtin/databases/env"
-	"github.com/kelseyhightower/confd/logging"
+	"github.com/kelseyhightower/confd/log"
 )
 
 // createTempDirs is a helper function which creates temporary directories
@@ -41,7 +41,7 @@ keys = [
 `
 
 func TestProcessTemplateResources(t *testing.T) {
-	logging.SetLevel("warn")
+	log.SetLevel("warn")
 	// Setup temporary conf, config, and template directories.
 	tempConfDir, err := createTempDirs()
 	if err != nil {
@@ -102,63 +102,5 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 	if string(results) != expected {
 		t.Errorf("Expected contents of dest == '%s', got %s", expected, string(results))
-	}
-}
-
-func TestSameConfigTrue(t *testing.T) {
-	logging.SetLevel("warn")
-	src, err := ioutil.TempFile("", "src")
-	defer os.Remove(src.Name())
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	_, err = src.WriteString("foo")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	dest, err := ioutil.TempFile("", "dest")
-	defer os.Remove(dest.Name())
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	_, err = dest.WriteString("foo")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	status, err := sameConfig(src.Name(), dest.Name())
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	if status != true {
-		t.Errorf("Expected sameConfig(src, dest) to be %v, got %v", true, status)
-	}
-}
-
-func TestSameConfigFalse(t *testing.T) {
-	logging.SetLevel("warn")
-	src, err := ioutil.TempFile("", "src")
-	defer os.Remove(src.Name())
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	_, err = src.WriteString("src")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	dest, err := ioutil.TempFile("", "dest")
-	defer os.Remove(dest.Name())
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	_, err = dest.WriteString("dest")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	status, err := sameConfig(src.Name(), dest.Name())
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	if status != false {
-		t.Errorf("Expected sameConfig(src, dest) to be %v, got %v", false, status)
 	}
 }

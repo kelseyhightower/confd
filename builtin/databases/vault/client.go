@@ -53,6 +53,14 @@ func (c *Client) Configure(configRaw map[string]string) error {
 func authenticate(c *vaultapi.Client, config Config) (err error) {
 	var secret *vaultapi.Secret
 
+	if config.Path == "" {
+		config.Path = config.AuthType
+		if config.AuthType == "app-role" {
+			config.Path = "approle"
+		}
+	}
+	url := fmt.Sprintf("/auth/%s/login", config.Path)
+
 	switch config.AuthType {
 	case "app-role":
 		secret, err = c.Logical().Write("/auth/approle/login", map[string]interface{}{
@@ -88,7 +96,7 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 		} else if config.Password == "" {
 			return errors.New("password is missing from configuration")
 		}
-		secret, err = c.Logical().Write(fmt.Sprintf("/auth/userpass/login/%s", config.Username), map[string]interface{}{
+		secret, err = c.Logical().Write(fmt.Sprintf("%s/%s", url, config.Username), map[string]interface{}{
 			"password": config.Password,
 		})
 	case "kubernetes":
@@ -96,12 +104,12 @@ func authenticate(c *vaultapi.Client, config Config) (err error) {
 		if err != nil {
 			return err
 		}
-		secret, err = c.Logical().Write("/auth/kubernetes/login", map[string]interface{}{
+		secret, err = c.Logical().Write(url, map[string]interface{}{
 			"jwt":  string(jwt[:]),
 			"role": config.RoleID,
 		})
 	case "cert":
-		secret, err = c.Logical().Write("/auth/cert/login", map[string]interface{}{})
+		secret, err = c.Logical().Write(url, map[string]interface{}{})
 	}
 
 	if err != nil {
