@@ -170,7 +170,7 @@ val: abc
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("abc"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/key", string(b))
 		},
@@ -240,19 +240,19 @@ val: mary
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("mary"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/user", string(b))
 
 			b, err = secconf.Encode([]byte("abc"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/pass", string(b))
 
 			b, err = secconf.Encode([]byte("url"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-nada/url", string(b))
 		},
@@ -305,12 +305,12 @@ user = bob
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("http://www.abc.com"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/url", string(b))
 			b, err = secconf.Encode([]byte("bob"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/user", string(b))
 		},
@@ -372,7 +372,7 @@ val: mary
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("mary"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/user", string(b))
 
@@ -384,7 +384,7 @@ val: mary
 
 			b, err = secconf.Encode([]byte("url"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-nada/url", string(b))
 		},

@@ -29,14 +29,22 @@ type Client struct {
 
 func (c *Client) Configure(configRaw map[string]string) error {
 	var config Config
-	if err := mapstructure.Decode(configRaw, &config); err != nil {
+
+	err := mapstructure.Decode(configRaw, &config)
+	if err != nil {
 		return err
 	}
 
+	if config.Separator == "" {
+		config.Separator = "/"
+	}
+	log.Debug("Redis Separator: %#v", config.Separator)
 	c.machines = strings.Split(config.Machines, ",")
 	c.password = config.Password
-	client, _, err := tryConnect(c.machines, c.password, true)
-	c.client = client
+	c.separator = config.Separator
+	c.pscChan = make(chan watchResponse)
+	c.psc = redis.PubSubConn{Conn: nil}
+	c.client, _, err = tryConnect(c.machines, c.password, true)
 	return err
 }
 
@@ -119,19 +127,6 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 	}
 
 	return c.client, nil
-}
-
-// NewRedisClient returns an *redis.Client with a connection to named machines.
-// It returns an error if a connection to the cluster cannot be made.
-func NewRedisClient(machines []string, password string, separator string) (*Client, error) {
-	if separator == "" {
-		separator = "/"
-	}
-	log.Debug("Redis Separator: %#v", separator)
-	var err error
-	clientWrapper := &Client{machines: machines, password: password, separator: separator, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil}}
-	clientWrapper.client, _, err = tryConnect(machines, password, true)
-	return clientWrapper, err
 }
 
 func (c *Client) transform(key string) string {
@@ -232,9 +227,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			return vars, err
 		}
 	}
-
-	log.Debug("Key Map: %#v", vars)
-
 	return vars, nil
 }
 
