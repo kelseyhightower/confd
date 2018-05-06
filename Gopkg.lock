@@ -26,8 +26,6 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
-    "internal/sdkio",
-    "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/json/jsonutil",
@@ -40,8 +38,8 @@
     "service/ssm",
     "service/sts"
   ]
-  revision = "94cafaad88022c44cb85d4998350b127845245ed"
-  version = "v1.13.41"
+  revision = "0bac5578f9a18b467487ee2dda67fedb328e9452"
+  version = "v1.12.4"
 
 [[projects]]
   name = "github.com/coreos/etcd"
@@ -69,8 +67,8 @@
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
-  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
-  version = "v1.4.7"
+  revision = "629574ca2a5df945712d3079857300b5e4da0236"
+  version = "v1.4.2"
 
 [[projects]]
   name = "github.com/garyburd/redigo"
@@ -78,8 +76,8 @@
     "internal",
     "redis"
   ]
-  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
-  version = "v1.6.0"
+  revision = "433969511232c397de61b1442f9fd49ec06ae9ba"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -135,9 +133,21 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-hclog"
+  packages = ["."]
+  revision = "5bcb0f17e36442247290887cc914a6e507afa5c4"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-plugin"
+  packages = ["."]
+  revision = "956b76edd382134e7e88a07f2d210bafcc730cce"
 
 [[projects]]
   branch = "master"
@@ -186,9 +196,21 @@
   version = "v0.10.1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/yamux"
+  packages = ["."]
+  revision = "683f49123a33db61abfb241b7ac5e4af4dc54d55"
+
+[[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   revision = "0b12d6b5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kardianos/osext"
+  packages = ["."]
+  revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
 
 [[projects]]
   name = "github.com/kelseyhightower/memkv"
@@ -204,9 +226,21 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/mitchellh/go-testing-interface"
+  packages = ["."]
+  revision = "a61a99592b77c9ba629d254a693acffaeb4b7e28"
+
+[[projects]]
+  branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
+
+[[projects]]
+  name = "github.com/oklog/run"
+  packages = ["."]
+  revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/ryanuber/go-glob"
@@ -224,12 +258,6 @@
   name = "github.com/sethgrid/pester"
   packages = ["."]
   revision = "03e26c9abbbf5accb8349790bf9f41bde09d72c3"
-
-[[projects]]
-  name = "github.com/sirupsen/logrus"
-  packages = ["."]
-  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
-  version = "v1.0.5"
 
 [[projects]]
   name = "github.com/ugorji/go"
@@ -253,8 +281,7 @@
     "openpgp/elgamal",
     "openpgp/errors",
     "openpgp/packet",
-    "openpgp/s2k",
-    "ssh/terminal"
+    "openpgp/s2k"
   ]
   revision = "1f94bef427e370e425e55b172f3b5e300ef38304"
 
@@ -276,10 +303,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = [
-    "unix",
-    "windows"
-  ]
+  packages = ["unix"]
   revision = "6f686a352de66814cdd080d970febae7767857a3"
 
 [[projects]]
@@ -323,6 +347,7 @@
     "encoding/proto",
     "grpclb/grpc_lb_v1/messages",
     "grpclog",
+    "health",
     "health/grpc_health_v1",
     "internal",
     "keepalive",
@@ -349,6 +374,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1717a9e9edbc25ac6f76a8d2ba3d7378340e7d55ebb0002436cccec453f29a6b"
+  inputs-digest = "3d881b1b7e4511a38462b72014c5eff2acebd2cf2f40b1283cd5085a5c0ae89f"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/defaults"
 )
 
 // EnvProviderName provides a name of the provider when config is loaded from environment.
@@ -176,13 +175,6 @@ func envConfigLoad(enableSharedConfig bool) envConfig {
 
 	setFromEnvVal(&cfg.SharedCredentialsFile, sharedCredsFileEnvKey)
 	setFromEnvVal(&cfg.SharedConfigFile, sharedConfigFileEnvKey)
-
-	if len(cfg.SharedCredentialsFile) == 0 {
-		cfg.SharedCredentialsFile = defaults.SharedCredentialsFilename()
-	}
-	if len(cfg.SharedConfigFile) == 0 {
-		cfg.SharedConfigFile = defaults.SharedConfigFilename()
-	}
 
 	cfg.CustomCABundle = os.Getenv("AWS_CA_BUNDLE")
 

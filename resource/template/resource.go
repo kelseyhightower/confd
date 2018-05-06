@@ -15,7 +15,7 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
+	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/log"
 	util "github.com/kelseyhightower/confd/util"
 	"github.com/kelseyhightower/memkv"
@@ -28,7 +28,7 @@ type Config struct {
 	KeepStageFile bool
 	Noop          bool   `toml:"noop"`
 	Prefix        string `toml:"prefix"`
-	StoreClient   backends.StoreClient
+	Database      confd.Database
 	SyncOnly      bool `toml:"sync-only"`
 	TemplateDir   string
 	PGPPrivateKey []byte
@@ -56,8 +56,8 @@ type TemplateResource struct {
 	lastIndex     uint64
 	keepStageFile bool
 	noop          bool
-	store         memkv.Store
-	storeClient   backends.StoreClient
+	store         *memkv.Store
+	database      confd.Database
 	syncOnly      bool
 	PGPPrivateKey []byte
 }
@@ -66,8 +66,8 @@ var ErrEmptySrc = errors.New("empty src template")
 
 // NewTemplateResource creates a TemplateResource.
 func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
-	if config.StoreClient == nil {
-		return nil, errors.New("A valid StoreClient is required.")
+	if config.Database == nil {
+		return nil, errors.New("A valid Database is required")
 	}
 
 	// Set the default uid and gid so we can determine if it was
@@ -80,12 +80,13 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
 	}
 
+	memkvStore := memkv.New()
 	tr := tc.TemplateResource
 	tr.keepStageFile = config.KeepStageFile
 	tr.noop = config.Noop
-	tr.storeClient = config.StoreClient
+	tr.database = config.Database
 	tr.funcMap = newFuncMap()
-	tr.store = memkv.New()
+	tr.store = &memkvStore
 	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 
@@ -177,7 +178,7 @@ func (t *TemplateResource) setVars() error {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(util.AppendPrefix(t.Prefix, t.Keys))
+	result, err := t.database.GetValues(util.AppendPrefix(t.Prefix, t.Keys))
 	if err != nil {
 		return err
 	}
@@ -246,7 +247,7 @@ func (t *TemplateResource) sync() error {
 	log.Debug("Comparing candidate config to " + t.Dest)
 	ok, err := util.IsConfigChanged(staged, t.Dest)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("%s", err.Error())
 	}
 	if t.noop {
 		log.Warning("Noop mode enabled. " + t.Dest + " will not be modified")
@@ -271,7 +272,7 @@ func (t *TemplateResource) sync() error {
 				if rerr != nil {
 					return rerr
 				}
-				err := ioutil.WriteFile(t.Dest, contents, t.FileMode)
+				err = ioutil.WriteFile(t.Dest, contents, t.FileMode)
 				// make sure owner and group match the temp file, in case the file was created with WriteFile
 				os.Chown(t.Dest, t.Uid, t.Gid)
 				if err != nil {
@@ -282,7 +283,7 @@ func (t *TemplateResource) sync() error {
 			}
 		}
 		if !t.syncOnly && t.ReloadCmd != "" {
-			if err := t.reload(); err != nil {
+			if err = t.reload(); err != nil {
 				return err
 			}
 		}
@@ -307,7 +308,7 @@ func (t *TemplateResource) check() error {
 	if err != nil {
 		return err
 	}
-	if err := tmpl.Execute(&cmdBuffer, data); err != nil {
+	if err = tmpl.Execute(&cmdBuffer, data); err != nil {
 		return err
 	}
 	return runCommand(cmdBuffer.String())
@@ -334,10 +335,10 @@ func runCommand(cmd string) error {
 
 	output, err := c.CombinedOutput()
 	if err != nil {
-		log.Error(fmt.Sprintf("%q", string(output)))
+		log.Error("%q", string(output))
 		return err
 	}
-	log.Debug(fmt.Sprintf("%q", string(output)))
+	log.Debug("%q", string(output))
 	return nil
 }
 

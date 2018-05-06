@@ -4,6 +4,7 @@ package rest
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/private/protocol"
 )
 
 // RFC822 returns an RFC822 formatted timestamp for AWS protocols
@@ -252,12 +252,13 @@ func EscapePath(path string, encodeSep bool) string {
 	return buf.String()
 }
 
-func convertType(v reflect.Value, tag reflect.StructTag) (str string, err error) {
+func convertType(v reflect.Value, tag reflect.StructTag) (string, error) {
 	v = reflect.Indirect(v)
 	if !v.IsValid() {
 		return "", errValueNotSet
 	}
 
+	var str string
 	switch value := v.Interface().(type) {
 	case string:
 		str = value
@@ -272,19 +273,17 @@ func convertType(v reflect.Value, tag reflect.StructTag) (str string, err error)
 	case time.Time:
 		str = value.UTC().Format(RFC822)
 	case aws.JSONValue:
-		if len(value) == 0 {
-			return "", errValueNotSet
-		}
-		escaping := protocol.NoEscape
-		if tag.Get("location") == "header" {
-			escaping = protocol.Base64Escape
-		}
-		str, err = protocol.EncodeJSONValue(value, escaping)
+		b, err := json.Marshal(value)
 		if err != nil {
-			return "", fmt.Errorf("unable to encode JSONValue, %v", err)
+			return "", err
+		}
+		if tag.Get("location") == "header" {
+			str = base64.StdEncoding.EncodeToString(b)
+		} else {
+			str = string(b)
 		}
 	default:
-		err := fmt.Errorf("unsupported value for param %v (%s)", v.Interface(), v.Type())
+		err := fmt.Errorf("Unsupported value for param %v (%s)", v.Interface(), v.Type())
 		return "", err
 	}
 	return str, nil

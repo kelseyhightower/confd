@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"testing"
 
-	"github.com/kelseyhightower/confd/backends"
+	"github.com/kelseyhightower/confd/builtin/databases/env"
+	"github.com/kelseyhightower/confd/log"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
@@ -170,7 +170,7 @@ val: abc
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("abc"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/key", string(b))
 		},
@@ -240,19 +240,19 @@ val: mary
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("mary"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/user", string(b))
 
 			b, err = secconf.Encode([]byte("abc"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/pass", string(b))
 
 			b, err = secconf.Encode([]byte("url"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-nada/url", string(b))
 		},
@@ -305,12 +305,12 @@ user = bob
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("http://www.abc.com"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/url", string(b))
 			b, err = secconf.Encode([]byte("bob"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/user", string(b))
 		},
@@ -372,7 +372,7 @@ val: mary
 		updateStore: func(tr *TemplateResource) {
 			b, err := secconf.Encode([]byte("mary"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-test/user", string(b))
 
@@ -384,7 +384,7 @@ val: mary
 
 			b, err = secconf.Encode([]byte("url"), bytes.NewBuffer([]byte(cryptPubKey)))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(err.Error())
 			}
 			tr.store.Set("/crypt-nada/url", string(b))
 		},
@@ -859,17 +859,10 @@ func setupDirectoriesAndFiles(tt templateTest, t *testing.T) {
 
 // templateResource creates a templateResource for creating a config file
 func templateResource() (*TemplateResource, error) {
-	backendConf := backends.Config{
-		Backend: "env"}
-	client, err := backends.New(backendConf)
-	if err != nil {
-		return nil, err
-	}
-
 	config := Config{
-		StoreClient:   client, // not used but must be set
 		TemplateDir:   "./test/templates",
 		PGPPrivateKey: []byte(cryptPrivKey),
+		Database:      &env.Client{},
 	}
 
 	tr, err := NewTemplateResource(tomlFilePath, config)

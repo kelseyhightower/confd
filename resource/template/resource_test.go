@@ -7,7 +7,7 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/kelseyhightower/confd/backends/env"
+	env "github.com/kelseyhightower/confd/builtin/databases/env"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -82,14 +82,11 @@ func TestProcessTemplateResources(t *testing.T) {
 	}
 
 	os.Setenv("FOO", "bar")
-	storeClient, err := env.NewEnvClient()
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	database := &env.Client{}
 	c := Config{
 		ConfDir:     tempConfDir,
 		ConfigDir:   filepath.Join(tempConfDir, "conf.d"),
-		StoreClient: storeClient,
+		Database:    database,
 		TemplateDir: filepath.Join(tempConfDir, "templates"),
 	}
 	// Process the test template resource.

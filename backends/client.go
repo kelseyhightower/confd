@@ -1,89 +1,103 @@
 package backends
 
 import (
-	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/dynamodb"
-	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcd"
-	"github.com/kelseyhightower/confd/backends/etcdv3"
-	"github.com/kelseyhightower/confd/backends/file"
-	"github.com/kelseyhightower/confd/backends/rancher"
-	"github.com/kelseyhightower/confd/backends/redis"
-	"github.com/kelseyhightower/confd/backends/ssm"
-	"github.com/kelseyhightower/confd/backends/vault"
-	"github.com/kelseyhightower/confd/backends/zookeeper"
+	plugin "github.com/hashicorp/go-plugin"
+	"github.com/kelseyhightower/confd/confd"
 	"github.com/kelseyhightower/confd/log"
+	confdplugin "github.com/kelseyhightower/confd/plugin"
 )
 
-// The StoreClient interface is implemented by objects that can retrieve
-// key/value pairs from a backend store.
-type StoreClient interface {
-	GetValues(keys []string) (map[string]string, error)
-	WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error)
-}
-
 // New is used to create a storage client based on our configuration.
-func New(config Config) (StoreClient, error) {
-	if config.Backend == "" {
-		config.Backend = "etcd"
+func New(config Config) (confd.Database, *plugin.Client, error) {
+	plugins, err := Discover()
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-	backendNodes := config.BackendNodes
+	log.Debug("Discovered: %s", plugins)
+	if _, ok := plugins[config.Backend]; ok == false {
+		return nil, nil, fmt.Errorf("Plugin %s not found", config.Backend)
+	}
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig:  confdplugin.HandshakeConfig,
+		Plugins:          confdplugin.PluginMap,
+		Cmd:              pluginCmd(plugins[config.Backend]),
+		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		Logger:           *log.GetLogger(),
+	})
 
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// Request the plugin
+	log.Info("Requesting plugin " + confdplugin.DatabasePluginName)
+	raw, err := rpcClient.Dispense(confdplugin.DatabasePluginName)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	database := raw.(confd.Database)
+
+	// Configure each type of database
+	c := make(map[string]string)
 	if config.Backend == "file" {
 		log.Info("Backend source(s) set to " + strings.Join(config.YAMLFile, ", "))
 	} else {
-		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
+		log.Info("Backend source(s) set to " + strings.Join(config.BackendNodes, ", "))
 	}
-
 	switch config.Backend {
 	case "consul":
-		return consul.New(config.BackendNodes, config.Scheme,
-			config.ClientCert, config.ClientKey,
-			config.ClientCaKeys,
-			config.BasicAuth,
-			config.Username,
-			config.Password,
-		)
-	case "etcd":
-		// Create the etcd client upfront and use it for the life of the process.
-		// The etcdClient is an http.Client and designed to be reused.
-		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
-	case "etcdv3":
-		return etcdv3.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
-	case "zookeeper":
-		return zookeeper.NewZookeeperClient(backendNodes)
-	case "rancher":
-		return rancher.NewRancherClient(backendNodes)
-	case "redis":
-		return redis.NewRedisClient(backendNodes, config.ClientKey, config.Separator)
-	case "env":
-		return env.NewEnvClient()
-	case "file":
-		return file.NewFileClient(config.YAMLFile, config.Filter)
-	case "vault":
-		vaultConfig := map[string]string{
-			"app-id":    config.AppID,
-			"user-id":   config.UserID,
-			"role-id":   config.RoleID,
-			"secret-id": config.SecretID,
-			"username":  config.Username,
-			"password":  config.Password,
-			"token":     config.AuthToken,
-			"cert":      config.ClientCert,
-			"key":       config.ClientKey,
-			"caCert":    config.ClientCaKeys,
-			"path":      config.Path,
-		}
-		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
+		c["nodes"] = strings.Join(config.BackendNodes, ",")
+		c["scheme"] = config.Scheme
+		c["key"] = config.ClientKey
+		c["cert"] = config.ClientCert
+		c["caCert"] = config.ClientCaKeys
+		c["basicAuth"] = strconv.FormatBool(config.BasicAuth)
+		c["username"] = config.Username
+		c["password"] = config.Password
+	case "etcd", "etcdv3":
+		c["machines"] = strings.Join(config.BackendNodes, ",")
+		c["key"] = config.ClientKey
+		c["cert"] = config.ClientCert
+		c["caCert"] = config.ClientCaKeys
+		c["basicAuth"] = strconv.FormatBool(config.BasicAuth)
+		c["username"] = config.Username
+		c["password"] = config.Password
 	case "dynamodb":
-		table := config.Table
-		log.Info("DynamoDB table set to " + table)
-		return dynamodb.NewDynamoDBClient(table)
-	case "ssm":
-		return ssm.New()
+		c["table"] = config.Table
+		log.Info("DynamoDB table set to %s", config.Table)
+	case "rancher":
+		c["backendNodes"] = strings.Join(config.BackendNodes, ",")
+	case "zookeeper":
+		c["machines"] = strings.Join(config.BackendNodes, ",")
+	case "redis":
+		c["machines"] = strings.Join(config.BackendNodes, ",")
+		c["password"] = config.ClientKey
+		c["separator"] = config.Separator
+	case "vault":
+		c["authType"] = config.AuthType
+		c["address"] = config.BackendNodes[0]
+		c["app-id"] = config.AppID
+		c["user-id"] = config.UserID
+		c["role-id"] = config.RoleID
+		c["secret-id"] = config.SecretID
+		c["username"] = config.Username
+		c["password"] = config.Password
+		c["token"] = config.AuthToken
+		c["cert"] = config.ClientCert
+		c["key"] = config.ClientKey
+		c["caCert"] = config.ClientCaKeys
+		c["path"] = config.Path
+	case "file":
+		c["yamlFile"] = strings.Join(config.YAMLFile, ",")
+		c["filter"] = config.Filter
 	}
-	return nil, errors.New("Invalid backend")
+	database.Configure(c)
+
+	return database, client, nil
 }

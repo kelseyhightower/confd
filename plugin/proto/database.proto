@@ -1,0 +1,29 @@
+syntax = "proto3";
+package proto;
+
+message ConfigureRequest {
+  map<string, string> config = 1;
+}
+
+message ConfigureResponse {}
+
+message GetValuesRequest {
+	repeated string keys = 1;
+}
+
+message GetValuesResponse {
+	map<string, string> values = 1;
+}
+
+message WatchPrefixRequest {
+	string prefix = 1;
+	repeated string keys = 2;
+}
+
+message WatchPrefixResponse {}
+
+service Database {
+    rpc Configure(ConfigureRequest) returns (ConfigureResponse);
+    rpc GetValues(GetValuesRequest) returns (GetValuesResponse);
+    rpc WatchPrefix(WatchPrefixRequest) returns (stream WatchPrefixResponse);
+}

@@ -1,7 +1,6 @@
 package template
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -25,7 +24,7 @@ func process(ts []*TemplateResource) error {
 	var lastErr error
 	for _, t := range ts {
 		if err := t.process(); err != nil {
-			log.Error(err.Error())
+			log.Error("%s", err.Error())
 			lastErr = err
 		}
 	}
@@ -34,14 +33,13 @@ func process(ts []*TemplateResource) error {
 
 type intervalProcessor struct {
 	config   Config
-	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	interval int
 }
 
-func IntervalProcessor(config Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
-	return &intervalProcessor{config, stopChan, doneChan, errChan, interval}
+func IntervalProcessor(config Config, doneChan chan bool, errChan chan error, interval int) Processor {
+	return &intervalProcessor{config, doneChan, errChan, interval}
 }
 
 func (p *intervalProcessor) Process() {
@@ -49,13 +47,11 @@ func (p *intervalProcessor) Process() {
 	for {
 		ts, err := getTemplateResources(p.config)
 		if err != nil {
-			log.Fatal(err.Error())
+			p.errChan <- err
 			break
 		}
 		process(ts)
 		select {
-		case <-p.stopChan:
-			break
 		case <-time.After(time.Duration(p.interval) * time.Second):
 			continue
 		}
@@ -64,22 +60,20 @@ func (p *intervalProcessor) Process() {
 
 type watchProcessor struct {
 	config   Config
-	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
-	wg       sync.WaitGroup
+	wg       *sync.WaitGroup
 }
 
-func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
-	var wg sync.WaitGroup
-	return &watchProcessor{config, stopChan, doneChan, errChan, wg}
+func WatchProcessor(config Config, doneChan chan bool, errChan chan error) Processor {
+	return &watchProcessor{config, doneChan, errChan, &sync.WaitGroup{}}
 }
 
 func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
 	ts, err := getTemplateResources(p.config)
 	if err != nil {
-		log.Fatal(err.Error())
+		p.errChan <- err
 		return
 	}
 	for _, t := range ts {
@@ -91,21 +85,37 @@ func (p *watchProcessor) Process() {
 }
 
 func (p *watchProcessor) monitorPrefix(t *TemplateResource) {
+	// Initial template rendering
+	if err := t.process(); err != nil {
+		p.errChan <- err
+	}
+	// Waiting for updates
+	results := make(chan string)
 	defer p.wg.Done()
 	keys := util.AppendPrefix(t.Prefix, t.Keys)
-	for {
-		index, err := t.storeClient.WatchPrefix(t.Prefix, keys, t.lastIndex, p.stopChan)
-		if err != nil {
-			p.errChan <- err
-			// Prevent backend errors from consuming all resources.
-			time.Sleep(time.Second * 2)
-			continue
+	go func() {
+		needsUpdate := false
+		for {
+			select {
+			case <-time.Tick(time.Second * 1):
+				if needsUpdate {
+					needsUpdate = false
+					err := t.process()
+					if err != nil {
+						p.errChan <- err
+					}
+				}
+			case <-results:
+				needsUpdate = true
+				log.Debug("Got something from the plugin")
+			}
 		}
-		t.lastIndex = index
-		if err := t.process(); err != nil {
-			p.errChan <- err
-		}
+	}()
+	err := t.database.WatchPrefix(t.Prefix, keys, results)
+	if err != nil {
+		p.errChan <- err
 	}
+	return
 }
 
 func getTemplateResources(config Config) ([]*TemplateResource, error) {
@@ -113,7 +123,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	templates := make([]*TemplateResource, 0)
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
 	if !util.IsFileExist(config.ConfDir) {
-		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
+		log.Warning("Cannot load template resources: confdir '%s' does not exist", config.ConfDir)
 		return nil, nil
 	}
 	paths, err := util.RecursiveFilesLookup(config.ConfigDir, "*toml")
@@ -126,7 +136,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	}
 
 	for _, p := range paths {
-		log.Debug(fmt.Sprintf("Found template: %s", p))
+		log.Debug("Found template: %s", p)
 		t, err := NewTemplateResource(p, config)
 		if err != nil {
 			lastError = err
