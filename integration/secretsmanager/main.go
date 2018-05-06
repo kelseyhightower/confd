@@ -69,7 +69,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			secretList = append(secretList, &entry)
 		}
 		ListSecretsOutput := &secretsmanager.ListSecretsOutput{
-			NextToken:  aws.String(""),
+			//NextToken:  aws.String(""),
 			SecretList: secretList,
 		}
 		log.Printf("Entries:%v ", ListSecretsOutput)
