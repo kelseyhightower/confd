@@ -214,9 +214,4 @@ func processEnv() {
 	if len(key) > 0 && config.ClientKey == "" {
 		config.ClientKey = key
 	}
-
-        insecure,_ := strconv.ParseBool(os.Getenv("CONFD_CLIENT_INSECURE"))
-        if insecure && !config.ClientInsecure {
-                config.ClientInsecure = true
-        }
 }
