@@ -10,6 +10,7 @@ confd supports the following backends:
 * consul
 * vault
 * environment variables
+* file
 * redis
 * zookeeper
 * dynamodb
@@ -45,6 +46,16 @@ vault write myapp/database url=db.example.com user=rob
 ```
 export MYAPP_DATABASE_URL=db.example.com
 export MYAPP_DATABASE_USER=rob
+```
+
+#### file
+
+myapp.yaml
+```
+myapp:
+  database:
+    url: db.example.com
+    user: rob
 ```
 
 #### redis
@@ -163,6 +174,12 @@ confd -onetime -backend dynamodb -table <YOUR_TABLE>
 
 ```
 confd -onetime -backend env
+```
+
+#### file
+
+```
+confd -onetime -backend file -file myapp.yaml
 ```
 
 #### redis
