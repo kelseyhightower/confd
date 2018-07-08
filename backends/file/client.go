@@ -112,7 +112,7 @@ func (c *Client) watchChanges(watcher *fsnotify.Watcher, stopChan chan bool) Res
 		for {
 			select {
 			case event := <-watcher.Events:
-				log.Debug("event:", event)
+				log.Debug(fmt.Sprintf("Event: %s", event))
 				if event.Op&fsnotify.Write == fsnotify.Write ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
 					event.Op&fsnotify.Create == fsnotify.Create {
