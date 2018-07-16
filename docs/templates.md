@@ -364,6 +364,13 @@ Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
 {{seq 1 (atoi (getv "/count"))}}
 ```
 
+### uuid
+
+Returns the random generated UUID
+```
+{{uuid}}
+```
+
 ## Example Usage
 
 ```Bash

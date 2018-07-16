@@ -787,6 +787,20 @@ keys = [
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/count", "3")
 		},
+	}, templateTest{
+		desc: "uuid test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+`,
+		tmpl: `
+{{ if uuid }}true{{ end }}
+`,
+		expected: `
+true
+`,
+		updateStore: func(tr *TemplateResource) {},
 	},
 }
 
