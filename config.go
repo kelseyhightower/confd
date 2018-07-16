@@ -165,8 +165,9 @@ func initConfig() error {
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
-			"dynamodb": true,
-			"ssm":      true,
+			"dynamodb":       true,
+			"ssm":            true,
+			"secretsmanager": true,
 		}
 
 		if unsupportedBackends[config.Backend] {
