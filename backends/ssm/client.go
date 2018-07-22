@@ -1,6 +1,7 @@
 package ssm
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,8 +16,15 @@ type Client struct {
 }
 
 func New() (*Client, error) {
+
 	// Create a session to share configuration, and load external configuration.
-	sess := session.Must(session.NewSession())
+	sess := session.Must(session.NewSessionWithOptions(
+		session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		},
+	))
+
+	log.Debug(fmt.Sprintf("Region: %s", aws.StringValue(sess.Config.Region)))
 
 	// Fail early, if no credentials can be found
 	_, err := sess.Config.Credentials.Get()
