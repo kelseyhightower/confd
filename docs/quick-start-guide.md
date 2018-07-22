@@ -15,7 +15,7 @@ confd supports the following backends:
 * zookeeper
 * dynamodb
 * rancher
-* ssm (AWS Simple Systems Manager Parameter Store)
+* [ssm](../backends/ssm/README.md) (AWS Simple Systems Manager Parameter Store)
 
 ### Add keys
 
