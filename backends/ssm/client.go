@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/kelseyhightower/confd/log"
@@ -17,10 +18,19 @@ type Client struct {
 
 func New() (*Client, error) {
 
+	// Attempt to get AWS Region from ec2metadata. Should determine how to
+	// shorten ec2metadata client timeout so it fails fast if not on EC2.
+	metaSession, _ := session.NewSession()
+	metaClient := ec2metadata.New(metaSession)
+	region, _ := metaClient.Region()
+
+	conf := aws.NewConfig().WithRegion(region)
+
 	// Create a session to share configuration, and load external configuration.
 	sess := session.Must(session.NewSessionWithOptions(
 		session.Options{
 			SharedConfigState: session.SharedConfigEnable,
+			Config:            *conf,
 		},
 	))
 
