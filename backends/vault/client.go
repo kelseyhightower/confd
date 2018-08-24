@@ -51,19 +51,28 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 	// this would happen when we get a parameter that is missing
 	defer panicToError(&err)
 
+	path := params["path"]
+	if path == "" {
+		path = authType
+		if authType == "app-role" {
+			path = "approle"
+		}
+	}
+	url := fmt.Sprintf("/auth/%s/login", path)
+
 	switch authType {
 	case "app-role":
-		secret, err = c.Logical().Write("/auth/approle/login", map[string]interface{}{
+		secret, err = c.Logical().Write(url, map[string]interface{}{
 			"role_id":   getParameter("role-id", params),
 			"secret_id": getParameter("secret-id", params),
 		})
 	case "app-id":
-		secret, err = c.Logical().Write("/auth/app-id/login", map[string]interface{}{
+		secret, err = c.Logical().Write(url, map[string]interface{}{
 			"app_id":  getParameter("app-id", params),
 			"user_id": getParameter("user-id", params),
 		})
 	case "github":
-		secret, err = c.Logical().Write("/auth/github/login", map[string]interface{}{
+		secret, err = c.Logical().Write(url, map[string]interface{}{
 			"token": getParameter("token", params),
 		})
 	case "token":
@@ -71,7 +80,7 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 		secret, err = c.Logical().Read("/auth/token/lookup-self")
 	case "userpass":
 		username, password := getParameter("username", params), getParameter("password", params)
-		secret, err = c.Logical().Write(fmt.Sprintf("/auth/userpass/login/%s", username), map[string]interface{}{
+		secret, err = c.Logical().Write(fmt.Sprintf("%s/%s", url, username), map[string]interface{}{
 			"password": password,
 		})
 	case "kubernetes":
@@ -79,12 +88,12 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 		if err != nil {
 			return err
 		}
-		secret, err = c.Logical().Write("/auth/kubernetes/login", map[string]interface{}{
+		secret, err = c.Logical().Write(url, map[string]interface{}{
 			"jwt":  string(jwt[:]),
 			"role": getParameter("role-id", params),
 		})
 	case "cert":
-		secret, err = c.Logical().Write("/auth/cert/login", map[string]interface{}{})
+		secret, err = c.Logical().Write(url, map[string]interface{}{})
 	}
 
 	if err != nil {

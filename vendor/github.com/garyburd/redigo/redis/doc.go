@@ -38,7 +38,7 @@
 //
 //  n, err := conn.Do("APPEND", "key", "value")
 //
-// The Do method converts command arguments to binary strings for transmission
+// The Do method converts command arguments to bulk strings for transmission
 // to the server as follows:
 //
 //  Go Type                 Conversion
@@ -48,7 +48,7 @@
 //  float64                 strconv.FormatFloat(v, 'g', -1, 64)
 //  bool                    true -> "1", false -> "0"
 //  nil                     ""
-//  all other types         fmt.Print(v)
+//  all other types         fmt.Fprint(w, v)
 //
 // Redis command reply types are represented using the following Go types:
 //
