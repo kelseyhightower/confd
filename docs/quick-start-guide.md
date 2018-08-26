@@ -108,7 +108,7 @@ aws ssm put-parameter --name "/myapp/database/user" --type "SecureString" --valu
 
 ### Create the confdir
 
-The confdir is where template resource configs and source templates are stored.
+The confdir is where template resource configs and source templates are stored. Due to underlying functions not supporting symlinks the confdirs cannot be symlinked. This was discussed in issue #741.
 
 ```
 sudo mkdir -p /etc/confd/{conf.d,templates}
