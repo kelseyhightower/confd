@@ -1,0 +1,45 @@
+{
+    "computeMetadata": {
+        "v1": {
+            "database": {
+                "host": "127.0.0.1",
+                "password": "p@sSw0rd",
+                "port": "3306",
+                "username": "confd"
+            },
+            "key": "foobar",
+            "nested": {
+                "east": {
+                    "app1": "10.0.1.10:8080"
+                },
+                "west": {
+                    "app2": "10.0.1.11:8080"
+                }
+            },
+            "prefix": {
+                "database": {
+                    "host": "127.0.0.1",
+                    "password": "p@sSw0rd",
+                    "port": "3306",
+                    "username": "confd"
+                },
+                "nested": {
+                    "east": {
+                        "app1": "10.0.1.10:8080"
+                    },
+                    "west": {
+                        "app2": "10.0.1.11:8080"
+                    }
+                },
+                "upstream": {
+                    "app1": "10.0.1.10:8080",
+                    "app2": "10.0.1.11:8080"
+                }
+            },
+            "upstream": {
+                "app1": "10.0.1.10:8080",
+                "app2": "10.0.1.11:8080"
+            }
+        }
+    }
+}
