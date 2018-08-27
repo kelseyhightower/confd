@@ -1,3 +1,21 @@
+### v0.16.0
+
+28f72608 Release arm64 binaries
+4528af01 Add option to specify auth backend mount path in Vault
+b51998d6 new etcdv3 implementation
+fa37c993 isFileExist() was not defined in windows
+a23aa1c7 Update Vault Kubernetes authentication doc
+9b0ce8e6 Fix vendor name for logrus
+ccc17eb5 fix fileStat close when open failed on windows
+e3864219 add parseBool to template_funcs
+94bf80e7 Add Kubernetes auth for Vault backend
+304efb5a Add AppRole authN for Vault backend
+fb208461 Redis Backend Updates: WatchPrefix Support, Hash Support, Standard Redis Key Naming Convention
+36d874f5 Fix bug with multiple watches for etcdv3
+1fd12493 backend/etcd: add scheme to srv discovered endpoints
+a88c922a Vault TLS certificates auth method
+b77b9232 Add atoi function to template funcs and test
+
 ### v0.15.0
 
 0c4cb29e Don't pass empty prefix to zookeeper nodeWalk

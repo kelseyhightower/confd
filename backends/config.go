@@ -12,6 +12,7 @@ type Config struct {
 	ClientCaKeys string     `toml:"client_cakeys"`
 	ClientCert   string     `toml:"client_cert"`
 	ClientKey    string     `toml:"client_key"`
+        ClientInsecure bool     `toml:"client_insecure"`
 	BackendNodes util.Nodes `toml:"nodes"`
 	Password     string     `toml:"password"`
 	Scheme       string     `toml:"scheme"`
@@ -23,6 +24,7 @@ type Config struct {
 	RoleID       string     `toml:"role_id"`
 	SecretID     string     `toml:"secret_id"`
 	YAMLFile     util.Nodes `toml:"file"`
-  	Filter       string     `toml:"filter"`
+	Filter       string     `toml:"filter"`
+	Path         string     `toml:"path"`
 	Role         string
 }

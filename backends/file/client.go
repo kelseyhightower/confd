@@ -107,12 +107,12 @@ func nodeWalk(node interface{}, key string, vars map[string]string) error {
 
 func (c *Client) watchChanges(watcher *fsnotify.Watcher, stopChan chan bool) ResultError {
 	outputChannel := make(chan ResultError)
-	defer close(outputChannel)
 	go func() error {
+		defer close(outputChannel)
 		for {
 			select {
 			case event := <-watcher.Events:
-				log.Debug("event:", event)
+				log.Debug(fmt.Sprintf("Event: %s", event))
 				if event.Op&fsnotify.Write == fsnotify.Write ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
 					event.Op&fsnotify.Create == fsnotify.Create {
