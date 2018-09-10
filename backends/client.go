@@ -47,6 +47,7 @@ func New(config Config) (StoreClient, error) {
 			config.BasicAuth,
 			config.Username,
 			config.Password,
+			config.AuthToken,
 		)
 	case "etcd":
 		// Create the etcd client upfront and use it for the life of the process.
