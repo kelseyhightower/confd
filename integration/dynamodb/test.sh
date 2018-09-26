@@ -35,6 +35,12 @@ aws dynamodb put-item --table-name confd --region eu-west-1 \
 aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/upstream/app2" }, "value": {"S": "10.0.1.11:8080"}}' \
     --endpoint-url http://localhost:8000
+aws dynamodb put-item --table-name confd --region eu-west-1 \
+    --item '{ "key": { "S": "/upstream/encString" }, "value": {"S": "SGVsbG9Xb3JsZCEK"}}' \
+    --endpoint-url http://localhost:8000
+aws dynamodb put-item --table-name confd --region eu-west-1 \
+    --item '{ "key": { "S": "/upstream/encBinary" }, "value": {"B": "SGVsbG9Xb3JsZCEK"}}' \
+    --endpoint-url http://localhost:8000
 # Add a broken value, to see if it is handled
 aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/upstream/broken" }, "value": {"N": "4711"}}' \
@@ -56,12 +62,6 @@ aws dynamodb put-item --table-name confd --region eu-west-1 \
     --endpoint-url http://localhost:8000
 aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/prefix/upstream/app2" }, "value": {"S": "10.0.1.11:8080"}}' \
-    --endpoint-url http://localhost:8000
-aws dynamodb put-item --table-name confd --region eu-west-1 \
-    --item '{ "key": { "S": "/prefix/upstream/encString" }, "value": {"S": "SGVsbG9Xb3JsZCEK"}}' \
-    --endpoint-url http://localhost:8000
-aws dynamodb put-item --table-name confd --region eu-west-1 \
-    --item '{ "key": { "S": "/prefix/upstream/encBinary" }, "value": {"B": "SGVsbG9Xb3JsZCEK"}}' \
     --endpoint-url http://localhost:8000
 
 # Run confd, expect it to work
