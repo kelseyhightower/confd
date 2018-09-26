@@ -12,6 +12,7 @@ Optional:
 * `client_cert` (string) - The client cert file.
 * `client_key` (string) - The client key file.
 * `confdir` (string) - The path to confd configs. ("/etc/confd")
+* `dotenv-file` (string) - The path to dotenv file.
 * `interval` (int) - The backend polling interval in seconds. (600)
 * `log-level` (string) - level which confd should log messages ("info")
 * `nodes` (array of strings) - List of backend nodes. (["http://127.0.0.1:4001"])

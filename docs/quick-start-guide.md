@@ -16,6 +16,7 @@ confd supports the following backends:
 * dynamodb
 * rancher
 * ssm (AWS Simple Systems Manager Parameter Store)
+* dotenv
 
 ### Add keys
 
@@ -104,6 +105,14 @@ This backend consumes the [Rancher](https://www.rancher.com) metadata service. F
 ```
 aws ssm put-parameter --name "/myapp/database/url" --type "String" --value "db.example.com"
 aws ssm put-parameter --name "/myapp/database/user" --type "SecureString" --value "rob"
+```
+
+#### Dotenv
+
+Create a file called `.env` in current director or override with `--dotenv-file` flag.
+```
+/myapp/database/url=db.example.com
+/myapp/database/user=rob
 ```
 
 ### Create the confdir
@@ -225,6 +234,18 @@ database_user = rob
 
 ```
 confd -onetime -backend ssm
+```
+
+#### dotenv
+
+To use `.env` file in current diretory...
+```
+confd -onetime -backend dotenv
+```
+
+Or override with a different path.
+```
+confd -onetime -backend dotenv -dotenv-file /path/to/test.env
 ```
 
 ## Advanced Example
