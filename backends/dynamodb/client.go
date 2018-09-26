@@ -1,13 +1,17 @@
 package dynamodb
 
 import (
+	"encoding/base64"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/kelseyhightower/confd/log"
 )
+
+var sess *session.Session
 
 // Client is a wrapper around the DynamoDB client
 // and also holds the table to lookup key value pairs from
@@ -31,15 +35,15 @@ func NewDynamoDBClient(table string) (*Client, error) {
 		c = nil
 	}
 
-	session := session.New(c)
+	sess = session.New(c)
 
 	// Fail early, if no credentials can be found
-	_, err := session.Config.Credentials.Get()
+	_, err := sess.Config.Credentials.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	d := dynamodb.New(session)
+	d := dynamodb.New(sess)
 
 	// Check if the table exists
 	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
@@ -49,7 +53,8 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	return &Client{d, table}, nil
 }
 
-// GetValues retrieves the values for the given keys from DynamoDB
+// GetValues retrieves the values for the given keys from DynamoDB, if an item attribute called "encrypted"
+// exists, and it's value is true, then the value will be decrypted using KMS
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
@@ -62,7 +67,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 
 		if g.Item != nil {
-			if val, ok := g.Item["value"]; ok {
+			if val, ok := c.getItemValue(g.Item); ok {
 				if val.S != nil {
 					vars[key] = *val.S
 				} else {
@@ -91,7 +96,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 		for _, i := range q.Items {
 			item := i
-			if val, ok := item["value"]; ok {
+			if val, ok := c.getItemValue(item); ok {
 				if val.S != nil {
 					vars[*item["key"].S] = *val.S
 				} else {
@@ -108,4 +113,52 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	<-stopChan
 	return 0, nil
+}
+
+func (c *Client) getItemValue(item map[string]*dynamodb.AttributeValue) (*dynamodb.AttributeValue, bool) {
+	key := *item["key"].S
+	val, hasVal := item["value"]
+
+	if encrypted, ok := item["encrypted"]; ok && *encrypted.BOOL {
+		// "encrypted" attribute exists and is true for item
+		log.Debug("Detected encrypted value for key %s", key)
+		if hasVal {
+			var err error
+			var data []byte
+			var value *dynamodb.AttributeValue
+
+			if data = val.B; len(data) < 1 {
+				// not binary data, see if it's a manually encoded base64 string
+				if data, err = base64.StdEncoding.DecodeString(*val.S); err != nil {
+					log.Warning("Error decoding string for key '%s'. Could not decrypt value.", key)
+					return nil, false
+				}
+			}
+
+			if value, err = c.decryptValue(data); err != nil {
+				log.Warning("Skipping encrypted key '%s'. Could not decrypt value.", key)
+				return nil, false
+			} else {
+				return value, true
+			}
+		}
+	}
+
+	return val, hasVal
+}
+
+func (c *Client) decryptValue(data []byte) (*dynamodb.AttributeValue, error) {
+	k := kms.New(sess)
+	p := &kms.DecryptInput{
+		CiphertextBlob: data,
+	}
+
+	if res, err := k.Decrypt(p); err != nil {
+		return nil, err
+	} else {
+		v := new(dynamodb.AttributeValue)
+		v.SetS(string(res.Plaintext))
+
+		return v, nil
+	}
 }
