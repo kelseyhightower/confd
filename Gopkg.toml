@@ -45,3 +45,7 @@
 [[constraint]]
   name = "gopkg.in/yaml.v2"
   branch = "v2"
+
+[[constraint]]
+  name = "github.com/joho/godotenv"
+  version = "=1.3.0"
