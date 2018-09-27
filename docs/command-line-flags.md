@@ -28,6 +28,8 @@ Usage of confd:
       confd conf directory (default "/etc/confd")
   -config-file string
       the confd config file (default "/etc/confd/confd.toml")
+  -dotenv-file string
+      the path to dotenv file to load (only used with -backend=dotenv)
   -file value
       the YAML file to watch for changes (only used with -backend=file)
   -filter string

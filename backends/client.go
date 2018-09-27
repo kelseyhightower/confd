@@ -2,6 +2,7 @@ package backends
 
 import (
 	"errors"
+	"github.com/kelseyhightower/confd/backends/dotenv"
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
@@ -85,6 +86,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
 		return ssm.New()
+	case "dotenv":
+		return dotenv.NewDotenvClient(config.DotenvFile)
 	}
 	return nil, errors.New("Invalid backend")
 }
