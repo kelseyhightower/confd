@@ -79,13 +79,17 @@ func (c *Client) getParametersWithPrefix(prefix string) (map[string]string, erro
 		Recursive:      aws.Bool(true),
 		WithDecryption: aws.Bool(true),
 	}
-	c.client.GetParametersByPathPages(params,
+	err = c.client.GetParametersByPathPages(params,
 		func(page *ssm.GetParametersByPathOutput, lastPage bool) bool {
 			for _, p := range page.Parameters {
 				parameters[*p.Name] = *p.Value
 			}
 			return !lastPage
 		})
+	if err != nil {
+		return nil, err
+	}
+
 	return parameters, err
 }
 
