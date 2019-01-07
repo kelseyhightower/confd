@@ -28,7 +28,7 @@ integration:
 	done
 
 mod:
-    @go mod tidy
+	@go mod tidy
 
 release:
 	@docker build -q -t confd_builder -f Dockerfile.build.alpine .
