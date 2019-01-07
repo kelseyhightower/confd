@@ -27,8 +27,8 @@ integration:
 		rm /tmp/confd-*; \
 	done
 
-dep:
-	@dep ensure
+mod:
+    @go mod tidy
 
 release:
 	@docker build -q -t confd_builder -f Dockerfile.build.alpine .
