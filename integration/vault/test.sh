@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export HOSTNAME="localhost"
 export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
 
 vault secrets enable -path database kv
