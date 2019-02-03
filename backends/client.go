@@ -14,6 +14,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/ssm"
 	"github.com/kelseyhightower/confd/backends/vault"
+	"github.com/kelseyhightower/confd/backends/vaultpki"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
 	"github.com/kelseyhightower/confd/log"
 )
@@ -79,6 +80,21 @@ func New(config Config) (StoreClient, error) {
 			"path":      config.Path,
 		}
 		return vault.New(backendNodes[0], config.AuthType, vaultConfig)
+	case "vaultpki":
+		vaultPkiConfig := map[string]string{
+			"app-id":    config.AppID,
+			"user-id":   config.UserID,
+			"role-id":   config.RoleID,
+			"secret-id": config.SecretID,
+			"username":  config.Username,
+			"password":  config.Password,
+			"token":     config.AuthToken,
+			"cert":      config.ClientCert,
+			"key":       config.ClientKey,
+			"caCert":    config.ClientCaKeys,
+			"path":      config.Path,
+		}
+		return vaultpki.New(backendNodes[0], config.AuthType, vaultPkiConfig)
 	case "dynamodb":
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
