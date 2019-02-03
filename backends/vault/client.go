@@ -171,7 +171,7 @@ func New(address, authType string, params map[string]string) (*Client, error) {
 	return &Client{c}, nil
 }
 
-// GetValues queries etcd for keys prefixed by prefix.
+// GetValues queries vault for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	branches := make(map[string]bool)
 	for _, key := range keys {
