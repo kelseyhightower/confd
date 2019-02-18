@@ -94,7 +94,7 @@ func New(config Config) (StoreClient, error) {
 			"caCert":    config.ClientCaKeys,
 			"path":      config.Path,
 		}
-		return vaultpki.New(backendNodes[0], config.AuthType, vaultPkiConfig)
+		return vaultpki.NewClient(backendNodes[0], config.AuthType, vaultPkiConfig)
 	case "dynamodb":
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)

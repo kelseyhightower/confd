@@ -1,0 +1,8 @@
+[template]
+mode = "0644"
+src = "certkey.pem.tmpl"
+dest = "/tmp/certkey.pem"
+keys = [
+  "/pki/issue/my-role/www.example.com",
+]
+reload_cmd = "/tmp/split.sh"
