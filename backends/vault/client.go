@@ -43,8 +43,8 @@ func panicToError(err *error) {
 	}
 }
 
-// authenticate with the remote client
-func authenticate(c *vaultapi.Client, authType string, params map[string]string) (err error) {
+// Authenticate with the remote client
+func Authenticate(c *vaultapi.Client, authType string, params map[string]string) (err error) {
 	var secret *vaultapi.Secret
 
 	// handle panics gracefully by creating an error
@@ -116,7 +116,8 @@ func authenticate(c *vaultapi.Client, authType string, params map[string]string)
 	return nil
 }
 
-func getConfig(address, cert, key, caCert string) (*vaultapi.Config, error) {
+// GetConfig methot in vault backedn to Get Config
+func GetConfig(address, cert, key, caCert string) (*vaultapi.Config, error) {
 	conf := vaultapi.DefaultConfig()
 	conf.Address = address
 
@@ -154,7 +155,7 @@ func New(address, authType string, params map[string]string) (*Client, error) {
 		return nil, errors.New("you have to set the auth type when using the vault backend")
 	}
 	log.Info("Vault authentication backend set to %s", authType)
-	conf, err := getConfig(address, params["cert"], params["key"], params["caCert"])
+	conf, err := GetConfig(address, params["cert"], params["key"], params["caCert"])
 
 	if err != nil {
 		return nil, err
@@ -165,7 +166,7 @@ func New(address, authType string, params map[string]string) (*Client, error) {
 		return nil, err
 	}
 
-	if err := authenticate(c, authType, params); err != nil {
+	if err := Authenticate(c, authType, params); err != nil {
 		return nil, err
 	}
 	return &Client{c}, nil
@@ -173,6 +174,7 @@ func New(address, authType string, params map[string]string) (*Client, error) {
 
 // GetValues queries vault for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
+	log.Debug("%+v : keys", keys)
 	branches := make(map[string]bool)
 	for _, key := range keys {
 		walkTree(c, key, branches)
@@ -192,22 +194,22 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 		// if the key has only one string value
 		// treat it as a string and not a map of values
-		if val, ok := isKV(resp.Data); ok {
+		if val, ok := IsKV(resp.Data); ok {
 			vars[key] = val
 		} else {
 			// save the json encoded response
-			// and flatten it to allow usage of gets & getvs
+			// and Flatten it to allow usage of gets & getvs
 			js, _ := json.Marshal(resp.Data)
 			vars[key] = string(js)
-			flatten(key, resp.Data, vars)
+			Flatten(key, resp.Data, vars)
 		}
 	}
 	return vars, nil
 }
 
-// isKV checks if a given map has only one key of type string
+// IsKV checks if a given map has only one key of type string
 // if so, returns the value of that key
-func isKV(data map[string]interface{}) (string, bool) {
+func IsKV(data map[string]interface{}) (string, bool) {
 	if len(data) == 1 {
 		if value, ok := data["value"]; ok {
 			if text, ok := value.(string); ok {
@@ -218,8 +220,8 @@ func isKV(data map[string]interface{}) (string, bool) {
 	return "", false
 }
 
-// recursively walks on all the values of a specific key and set them in the variables map
-func flatten(key string, value interface{}, vars map[string]string) {
+// Flatten recursively walks on all the values of a specific key and set them in the variables map
+func Flatten(key string, value interface{}, vars map[string]string) {
 	switch value.(type) {
 	case string:
 		log.Debug("setting key %s to: %s", key, value)
@@ -228,7 +230,7 @@ func flatten(key string, value interface{}, vars map[string]string) {
 		inner := value.(map[string]interface{})
 		for innerKey, innerValue := range inner {
 			innerKey = path.Join(key, "/", innerKey)
-			flatten(innerKey, innerValue, vars)
+			Flatten(innerKey, innerValue, vars)
 		}
 	default: // we don't know how to handle non string or maps of strings
 		log.Warning("type of '%s' is not supported (%T)", key, value)
