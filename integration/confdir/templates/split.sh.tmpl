@@ -1,0 +1,3 @@
+#!/bin/bash
+cat /tmp/certkey.pem | jq -r .certificate  > /tmp/certificate.pem && chmod 644 /tmp/certificate.pem
+cat /tmp/certkey.pem | jq -r .key > /tmp/key.pem && chmod 600 /tmp/key.pem
