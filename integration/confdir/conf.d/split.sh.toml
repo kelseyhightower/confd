@@ -1,0 +1,5 @@
+[template]
+mode = "0744"
+src = "split.sh.tmpl"
+dest = "/tmp/split.sh"
+keys = []
