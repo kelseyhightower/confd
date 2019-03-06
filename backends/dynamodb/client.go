@@ -19,13 +19,19 @@ type Client struct {
 // NewDynamoDBClient returns an *dynamodb.Client with a connection to the region
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
-func NewDynamoDBClient(table string) (*Client, error) {
+func NewDynamoDBClient(endpoint string, table string) (*Client, error) {
 	var c *aws.Config
+	region := os.Getenv("AWS_REGION")
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
 		endpoint := "http://localhost:8000"
 		c = &aws.Config{
 			Endpoint: &endpoint,
+		}
+	} else if endpoint != "" && region != "" {
+		c = &aws.Config{
+			Region:   aws.String(region),
+			Endpoint: aws.String(endpoint),
 		}
 	} else {
 		c = nil

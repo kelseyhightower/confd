@@ -82,7 +82,7 @@ func New(config Config) (StoreClient, error) {
 	case "dynamodb":
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
-		return dynamodb.NewDynamoDBClient(table)
+		return dynamodb.NewDynamoDBClient(backendNodes[0], table)
 	case "ssm":
 		return ssm.New()
 	}
