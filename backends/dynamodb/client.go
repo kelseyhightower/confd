@@ -1,6 +1,9 @@
 package dynamodb
 
 import (
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,30 +22,83 @@ type Client struct {
 // NewDynamoDBClient returns an *dynamodb.Client with a connection to the region
 // configured via the AWS_REGION environment variable.
 // It returns an error if the connection cannot be made or the table does not exist.
-func NewDynamoDBClient(table string) (*Client, error) {
+func NewDynamoDBClient(endpoint string, table string, profile string) (*Client, error) {
 	var c *aws.Config
-	if os.Getenv("DYNAMODB_LOCAL") != "" {
-		log.Debug("DYNAMODB_LOCAL is set")
-		endpoint := "http://localhost:8000"
-		c = &aws.Config{
-			Endpoint: &endpoint,
+	var creds *credentials.Credentials
+	var sess *session.Session
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		sess, err := session.NewSession()
+		if err != nil {
+			return nil, err
 		}
+		metadata := ec2metadata.New(sess)
+		tempRegion, err := metadata.Region()
+		if err != nil {
+			return nil, fmt.Errorf("the dynamodb client requires a region")
+		}
+		region = tempRegion
+	}
+
+	if profile != "" {
+		creds = credentials.NewSharedCredentials("", profile)
+		if os.Getenv("DYNAMODB_LOCAL") != "" {
+			log.Debug("DYNAMODB_LOCAL is set")
+			endpoint := "http://localhost:8000"
+			c = &aws.Config{
+				Region:      aws.String(region),
+				Endpoint:    &endpoint,
+				Credentials: creds,
+			}
+		} else if endpoint != "" {
+			c = &aws.Config{
+				Region:      aws.String(region),
+				Endpoint:    aws.String(endpoint),
+				Credentials: creds,
+			}
+		} else {
+			c = &aws.Config{
+				Region:      aws.String(region),
+				Credentials: creds,
+			}
+		}
+		sess = session.New(c)
+		// Fail early, if no credentials can be found
+		/*
+			_, err := sess.Config.Credentials.Get()
+			if err != nil {
+				return nil, err
+			}
+		*/
 	} else {
-		c = nil
+		if os.Getenv("DYNAMODB_LOCAL") != "" {
+			log.Debug("DYNAMODB_LOCAL is set")
+			endpoint := "http://localhost:8000"
+			c = &aws.Config{
+				Endpoint: &endpoint,
+			}
+		} else if endpoint != "" {
+			c = &aws.Config{
+				Region:   aws.String(region),
+				Endpoint: aws.String(endpoint),
+			}
+		} else {
+			c = nil
+		}
+
+		sess = session.New(c)
+
+		// Fail early, if no credentials can be found
+		_, err := sess.Config.Credentials.Get()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	session := session.New(c)
-
-	// Fail early, if no credentials can be found
-	_, err := session.Config.Credentials.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	d := dynamodb.New(session)
+	d := dynamodb.New(sess)
 
 	// Check if the table exists
-	_, err = d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
+	_, err := d.DescribeTable(&dynamodb.DescribeTableInput{TableName: &table})
 	if err != nil {
 		return nil, err
 	}
