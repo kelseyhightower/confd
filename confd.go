@@ -11,7 +11,7 @@ import (
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
 
-	"github.com/xdhuxc/confd/backends"
+	"github.com/kelseyhightower/confd/backends"
 )
 
 func main() {

@@ -2,7 +2,7 @@ package backends
 
 import (
 	"errors"
-	"github.com/xdhuxc/confd/backends/dynamodb"
+	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
