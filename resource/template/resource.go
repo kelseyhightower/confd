@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -45,8 +46,10 @@ type TemplateResource struct {
 	Dest          string
 	FileMode      os.FileMode
 	Gid           int
+	Group         string
 	Keys          []string
 	Mode          string
+	Owner         string
 	Prefix        string
 	ReloadCmd     string `toml:"reload_cmd"`
 	Src           string
@@ -107,11 +110,33 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	}
 
 	if tr.Uid == -1 {
-		tr.Uid = os.Geteuid()
+		if tr.Owner != "" {
+			u, err := user.Lookup(tr.Owner)
+			if err != nil {
+				return nil, fmt.Errorf("Cannot find owner's UID - %s", err.Error())
+			}
+			tr.Uid, err = strconv.Atoi(u.Uid)
+			if err != nil {
+				return nil, fmt.Errorf("Cannot convert string to int - %s", err.Error())
+			}
+		} else {
+			tr.Uid = os.Geteuid()
+		}
 	}
 
 	if tr.Gid == -1 {
-		tr.Gid = os.Getegid()
+		if tr.Group != "" {
+			g, err := user.LookupGroup(tr.Group)
+			if err != nil {
+				return nil, fmt.Errorf("Cannot find group's GID - %s", err.Error())
+			}
+			tr.Gid, err = strconv.Atoi(g.Gid)
+			if err != nil {
+				return nil, fmt.Errorf("Cannot convert string to int - %s", err.Error())
+			}
+		} else {
+			tr.Gid = os.Getegid()
+		}
 	}
 
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
