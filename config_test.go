@@ -3,6 +3,7 @@ package main
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/kelseyhightower/confd/log"
 )
@@ -11,10 +12,11 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 	log.SetLevel("warn")
 	want := Config{
 		BackendsConfig: BackendsConfig{
-			Backend:      "etcd",
-			BackendNodes: []string{"http://127.0.0.1:4001"},
-			Scheme:       "http",
-			Filter:       "*",
+			Backend:        "etcd",
+			BackendNodes:   []string{"http://127.0.0.1:4001"},
+			Scheme:         "http",
+			Filter:         "*",
+			RequestTimeout: time.Second * 10,
 		},
 		TemplateConfig: TemplateConfig{
 			ConfDir:     "/etc/confd",

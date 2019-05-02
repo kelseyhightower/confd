@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
@@ -44,12 +45,14 @@ func init() {
 	flag.StringVar(&config.ClientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&config.ClientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&config.ClientKey, "client-key", "", "the client key")
-        flag.BoolVar(&config.ClientInsecure, "client-insecure", false, "Allow connections to SSL sites without certs (only used with -backend=etcd)")
+	flag.BoolVar(&config.ClientInsecure, "client-insecure", false, "Allow connections to SSL sites without certs (only used with -backend=etcd)")
 	flag.StringVar(&config.ConfDir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&config.ConfigFile, "config-file", "/etc/confd/confd.toml", "the confd config file")
+	flag.StringVar(&config.ConnectionString, "connection-string", "", "Azure App Configuration connection string")
 	flag.Var(&config.YAMLFile, "file", "the YAML file to watch for changes (only used with -backend=file)")
 	flag.StringVar(&config.Filter, "filter", "*", "files filter (only used with -backend=file)")
 	flag.IntVar(&config.Interval, "interval", 600, "backend polling interval")
+	flag.DurationVar(&config.JitterInterval, "jitter-interval", 3*time.Second, "Random jitter range between AAC watch refresh requests")
 	flag.BoolVar(&config.KeepStageFile, "keep-stage-file", false, "keep staged files")
 	flag.StringVar(&config.LogLevel, "log-level", "", "level which confd should log messages")
 	flag.Var(&config.BackendNodes, "node", "list of backend nodes")
@@ -65,6 +68,7 @@ func init() {
 	flag.StringVar(&config.AuthType, "auth-type", "", "Vault auth backend type to use (only used with -backend=vault)")
 	flag.StringVar(&config.AppID, "app-id", "", "Vault app-id to use with the app-id backend (only used with -backend=vault and auth-type=app-id)")
 	flag.StringVar(&config.UserID, "user-id", "", "Vault user-id to use with the app-id backend (only used with -backend=value and auth-type=app-id)")
+	flag.DurationVar(&config.RequestTimeout, "request-timeout", 10*time.Second, "HTTP Request timeout for Azure App Configuration requests")
 	flag.StringVar(&config.RoleID, "role-id", "", "Vault role-id to use with the AppRole, Kubernetes backends (only used with -backend=vault and either auth-type=app-role or auth-type=kubernetes)")
 	flag.StringVar(&config.SecretID, "secret-id", "", "Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)")
 	flag.StringVar(&config.Path, "path", "", "Vault mount path of the auth method (only used with -backend=vault)")
@@ -73,6 +77,7 @@ func init() {
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
+	flag.DurationVar(&config.WatchInterval, "watch-interval", 15*time.Second, "Watch refresh interval for AAC backend")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,

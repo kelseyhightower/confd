@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/kelseyhightower/confd/backends/aac"
 	"github.com/kelseyhightower/confd/backends/consul"
 	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
@@ -85,6 +86,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
 		return ssm.New()
+	case "aac":
+		return aac.NewAzureAppConfigClient(config.ConnectionString, config.RequestTimeout, config.WatchInterval, config.JitterInterval)
 	}
 	return nil, errors.New("Invalid backend")
 }
