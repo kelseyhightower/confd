@@ -17,6 +17,8 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 			Scheme:         "http",
 			Filter:         "*",
 			RequestTimeout: time.Second * 10,
+			WatchInterval:  time.Second * 15,
+			JitterInterval: time.Second * 3,
 		},
 		TemplateConfig: TemplateConfig{
 			ConfDir:     "/etc/confd",
