@@ -9,24 +9,22 @@
   [vault](https://vaultproject.io), [zookeeper](https://zookeeper.apache.org), [aws ssm parameter store](https://aws.amazon.com/ec2/systems-manager/) or env vars and processing [template resources](docs/template-resources.md).
 * reloading applications to pick up new config file changes
 
+*Note: This is a divergent fork of [confd](https://github.com/kelseyhightower/confd). Backward compatibility is not guaranteed*
+
 ## Community
 
-* IRC: `#confd` on Freenode
-* Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
-* Website: [www.confd.io](http://www.confd.io)
 
 ## Building
 
-Go 1.10 is required to build confd, which uses the new vendor directory.
+Go 1.12 is required to build confd, which uses Go Modules
 
 ```
-$ mkdir -p $GOPATH/src/github.com/kelseyhightower
-$ git clone https://github.com/kelseyhightower/confd.git $GOPATH/src/github.com/kelseyhightower/confd
-$ cd $GOPATH/src/github.com/kelseyhightower/confd
+$ git clone https://github.com/abtreece/confd.git
+$ cd confd
 $ make
 ```
 
-You should now have confd in your `bin/` directory:
+You should now have `confd` in your `bin/` directory:
 
 ```
 $ ls bin/

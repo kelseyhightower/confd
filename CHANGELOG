@@ -1,3 +1,20 @@
+### v0.17.0
+
+80e6b82 Update go.sum for latest versions
+d97a601 set GO111MODULE=on for travisci
+0c99a41 Switch to Go Modules for dependency management
+ebc65e6 Bump Zookeeper version to 3.4.14 for integration tests
+441e74e Removes crypt feature due to stale dependencies
+be5ae0f Relink the project to github.com/abtreece/confd
+b163f25 Define ClientInsecure
+cba5a09 vendor updated deps
+4975585 Further update deps
+a6bb111 Add override for self referential dep
+c23d0b9 Upgrade deps
+9719ee4 docs: Add SSM backend specific documentation
+1913dff Add region determination from ec2metadata
+a3508de Refactor AWS session creation for shared config
+
 ### v0.16.0
 
 28f72608 Release arm64 binaries
