@@ -295,26 +295,9 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7429f71ba3d43a651c6dd1d6bc3c2e73cd63fae09d0eb8d3a6adeaeafa0fc415"
-  name = "github.com/xordataexchange/crypt"
-  packages = ["encoding/secconf"]
-  pruneopts = "UT"
-  revision = "b2862e3d0a775f18c7cfe02273500ae307b61218"
-
-[[projects]]
-  branch = "master"
-  digest = "1:a770e9751a4444edbe84f11229ac31e5ba9df394d38626ade35ee936938a294d"
+  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
   name = "golang.org/x/crypto"
-  packages = [
-    "cast5",
-    "openpgp",
-    "openpgp/armor",
-    "openpgp/elgamal",
-    "openpgp/errors",
-    "openpgp/packet",
-    "openpgp/s2k",
-    "ssh/terminal",
-  ]
+  packages = ["ssh/terminal"]
   pruneopts = "UT"
   revision = "1f94bef427e370e425e55b172f3b5e300ef38304"
 
@@ -439,7 +422,6 @@
     "github.com/kelseyhightower/memkv",
     "github.com/samuel/go-zookeeper/zk",
     "github.com/sirupsen/logrus",
-    "github.com/xordataexchange/crypt/encoding/secconf",
     "golang.org/x/net/context",
     "gopkg.in/yaml.v2",
   ]

@@ -56,8 +56,6 @@ Usage of confd:
       the backend URI scheme for nodes retrieved from DNS SRV records (http or https) (default "http")
   -secret-id string
       Vault secret-id to use with the AppRole backend (only used with -backend=vault and auth-type=app-role)
-  -secret-keyring string
-      path to armored PGP secret keyring (for use with crypt functions)
   -separator string
       the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)
   -srv-domain string

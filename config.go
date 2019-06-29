@@ -25,7 +25,6 @@ type Config struct {
 	TemplateConfig
 	BackendsConfig
 	Interval       int    `toml:"interval"`
-	SecretKeyring  string `toml:"secret_keyring"`
 	SRVDomain      string `toml:"srv_domain"`
 	SRVRecord      string `toml:"srv_record"`
 	LogLevel       string `toml:"log-level"`
@@ -59,7 +58,6 @@ func init() {
 	flag.StringVar(&config.Prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&config.PrintVersion, "version", false, "print version and exit")
 	flag.StringVar(&config.Scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
-	flag.StringVar(&config.SecretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
 	flag.StringVar(&config.SRVDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&config.SRVRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
 	flag.BoolVar(&config.SyncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
@@ -100,18 +98,6 @@ func initConfig() error {
 
 	// Update config from environment variables.
 	processEnv()
-
-	if config.SecretKeyring != "" {
-		kr, err := os.Open(config.SecretKeyring)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		defer kr.Close()
-		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-	}
 
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
