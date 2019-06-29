@@ -1,6 +1,6 @@
 # confd
 
-[![Build Status](https://travis-ci.org/abtreece/confd.svg?branch=master)](https://travis-ci.org/abtreece/confd)
+[![Build Status](https://travis-ci.com/abtreece/confd.svg?branch=master)](https://travis-ci.com/abtreece/confd)
 
 `confd` is a lightweight configuration management tool focused on:
 
