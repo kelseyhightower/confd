@@ -7,7 +7,7 @@ Currently confd ships binaries for OS X and Linux 64bit systems. You can downloa
 #### OS X
 
 ```
-$ wget https://github.com/abtreece/confd/releases/download/v0.17.0/confd-0.16.0-darwin-amd64
+$ wget https://github.com/abtreece/confd/releases/download/v0.17.0/confd-0.17.0-darwin-amd64
 ```
 
 #### Linux
