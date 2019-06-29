@@ -2,11 +2,6 @@
   unused-packages = true
   go-tests = true
 
-[[override]]
-  name = "github.com/kelseyhightower/confd"
-  source = "https://github.com/abtreece/confd.git"
-  revision = "a6bb1114d55"
-
 [[constraint]]
   name = "github.com/BurntSushi/toml"
   version = "0.3.0"

@@ -3,10 +3,10 @@ package dynamodb
 import (
 	"os"
 
+	"github.com/abtreece/confd/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/kelseyhightower/confd/log"
 )
 
 // Client is a wrapper around the DynamoDB client

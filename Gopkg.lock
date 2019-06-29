@@ -231,30 +231,6 @@
   revision = "0b12d6b5"
 
 [[projects]]
-  digest = "1:700db1e6d9f2488e64b354d2cc3ab9f036a9e8be04d7b83e33a7925f50a1d755"
-  name = "github.com/kelseyhightower/confd"
-  packages = [
-    "backends",
-    "backends/consul",
-    "backends/dynamodb",
-    "backends/env",
-    "backends/etcd",
-    "backends/etcdv3",
-    "backends/file",
-    "backends/rancher",
-    "backends/redis",
-    "backends/ssm",
-    "backends/vault",
-    "backends/zookeeper",
-    "log",
-    "resource/template",
-    "util",
-  ]
-  pruneopts = "UT"
-  revision = "a6bb1114d55"
-  source = "https://github.com/abtreece/confd.git"
-
-[[projects]]
   digest = "1:cf6ae68b48b1e1b23e7d67148d280e887f48a4860944531970b465e34286e423"
   name = "github.com/kelseyhightower/memkv"
   packages = ["."]
@@ -460,21 +436,6 @@
     "github.com/garyburd/redigo/redis",
     "github.com/hashicorp/consul/api",
     "github.com/hashicorp/vault/api",
-    "github.com/kelseyhightower/confd/backends",
-    "github.com/kelseyhightower/confd/backends/consul",
-    "github.com/kelseyhightower/confd/backends/dynamodb",
-    "github.com/kelseyhightower/confd/backends/env",
-    "github.com/kelseyhightower/confd/backends/etcd",
-    "github.com/kelseyhightower/confd/backends/etcdv3",
-    "github.com/kelseyhightower/confd/backends/file",
-    "github.com/kelseyhightower/confd/backends/rancher",
-    "github.com/kelseyhightower/confd/backends/redis",
-    "github.com/kelseyhightower/confd/backends/ssm",
-    "github.com/kelseyhightower/confd/backends/vault",
-    "github.com/kelseyhightower/confd/backends/zookeeper",
-    "github.com/kelseyhightower/confd/log",
-    "github.com/kelseyhightower/confd/resource/template",
-    "github.com/kelseyhightower/confd/util",
     "github.com/kelseyhightower/memkv",
     "github.com/samuel/go-zookeeper/zk",
     "github.com/sirupsen/logrus",

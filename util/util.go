@@ -2,10 +2,11 @@ package util
 
 import (
 	"fmt"
-	"github.com/kelseyhightower/confd/log"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/abtreece/confd/log"
 )
 
 // Nodes is a custom flag Var representing a list of etcd nodes.
