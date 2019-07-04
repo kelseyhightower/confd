@@ -1,0 +1,2 @@
+{{ if exists "/kv-v1/exists" }}value: {{ getv "/kv-v1/exists/key" }}{{ end }}
+{{- if exists "/kv-v1/doesnotexist" }}This line will not be printed value: {{ getv "/kv-v1/exists/key" }}{{ end }}
