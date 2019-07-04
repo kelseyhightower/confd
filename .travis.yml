@@ -3,7 +3,7 @@ go:
   - 1.x
   - tip
 env:
-  - GO111MODULE=on VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=1.5.2 ETCD_VERSION=3.3.1 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=1.1.3 ZOOKEEPER_VERSION=3.4.14 RANCHER_VERSION=0.6.0
+  - GO111MODULE=on VAULT_ADDR='http://127.0.0.1:8200' CONSUL_VERSION=1.5.2 ETCD_VERSION=3.3.13 DYNAMODB_VERSION=2017-02-16 VAULT_VERSION=1.1.3 ZOOKEEPER_VERSION=3.4.14 RANCHER_VERSION=0.6.0
 services:
   - redis
 before_install:
@@ -13,7 +13,7 @@ before_install:
   - sudo mv consul /bin/
   - consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -bind 127.0.0.1 &
   # install etcd
-  - wget https://github.com/coreos/etcd/releases/download/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
+  - wget https://github.com/etcd-io/etcd/releases/download/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
   - tar xzf etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
   - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcd /bin/
   - sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcdctl /bin/

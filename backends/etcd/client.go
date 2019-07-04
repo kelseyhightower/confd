@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/abtreece/confd/log"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client"
 	"golang.org/x/net/context"
 )
 

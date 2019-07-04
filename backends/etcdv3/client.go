@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/abtreece/confd/log"
-	"github.com/coreos/etcd/clientv3"
+	"go.etcd.io/etcd/clientv3"
 )
 
 // A watch only tells the latest revision

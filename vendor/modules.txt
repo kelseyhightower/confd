@@ -31,8 +31,6 @@ github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 # github.com/coreos/etcd v3.3.4+incompatible
-github.com/coreos/etcd/client
-github.com/coreos/etcd/clientv3
 github.com/coreos/etcd/pkg/pathutil
 github.com/coreos/etcd/pkg/srv
 github.com/coreos/etcd/pkg/types
@@ -94,6 +92,8 @@ github.com/hashicorp/vault/helper/compressutil
 github.com/hashicorp/vault/helper/strutil
 # github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
 github.com/jmespath/go-jmespath
+# github.com/json-iterator/go v1.1.6
+github.com/json-iterator/go
 # github.com/kelseyhightower/memkv v0.1.1
 github.com/kelseyhightower/memkv
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
@@ -102,6 +102,10 @@ github.com/konsorten/go-windows-terminal-sequences
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v0.0.0-20180220230111-00c29f56e238
 github.com/mitchellh/mapstructure
+# github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v1.0.1
+github.com/modern-go/reflect2
 # github.com/ryanuber/go-glob v0.0.0-20160226084822-572520ed46db
 github.com/ryanuber/go-glob
 # github.com/samuel/go-zookeeper v0.0.0-20180130194729-c4fab1ac1bec
@@ -110,8 +114,9 @@ github.com/samuel/go-zookeeper/zk
 github.com/sethgrid/pester
 # github.com/sirupsen/logrus v1.2.0
 github.com/sirupsen/logrus
-# github.com/ugorji/go v1.1.1
-github.com/ugorji/go/codec
+# go.etcd.io/etcd v3.3.13+incompatible
+go.etcd.io/etcd/client
+go.etcd.io/etcd/clientv3
 # golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190311183353-d8887717615a
