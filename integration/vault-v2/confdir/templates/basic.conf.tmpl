@@ -1,0 +1,6 @@
+hostname: {{ getenv "HOSTNAME" }}
+[database]
+host={{ getv "/kv-v2/database/host" }}
+password={{ getv "/kv-v2/database/password" }}
+port={{ getv "/kv-v2/database/port" }}
+username={{ getv "/kv-v2/database/username" }}
