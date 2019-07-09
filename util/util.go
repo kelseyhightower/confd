@@ -39,6 +39,12 @@ func AppendPrefix(prefix string, keys []string) []string {
 	return s
 }
 
+func ArrayShift(array *[]string, position int, value string) {
+	*array = append(*array, "")
+	copy((*array)[position+1:], (*array)[position:])
+	(*array)[position] = value
+}
+
 // isFileExist reports whether path exits.
 func IsFileExist(fpath string) bool {
 	if _, err := os.Stat(fpath); os.IsNotExist(err) {
