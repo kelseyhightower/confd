@@ -51,6 +51,7 @@ func newFuncMap() map[string]interface{} {
 	m["mul"] = func(a, b int) int { return a * b }
 	m["seq"] = Seq
 	m["atoi"] = strconv.Atoi
+	m["hostname"] = GetHostname
 	return m
 }
 
@@ -138,6 +139,11 @@ func Getenv(key string, v ...string) string {
 		return defaultValue
 	}
 	return value
+}
+
+func GetHostname() (string, error) {
+	value, error := os.Hostname()
+	return value, error
 }
 
 // CreateMap creates a key-value map of string -> interface{}
