@@ -3,5 +3,5 @@ mode = "0644"
 src = "iteration.conf.tmpl"
 dest = "/tmp/confd-iteration-test.conf"
 keys = [
-  "kv-v2/upstream",
+  "kv-v2/data/upstream",
 ]
