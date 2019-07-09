@@ -3,5 +3,5 @@ mode = "0644"
 src = "basic.conf.tmpl"
 dest = "/tmp/confd-manykeys-test.conf"
 keys = [
-  "kv-v2/database",
+  "kv-v2/data/database",
 ]

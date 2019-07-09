@@ -9,10 +9,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
-	"strings"
 
 	"github.com/abtreece/confd/log"
-	util "github.com/abtreece/confd/util"
 	vaultapi "github.com/hashicorp/vault/api"
 )
 
@@ -181,14 +179,8 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 	vars := make(map[string]string)
 	for key := range branches {
-
-		arr := strings.Split(key, "/")
-		util.ArrayShift(&arr, 2, "data")
-		path := strings.Join(arr, "/")
-
 		log.Debug("getting %s from vault", key)
-		resp, err := c.client.Logical().Read(path)
-		log.Debug("this is the response data %s", resp.Data)
+		resp, err := c.client.Logical().Read(key)
 
 		if err != nil {
 			log.Debug("there was an error extracting %s", key)
@@ -198,10 +190,17 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			continue
 		}
 
-		// if the key has only one string value
-		// treat it as a string and not a map of values
-		if val, ok := isKV(resp.Data); ok {
-			vars[path] = val
+		// check for KV V2 secrets
+		if m, ok := resp.Data["metadata"].(map[string]interface{}); ok {
+			kvData, dataOK := resp.Data["data"].(map[string]interface{})
+			_, versionJSONNumberOK := m["version"].(json.Number)
+			if versionJSONNumberOK && dataOK {
+				js, _ := json.Marshal(kvData)
+				vars[key] = string(js)
+				flatten(key, kvData, vars)
+			}
+		} else if val, ok := isKV(resp.Data); ok {
+			vars[key] = val
 		} else {
 			// save the json encoded response
 			// and flatten it to allow usage of gets & getvs

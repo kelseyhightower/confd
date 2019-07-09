@@ -1,2 +1,2 @@
-{{ if exists "/kv-v2/exists" }}value: {{ getv "/kv-v2/exists/key" }}{{ end }}
-{{- if exists "/kv-v2/doesnotexist" }}This line will not be printed value: {{ getv "/kv-v2/exists/key" }}{{ end }}
+{{ if exists "/kv-v2/data/exists" }}value: {{ getv "/kv-v2/data/exists/key" }}{{ end }}
+{{- if exists "/kv-v2/data/doesnotexist" }}This line will not be printed value: {{ getv "/kv-v2/data/exists/key" }}{{ end }}

@@ -1,5 +1,5 @@
 upstream app {
-{{- range gets "/kv-v2/nested/*" }}
+{{- range gets "/kv-v2/data/nested/*" }}
   {{- range gets .Key }}
     server {{ .Value }};
   {{- end }}
