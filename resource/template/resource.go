@@ -41,25 +41,26 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
-	CheckCmd      string `toml:"check_cmd"`
-	Dest          string
-	FileMode      os.FileMode
-	Gid           int
-	Keys          []string
-	Mode          string
-	Prefix        string
-	ReloadCmd     string `toml:"reload_cmd"`
-	Src           string
-	StageFile     *os.File
-	Uid           int
-	funcMap       map[string]interface{}
-	lastIndex     uint64
-	keepStageFile bool
-	noop          bool
-	store         memkv.Store
-	storeClient   backends.StoreClient
-	syncOnly      bool
-	PGPPrivateKey []byte
+	CheckCmd         string `toml:"check_cmd"`
+	Dest             string
+	FileMode         os.FileMode
+	Gid              int
+	Keys             []string
+	Mode             string
+	Prefix           string
+	ReloadCmd        string `toml:"reload_cmd"`
+	Src              string
+	StageFile        *os.File
+	Uid              int
+	funcMap          map[string]interface{}
+	lastIndex        uint64
+	keepStageFile    bool
+	noop             bool
+	store            memkv.Store
+	storeClient      backends.StoreClient
+	syncOnly         bool
+	PGPPrivateKey    []byte
+	AutoDiscoverKeys bool
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -175,7 +176,16 @@ func addCryptFuncs(tr *TemplateResource) {
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
+
+	if t.AutoDiscoverKeys {
+		log.Debug("AutoDiscoverKeys is set to True, retrieving keys that are defined in the tmpl file")
+		t.discoverKeys()
+	} else {
+		log.Debug("AutoDiscoverKeys is set to False, retrieving keys that are defined in the toml file")
+	}
+
 	log.Debug("Key prefix set to " + t.Prefix)
+	log.Debug("Keys are: %v", t.Keys)
 
 	result, err := t.storeClient.GetValues(util.AppendPrefix(t.Prefix, t.Keys))
 	if err != nil {
@@ -188,6 +198,24 @@ func (t *TemplateResource) setVars() error {
 	for k, v := range result {
 		t.store.Set(path.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
+	return nil
+}
+
+// auto discovers keys that are used in the template
+func (t *TemplateResource) discoverKeys() error {
+	log.Debug("Retrieving keys from template file")
+
+	k := NewKeysCache()
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(k.FuncMap).ParseFiles(t.Src)
+	if err != nil {
+		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
+	}
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, nil)
+	if err != nil {
+		return err
+	}
+	t.Keys = k.Keys
 	return nil
 }
 
