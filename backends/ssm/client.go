@@ -53,8 +53,6 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		return vars, err
 	}
 
-	log.Debug("query-mode param is set to " + c.queryMode)
-
 	if c.queryMode == "byname" {
 		log.Debug("Retrieving keys by name")
 
