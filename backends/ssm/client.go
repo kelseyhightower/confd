@@ -45,49 +45,56 @@ func New(queryMode string) (*Client, error) {
 
 // GetValues retrieves the values for the given keys from AWS SSM Parameter Store
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
-	vars := make(map[string]string)
-	var err error
-	var resp map[string]string
-
 	if len(keys) <= 0 {
-		return vars, err
+		vars := make(map[string]string)
+		return vars, nil
 	}
 
 	if c.queryMode == "byname" {
 		log.Debug("Retrieving keys by name")
+		return c.GetValuesByExactNames(keys)
+	}
 
-		resp, err = c.getParameters(keys)
+	log.Debug("Retrieving keys by path")
+	return c.GetValuesByPathPrefix(keys)
+}
+
+func (c *Client) GetValuesByExactNames(keys []string) (map[string]string, error) {
+	vars := make(map[string]string)
+	resp, err := c.getParameters(keys)
+
+	if err != nil {
+		return vars, err
+	}
+	for k, v := range resp {
+		vars[k] = v
+	}
+	return vars, nil
+}
+
+func (c *Client) GetValuesByPathPrefix(keys []string) (map[string]string, error) {
+	vars := make(map[string]string)
+
+	for _, key := range keys {
+		log.Debug("Processing key=%s", key)
+		var resp map[string]string
+		resp, err := c.getParametersWithPrefix(key)
 
 		if err != nil {
 			return vars, err
 		}
-
+		if len(resp) == 0 {
+			resp, err = c.getParameter(key)
+			if err != nil && err.(awserr.Error).Code() != ssm.ErrCodeParameterNotFound {
+				return vars, err
+			}
+		}
 		for k, v := range resp {
 			vars[k] = v
 		}
-	} else {
-		log.Debug("Retrieving keys by path")
-
-		for _, key := range keys {
-			log.Debug("Processing key=%s", key)
-			var resp map[string]string
-			resp, err = c.getParametersWithPrefix(key)
-			if err != nil {
-				return vars, err
-			}
-			if len(resp) == 0 {
-				resp, err = c.getParameter(key)
-				if err != nil && err.(awserr.Error).Code() != ssm.ErrCodeParameterNotFound {
-					return vars, err
-				}
-			}
-			for k, v := range resp {
-				vars[k] = v
-			}
-		}
 	}
 
-	return vars, err
+	return vars, nil
 }
 
 func (c *Client) getParametersWithPrefix(prefix string) (map[string]string, error) {
