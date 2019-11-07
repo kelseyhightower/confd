@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -205,18 +206,22 @@ func (t *TemplateResource) setVars() error {
 func (t *TemplateResource) discoverKeys() error {
 	log.Debug("Retrieving keys from template file")
 
+	var buf bytes.Buffer
 	k := NewKeysCache()
-	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(k.FuncMap).ParseFiles(t.Src)
+	t.compileTemplate(k.FuncMap, &buf)
+
+	t.Keys = k.Keys
+	return nil
+}
+
+func (t *TemplateResource) compileTemplate(funcMap map[string]interface{}, wr io.Writer) error {
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(funcMap).ParseFiles(t.Src)
+
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}
-	var buf bytes.Buffer
-	err = tmpl.Execute(&buf, nil)
-	if err != nil {
-		return err
-	}
-	t.Keys = k.Keys
-	return nil
+
+	return tmpl.Execute(wr, nil)
 }
 
 // createStageFile stages the src configuration file by processing the src
@@ -232,18 +237,16 @@ func (t *TemplateResource) createStageFile() error {
 
 	log.Debug("Compiling source template " + t.Src)
 
-	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
-	if err != nil {
-		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
-	}
-
 	// create TempFile in Dest directory to avoid cross-filesystem issues
 	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
+
 	if err != nil {
 		return err
 	}
 
-	if err = tmpl.Execute(temp, nil); err != nil {
+	err = t.compileTemplate(t.funcMap, temp)
+
+	if err != nil {
 		temp.Close()
 		os.Remove(temp.Name())
 		return err
