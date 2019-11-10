@@ -61,14 +61,27 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 func (c *Client) GetValuesByExactNames(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
-	resp, err := c.getParameters(keys)
+	chunkSize := 10
 
-	if err != nil {
-		return vars, err
+	for i := 0; i < len(keys); i += chunkSize {
+		end := i + chunkSize
+
+		if end > len(keys) {
+			end = len(keys)
+		}
+		batch := keys[i:end]
+
+		log.Debug("Retrieving keys %s", batch)
+		resp, err := c.getParameters(batch)
+
+		if err != nil {
+			return vars, err
+		}
+		for k, v := range resp {
+			vars[k] = v
+		}
 	}
-	for k, v := range resp {
-		vars[k] = v
-	}
+
 	return vars, nil
 }
 
