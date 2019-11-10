@@ -76,6 +76,8 @@ Usage of confd:
       print version and exit
   -watch
       enable watch support
+  -query-mode
+      SSM retrieval strategy: by path prefix (default), or by name (-query-mode=byname) (only used with -backend=ssm)
 ```
 
 > The -scheme flag is only used to set the URL scheme for nodes retrieved from DNS SRV records.
