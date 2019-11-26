@@ -21,9 +21,18 @@ type Client struct {
 // It returns an error if the connection cannot be made or the table does not exist.
 func NewDynamoDBClient(table string) (*Client, error) {
 	var c *aws.Config
+
+	var endpoint = ""
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
-		endpoint := "http://localhost:8000"
+		endpoint = "http://localhost:8000"
+	} else if os.Getenv("DYNAMODB_ENDPOINT") != "" {
+		log.Debug("DYNAMODB_ENDPOINT is set")
+		endpoint = os.Getenv("DYNAMODB_ENDPOINT")
+	}
+
+	if endpoint != "" {
+		log.Debug("dynamodb endpoint: %s", endpoint)
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}
