@@ -4,7 +4,7 @@ package filesystem
 type Client struct{}
 
 // NewFilesystemClient returns a new client
-func NewFilesystemClient() (*Client, error) {
+func NewFileSystemClient() (*Client, error) {
 	return &Client{}, nil
 }
 
