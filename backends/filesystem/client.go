@@ -3,6 +3,11 @@ package filesystem
 // Client provides a shell for the filesystem client
 type Client struct{}
 
+// NewFilesystemClient returns a new client
+func NewFilesystemClient() (*Client, error) {
+	return &Client{}, nil
+}
+
 // GetValues queries the filesystem for keys
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
