@@ -66,7 +66,7 @@ func New(config Config) (StoreClient, error) {
 	case "file":
 		return file.NewFileClient(config.YAMLFile, config.Filter)
 	case "filesystem":
-		return file.NewFileSystemClient()
+		return file.NewFileSystemClient(config.MaxFileSize)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":    config.AppID,

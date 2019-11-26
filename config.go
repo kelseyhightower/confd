@@ -72,6 +72,7 @@ func init() {
 	flag.StringVar(&config.Separator, "separator", "", "the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)")
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
+	flag.Int64Var(&config.MaxFileSize, "max-file-size", 16384, "the maximum file size to read (only used with -backend=filesystem)")
 	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
 }
 
