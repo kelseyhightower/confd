@@ -38,6 +38,8 @@ Usage of confd:
       keep staged files
   -log-level string
       level which confd should log messages
+  -max-file-size integer
+      maximum file size to read (only used with -backend=filesystem) (default 16384)
   -node value
       list of backend nodes
   -noop

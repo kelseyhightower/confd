@@ -36,6 +36,7 @@ Optional:
 * `file` (array of strings) - The YAML file to watch for changes (only used with -backend=file).
 * `filter` (string) - Files filter (only used with -backend=file) (default "*").
 * `path` (string) - Vault mount path of the auth method (only used with -backend=vault).
+* `max-file-size` (int64) - Maximum file size to read (only used with -backend=filesystem) (default 16384).
 
 Example:
 
