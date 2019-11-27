@@ -64,7 +64,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 
 			// Add to vars
 			vars[key] = strings.TrimSpace(string(b))
-		
+
 		}
 	}
 
