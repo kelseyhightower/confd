@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
+	"strings"
+
+	util "github.com/kelseyhightower/confd/util"
 )
 
 // Client provides a shell for the filesystem client
@@ -21,30 +23,26 @@ func NewFileSystemClient(max int64) (*Client, error) {
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	vars := make(map[string]string)
 	for _, key := range keys {
-		stat, err := os.Stat(key)
+		fpath := toPath(key)
+		stat, err := os.Stat(fpath)
 		if err != nil {
 			return nil, err
 		}
 
 		if stat.IsDir() {
-			fileList := make([]string, 0)
-
 			// Walk subdirs
-			err := filepath.Walk(key, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				if !info.IsDir() {
-					fileList = append(fileList, info.Name())
-				}
-				return nil
-			})
+			flist, err := util.RecursiveFilesLookup(fpath, "*")
 			if err != nil {
 				return nil, err
 			}
 
-			// Recursively get values for sub-keys (files)
-			recurseVars, err := c.GetValues(fileList)
+			klist := make([]string, 0)
+			for _, v := range flist {
+				klist = append(klist, toKey(v))
+			}
+
+			// Recursively get values for sub-keys (fles)
+			recurseVars, err := c.GetValues(klist)
 			if err != nil {
 				return nil, err
 			}
@@ -59,15 +57,17 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			}
 
 			// Read contents of file
-			b, err := ioutil.ReadFile(key)
+			b, err := ioutil.ReadFile(fpath)
 			if err != nil {
 				return nil, err
 			}
 
 			// Add to vars
-			vars[key] = string(b)
+			vars[key] = strings.TrimSpace(string(b))
+		
 		}
 	}
+
 	return vars, nil
 }
 

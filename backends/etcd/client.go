@@ -11,7 +11,7 @@ import (
 
 	"github.com/coreos/etcd/client"
 	"golang.org/x/net/context"
-        "github.com/kelseyhightower/confd/log"
+    "github.com/kelseyhightower/confd/log"
 )
 
 // Client is a wrapper around the etcd client
