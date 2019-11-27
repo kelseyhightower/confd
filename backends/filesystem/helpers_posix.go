@@ -3,9 +3,7 @@
 package filesystem
 
 import (
-	"os"
 	"path/filepath"
-	"strings"
 )
 
 func toPath(key string) string {
