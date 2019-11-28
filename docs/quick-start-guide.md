@@ -11,6 +11,7 @@ confd supports the following backends:
 * vault
 * environment variables
 * file
+* filesystem
 * redis
 * zookeeper
 * dynamodb
@@ -56,6 +57,13 @@ myapp:
   database:
     url: db.example.com
     user: rob
+```
+
+#### filesystem
+
+```
+echo "db.example.com" > /myapp/database/url
+echo "rob" > /myapp/database/user
 ```
 
 #### redis
@@ -180,6 +188,12 @@ confd -onetime -backend env
 
 ```
 confd -onetime -backend file -file myapp.yaml
+```
+
+#### filesystem
+
+```
+confd -onetime -backend filesystem
 ```
 
 #### redis

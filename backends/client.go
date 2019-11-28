@@ -10,6 +10,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/etcd"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
+	"github.com/kelseyhightower/confd/backends/filesystem"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/ssm"
@@ -64,6 +65,8 @@ func New(config Config) (StoreClient, error) {
 		return env.NewEnvClient()
 	case "file":
 		return file.NewFileClient(config.YAMLFile, config.Filter)
+	case "filesystem":
+		return filesystem.NewFileSystemClient(config.MaxFileSize)
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":    config.AppID,
