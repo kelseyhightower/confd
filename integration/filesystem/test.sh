@@ -2,26 +2,26 @@
 
 export HOSTNAME="localhost"
 
-mkdir -p /database /upstream /nested/{east,west} /prefix/database /prefix/nested/{east,west} /prefix/upstream
+sudo mkdir -p /database /upstream /nested/{east,west} /prefix/database /prefix/nested/{east,west} /prefix/upstream
 
-echo "foobar" > /key
-echo "127.0.0.1" > /database/host
-echo "p@sSw0rd" > /database/password
-echo "3306" > /database/port
-echo "confd" > /database/username
-echo "confd" > /database/username
-echo "10.0.1.10:8080" > /upstream/app1
-echo "10.0.1.11:8080" > /upstream/app2
-echo "10.0.1.10:8080" > /nested/east/app1
-echo "10.0.1.11:8080" > /nested/west/app2
-echo "127.0.0.1" > /prefix/database/host
-echo "p@sSw0rd" > /prefix/database/password
-echo "3306" > /prefix/database/port
-echo "confd" > /prefix/database/username
-echo "10.0.1.10:8080" > /prefix/upstream/app1
-echo "10.0.1.11:8080" > /prefix/upstream/app2
-echo "10.0.1.10:8080" > /prefix/nested/east/app1
-echo "10.0.1.11:8080" > /prefix/nested/west/app2
+echo "foobar" | sudo tee /key
+echo "127.0.0.1" | sudo tee /database/host
+echo "p@sSw0rd" | sudo tee /database/password
+echo "3306" | sudo tee /database/port
+echo "confd" | sudo tee /database/username
+echo "confd" | sudo tee /database/username
+echo "10.0.1.10:8080" | sudo tee /upstream/app1
+echo "10.0.1.11:8080" | sudo tee /upstream/app2
+echo "10.0.1.10:8080" | sudo tee /nested/east/app1
+echo "10.0.1.11:8080" | sudo tee /nested/west/app2
+echo "127.0.0.1" | sudo tee /prefix/database/host
+echo "p@sSw0rd" | sudo tee /prefix/database/password
+echo "3306" | sudo tee /prefix/database/port
+echo "confd" | sudo tee /prefix/database/username
+echo "10.0.1.10:8080" | sudo tee /prefix/upstream/app1
+echo "10.0.1.11:8080" | sudo tee /prefix/upstream/app2
+echo "10.0.1.10:8080" | sudo tee /prefix/nested/east/app1
+echo "10.0.1.11:8080" | sudo tee /prefix/nested/west/app2
 
 # Run confd
-/mnt/c/tools/confd/bin/confd --onetime --log-level debug --confdir ./integration/confdir --backend filesystem --watch
+confd --onetime --log-level debug --confdir ./integration/confdir --backend filesystem --watch
