@@ -25,6 +25,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 		ConfigFile: "/etc/confd/confd.toml",
 		Interval:   600,
 	}
+	want.MaxFileSize = 16384
 	if err := initConfig(); err != nil {
 		t.Errorf(err.Error())
 	}
