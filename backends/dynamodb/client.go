@@ -26,9 +26,10 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
 		endpoint = "http://localhost:8000"
-	} else if os.Getenv("DYNAMODB_ENDPOINT") != "" {
-		log.Debug("DYNAMODB_ENDPOINT is set")
-		endpoint = os.Getenv("DYNAMODB_ENDPOINT")
+	}
+	if os.Getenv("DYNAMODB_LOCAL_ENDPOINT") != "" {
+		log.Debug("DYNAMODB_LOCAL_ENDPOINT is set")
+		endpoint = os.Getenv("DYNAMODB_LOCAL_ENDPOINT")
 	}
 
 	if endpoint != "" {
