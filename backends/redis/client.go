@@ -36,7 +36,7 @@ func tryConnect(machines []string, password string, timeout bool) (redis.Conn, i
 		var conn redis.Conn
 		var db int
 
-		idx := strings.Index(address, "/")
+		idx := strings.LastIndex(address, "/")
 		if idx != -1 {
 			// a database is provided
 			db, err = strconv.Atoi(address[idx+1:])
