@@ -33,6 +33,7 @@ type Config struct {
 	PrintVersion  bool
 	ConfigFile    string
 	OneTime       bool
+	GRou          bool
 }
 
 var config Config
@@ -44,7 +45,7 @@ func init() {
 	flag.StringVar(&config.ClientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&config.ClientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&config.ClientKey, "client-key", "", "the client key")
-        flag.BoolVar(&config.ClientInsecure, "client-insecure", false, "Allow connections to SSL sites without certs (only used with -backend=etcd)")
+	flag.BoolVar(&config.ClientInsecure, "client-insecure", false, "Allow connections to SSL sites without certs (only used with -backend=etcd)")
 	flag.StringVar(&config.ConfDir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&config.ConfigFile, "config-file", "/etc/confd/confd.toml", "the confd config file")
 	flag.Var(&config.YAMLFile, "file", "the YAML file to watch for changes (only used with -backend=file)")
@@ -73,6 +74,11 @@ func init() {
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
+
+	flag.StringVar(&config.Group, "group", "DEFAULT_GROUP", "the group in nacos (only used with nacos backends)")
+	flag.StringVar(&config.Namespace, "namespace", "", "the namespace in nacos (only used with nacos backends)")
+	flag.StringVar(&config.AccessKey, "accessKey", "", "the accessKey to authenticate in nacos (only used with nacos backends)")
+	flag.StringVar(&config.SecretKey, "secretKey", "", "the secretKey to authenticate in nacos (only used with nacos backends)")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
