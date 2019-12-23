@@ -85,7 +85,7 @@ func (client *Client) GetValues(keys []string) (map[string]string, error) {
 			md5Val := resp.Header.Get("Content-MD5")
 			newVal := &ConfigValue{k, md5Val, string(body)}
 			configCache[k] = newVal
-			log.Info("config value updated for %s %", k, newVal.content)
+			log.Info("config value updated for %s", k)
 			vars[key] = newVal.content
 		}
 	}
