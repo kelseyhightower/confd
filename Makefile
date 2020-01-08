@@ -1,4 +1,4 @@
-.PHONY: build install clean test integration dep release
+.PHONY: build install clean test integration modverify release
 VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' version.go`
 GIT_SHA=`git rev-parse --short HEAD || echo`
 
@@ -27,8 +27,8 @@ integration:
 		rm /tmp/confd-*; \
 	done
 
-mod:
-	@go mod tidy
+modverify:
+	@go mod verify
 
 release:
 	@docker build -q -t confd_builder -f Dockerfile.build.alpine .
