@@ -1,3 +1,9 @@
+### v0.17.1
+
+374cfa8 Add hostname via os.Hostname to template funcs
+0d858d1 Support symlinks in recursivelookup
+e7a0ab9 Fix owner / group support
+
 ### v0.17.0
 
 80e6b82 Update go.sum for latest versions

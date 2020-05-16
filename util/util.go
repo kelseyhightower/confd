@@ -111,6 +111,11 @@ func RecursiveDirsLookup(root string, pattern string) ([]string, error) {
 
 func recursiveLookup(root string, pattern string, dirsLookup bool) ([]string, error) {
 	var result []string
+
+	root, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return nil, err
+	}
 	isDir, err := IsDirectory(root)
 	if err != nil {
 		return nil, err
@@ -122,6 +127,10 @@ func recursiveLookup(root string, pattern string, dirsLookup bool) ([]string, er
 				return err
 			}
 			if match {
+				root, err := filepath.EvalSymlinks(root)
+				if err != nil {
+					return err
+				}
 				isDir, err := IsDirectory(root)
 				if err != nil {
 					return err

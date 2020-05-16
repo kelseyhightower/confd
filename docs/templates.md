@@ -334,6 +334,14 @@ Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
 {{seq 1 (atoi (getv "/count"))}}
 ```
 
+### hostname
+
+Wrapper for [os.Hostname](https://golang.org/pkg/os/#Hostname). Retrieves the value of the host name reported by the kernel.
+
+```
+hostname: {{ hostname }}
+```
+
 ## Example Usage
 
 ```Bash
