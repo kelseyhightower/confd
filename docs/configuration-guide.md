@@ -21,7 +21,7 @@ Optional:
 * `srv_domain` (string) - The name of the resource record.
 * `srv_record` (string) - The SRV record to search for backends nodes.
 * `sync-only` (bool) - sync without check_cmd and reload_cmd.
-* `watch` (bool) - Enable watch support.
+* `watch` (bool) - Actively watch the backend for changes vs. checking every INTERVAL seconds (dynamodb and ssm are not supported).
 * `auth_token` (string) - Auth bearer token to use.
 * `auth_type` (string) - Vault auth backend type to use.
 * `basic_auth` (bool) - Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd).

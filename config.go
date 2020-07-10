@@ -72,7 +72,7 @@ func init() {
 	flag.StringVar(&config.Separator, "separator", "", "the separator to replace '/' with when looking up keys in the backend, prefixed '/' will also be removed (only used with -backend=redis)")
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
-	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
+	flag.BoolVar(&config.Watch, "watch", false, "actively watch the backend for changes vs. checking every INTERVAL seconds (dynamodb and ssm are not supported)")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
