@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -8,11 +9,12 @@ import (
 	"os"
 
 	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/go-cleanhttp"
-	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/go-rootcerts"
+	cleanhttp "github.com/hashicorp/go-cleanhttp"
+	multierror "github.com/hashicorp/go-multierror"
+	rootcerts "github.com/hashicorp/go-rootcerts"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/vault/sdk/helper/hclutil"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -58,6 +60,7 @@ type SSHVerifyResponse struct {
 type SSHHelperConfig struct {
 	VaultAddr       string `hcl:"vault_addr"`
 	SSHMountPoint   string `hcl:"ssh_mount_point"`
+	Namespace       string `hcl:"namespace"`
 	CACert          string `hcl:"ca_cert"`
 	CAPath          string `hcl:"ca_path"`
 	AllowedCidrList string `hcl:"allowed_cidr_list"`
@@ -121,6 +124,11 @@ func (c *SSHHelperConfig) NewClient() (*Client, error) {
 		return nil, err
 	}
 
+	// Configure namespace
+	if c.Namespace != "" {
+		client.SetNamespace(c.Namespace)
+	}
+
 	return client, nil
 }
 
@@ -153,6 +161,7 @@ func ParseSSHHelperConfig(contents string) (*SSHHelperConfig, error) {
 	valid := []string{
 		"vault_addr",
 		"ssh_mount_point",
+		"namespace",
 		"ca_cert",
 		"ca_path",
 		"allowed_cidr_list",
@@ -160,7 +169,7 @@ func ParseSSHHelperConfig(contents string) (*SSHHelperConfig, error) {
 		"tls_skip_verify",
 		"tls_server_name",
 	}
-	if err := checkHCLKeys(list, valid); err != nil {
+	if err := hclutil.CheckHCLKeys(list, valid); err != nil {
 		return nil, multierror.Prefix(err, "ssh_helper:")
 	}
 
@@ -206,7 +215,9 @@ func (c *SSHHelper) Verify(otp string) (*SSHVerifyResponse, error) {
 		return nil, err
 	}
 
-	resp, err := c.c.RawRequest(r)
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+	resp, err := c.c.RawRequestWithContext(ctx, r)
 	if err != nil {
 		return nil, err
 	}
@@ -227,31 +238,4 @@ func (c *SSHHelper) Verify(otp string) (*SSHVerifyResponse, error) {
 		return nil, err
 	}
 	return &verifyResp, nil
-}
-
-func checkHCLKeys(node ast.Node, valid []string) error {
-	var list *ast.ObjectList
-	switch n := node.(type) {
-	case *ast.ObjectList:
-		list = n
-	case *ast.ObjectType:
-		list = n.List
-	default:
-		return fmt.Errorf("cannot check HCL keys of type %T", n)
-	}
-
-	validMap := make(map[string]struct{}, len(valid))
-	for _, v := range valid {
-		validMap[v] = struct{}{}
-	}
-
-	var result error
-	for _, item := range list.Items {
-		key := item.Keys[0].Token.Value().(string)
-		if _, ok := validMap[key]; !ok {
-			result = multierror.Append(result, fmt.Errorf("invalid key %q on line %d", key, item.Assign.Line))
-		}
-	}
-
-	return result
 }
