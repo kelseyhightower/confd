@@ -12,7 +12,7 @@ func TestInitConfigDefaultConfig(t *testing.T) {
 	want := Config{
 		BackendsConfig: BackendsConfig{
 			Backend:      "etcd",
-			BackendNodes: []string{"http://127.0.0.1:4001"},
+			BackendNodes: []string{"http://127.0.0.1:2379"},
 			Scheme:       "http",
 			Filter:       "*",
 		},
