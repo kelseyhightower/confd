@@ -1,6 +1,8 @@
 # confd
 
 [![Build Status](https://travis-ci.org/abtreece/confd.svg?branch=master)](https://travis-ci.org/abtreece/confd)
+[![GitHub Super-Linter](https://github.com/abtreece/confd/workflows/Super-Linter/badge.svg)](https://github.com/marketplace/actions/super-linter)
+
 
 `confd` is a lightweight configuration management tool focused on:
 

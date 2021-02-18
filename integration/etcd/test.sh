@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 export HOSTNAME="localhost"
 export ETCDCTL_API="3"
