@@ -2,6 +2,7 @@
 
 [![Integration Tests](https://github.com/abtreece/confd/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/abtreece/confd/actions/workflows/integration-tests.yml)
 [![Super-Linter](https://github.com/abtreece/confd/workflows/Super-Linter/badge.svg)](https://github.com/abtreece/confd/actions/workflows/superlinter.yml)
+[![CodeQL](https://github.com/abtreece/confd/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/abtreece/confd/actions/workflows/codeql-analysis.yml)
 
 
 `confd` is a lightweight configuration management tool focused on:
