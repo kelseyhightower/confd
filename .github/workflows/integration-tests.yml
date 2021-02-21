@@ -66,6 +66,11 @@ jobs:
           integration/dynamodb/test.sh
           integration/expect/check.sh
 
+      - name: Test Env
+        run: |
+          integration/env/test.sh
+          integration/expect/check.sh
+
       - name: Install etcd
         run: |
           wget -q https://storage.googleapis.com/etcd/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
@@ -78,6 +83,11 @@ jobs:
       - name: Test etcd
         run: |
           integration/etcd/test.sh
+          integration/expect/check.sh
+
+      - name: Test File
+        run: |
+          integration/file/test.sh
           integration/expect/check.sh
 
       - name: Install Rancher
