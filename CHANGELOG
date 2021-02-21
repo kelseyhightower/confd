@@ -1,3 +1,27 @@
+### v0.18.0
+
+dbd6fba - Add CodeQL status badge to README (abtreece)
+121302c - Add GitHubs CodeQL workflow (Britt Treece)
+30d805b - Add support for Raspberry PI (arm32) (Andreas Treichel)
+25fe810 - Update badges for GitHub Actions (abtreece)
+d8de2d5 - Update build container to 1.15.8 (abtreece)
+aeedaf2 - Setup GitHub Actions (abtreece)
+bae400b - Remove unsupported etcdv2 and update modules (abtreece)
+096dc50 - Update travis link in README (Britt Treece)
+db4a9e4 - Update version for next release (Britt Treece)
+
+### v0.17.2
+
+b13e4ce - Update versions of Consul and Vault for integrations (Britt Treece)
+999f5ad - Merge branch 'add-vault-kv-v2-functionality' of https://github.com/abtreece/confd into add-vault-kv-v2-functionality (Britt Treece)
+1d3e336 - continued work towards vault kv v2 (Britt Treece)
+c1a9e74 - first stab at adding data path to v2 (Britt Treece)
+7208c4e - Add Vault KV V2 integration tests (Britt Treece)
+772974f - Bump version to v0.17.2-dev (Britt Treece)
+bd7afc2 - continued work towards vault kv v2 (Britt Treece)
+acec797 - first stab at adding data path to v2 (Britt Treece)
+047d016 - Add Vault KV V2 integration tests (Britt Treece)
+
 ### v0.17.1
 
 374cfa8 Add hostname via os.Hostname to template funcs
