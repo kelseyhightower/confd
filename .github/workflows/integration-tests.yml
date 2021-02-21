@@ -43,7 +43,9 @@ jobs:
           consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -bind 127.0.0.1 &
 
       - name: Test Consul
-        run: integration/consul/test.sh
+        run: |
+          integration/consul/test.sh
+          integration/expect/check.sh
 
       - name: Setup Java
         uses: actions/setup-java@v1
@@ -60,7 +62,9 @@ jobs:
           java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
   
       - name: Test DynamoDB
-        run: integration/dynamodb/test.sh
+        run: |
+          integration/dynamodb/test.sh
+          integration/expect/check.sh
 
       - name: Install etcd
         run: |
@@ -72,7 +76,9 @@ jobs:
           etcd &
 
       - name: Test etcd
-        run: integration/etcd/test.sh
+        run: |
+          integration/etcd/test.sh
+          integration/expect/check.sh
 
       - name: Install Rancher
         run: |
@@ -82,7 +88,9 @@ jobs:
           sudo mv ./rancher-metadata/bin/rancher-metadata /usr/local/bin/
 
       - name: Test Rancher
-        run: integration/rancher/test.sh
+        run: |
+          integration/rancher/test.sh
+          integration/expect/check.sh
 
       - name: Install Redis
         run: |
@@ -90,7 +98,9 @@ jobs:
           redis &
 
       - name: Test Redis
-        run: integration/redis/test.sh
+        run: |
+          integration/redis/test.sh
+          integration/expect/check.sh
 
       - name: Install Vault
         run: |
@@ -99,12 +109,16 @@ jobs:
           vault server -dev &
 
       - name: Test Vault V1
-        run: integration/vault-v1/test.sh
+        run: |
+          integration/vault-v1/test.sh
+          integration/expect/check.sh
         env:
           VAULT_ADDR: http://127.0.0.1:8200
 
       - name: Test Vault V2
-        run: integration/vault-v2/test.sh
+        run: |
+          integration/vault-v2/test.sh
+          integration/expect/check.sh
         env:
           VAULT_ADDR: http://127.0.0.1:8200
 
@@ -116,4 +130,6 @@ jobs:
           zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
 
       - name: Test Zookeeper
-        run: integration/zookeeper/test.sh
+        run: |
+          integration/zookeeper/test.sh
+          integration/expect/check.sh
