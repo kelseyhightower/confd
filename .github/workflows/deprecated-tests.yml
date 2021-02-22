@@ -1,0 +1,53 @@
+name: Deprecated Tests
+on: 
+  push:
+  pull_request:
+
+env:
+  GO111MODULE: on
+  RANCHER_VERSION: 0.6.0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.4
+
+      - name: Build and Install
+        run: |
+          make build
+          sudo make install
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get -q update
+          sudo apt-get install -y curl wget unzip python3-pip
+
+      - name: Test Env
+        run: |
+          integration/env/test.sh
+          integration/expect/check.sh
+
+      - name: Test File
+        run: |
+          integration/file/test_yaml.sh
+          integration/expect/check.sh
+          integration/file/test_json.sh
+          integration/expect/check.sh
+
+      - name: Install Rancher
+        run: |
+          wget -q https://github.com/rancher/rancher-metadata/releases/download/v${RANCHER_VERSION}/rancher-metadata.tar.gz
+          mkdir -p ./rancher-metadata
+          tar xzf rancher-metadata.tar.gz --strip-components=1 -C ./rancher-metadata
+          sudo mv ./rancher-metadata/bin/rancher-metadata /usr/local/bin/
+
+      - name: Test Rancher
+        run: |
+          integration/rancher/test.sh
+          integration/expect/check.sh

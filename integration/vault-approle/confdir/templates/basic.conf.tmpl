@@ -4,3 +4,5 @@ host={{ getv "/kv-v1/database/host" }}
 password={{ getv "/kv-v1/database/password" }}
 port={{ getv "/kv-v1/database/port" }}
 username={{ getv "/kv-v1/database/username" }}
+
+AccessAddress: {{ lookupIfaceIPV4 "lo" }}

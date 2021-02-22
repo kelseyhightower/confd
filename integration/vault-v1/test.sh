@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export HOSTNAME="localhost"
-export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
 
 vault secrets enable -version 1 -path kv-v1 kv
 
@@ -16,5 +15,8 @@ confd --onetime --log-level debug \
       --confdir ./integration/vault-v1/confdir \
       --backend vault \
       --auth-type token \
-      --auth-token $ROOT_TOKEN \
-      --node http://127.0.0.1:8200
+      --auth-token $VAULT_TOKEN \
+      --node $VAULT_ADDR
+
+# Disable kv-v1 secrets for next tests
+vault secrets disable kv-v1

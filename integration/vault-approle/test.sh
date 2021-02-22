@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export HOSTNAME="localhost"
-export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
 
 vault secrets enable -version 1 -path kv-v1 kv
 
@@ -32,4 +31,4 @@ confd --onetime --log-level debug \
       --role-id $ROLE_ID \
       --secret-id $SECRET_ID \
       --path=test \
-      --node http://127.0.0.1:8200
+      --node $VAULT_ADDR

@@ -23,7 +23,7 @@ func NewDynamoDBClient(table string) (*Client, error) {
 	var c *aws.Config
 	if os.Getenv("DYNAMODB_LOCAL") != "" {
 		log.Debug("DYNAMODB_LOCAL is set")
-		endpoint := "http://localhost:8000"
+		endpoint := os.Getenv("DYNAMODB_ENDPOINT_URL")
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}

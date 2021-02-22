@@ -45,7 +45,7 @@ func New() (*Client, error) {
 	var c *aws.Config
 	if os.Getenv("SSM_LOCAL") != "" {
 		log.Debug("SSM_LOCAL is set")
-		endpoint := "http://localhost:8001"
+		endpoint := os.Getenv("SSM_ENDPOINT_URL")
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}

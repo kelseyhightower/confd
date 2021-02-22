@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"time"
 
@@ -58,7 +59,7 @@ func main() {
 	check(err)
 	err = json.Unmarshal(dat, &pj)
 	check(err)
-	c, _, err := zk.Connect([]string{"127.0.0.1"}, time.Second) //*10)
+	c, _, err := zk.Connect([]string{os.Getenv("ZOOKEEPER_NODE")}, time.Second) //*10)
 	check(err)
 	parsejson("", pj, c)
 }

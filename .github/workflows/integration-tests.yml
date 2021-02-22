@@ -1,25 +1,72 @@
 name: Integration Tests
-
 on: 
   push:
   pull_request:
   schedule:
     - cron: '0 0 * * 0' # weekly
 
-env:
-  GO111MODULE: on
-  CONSUL_VERSION: 1.11.2
-  ETCD_VERSION: 3.5.0
-  VAULT_VERSION: 1.9.3
-  DYNAMODB_VERSION: latest
-  ZOOKEEPER_VERSION: 3.4.14
-  RANCHER_VERSION: 0.6.0
-
 jobs:
-  test:
+  # Label of the container job
+  container-job:
+    # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
+    # Docker Hub image that `container-job` executes in
+    container: ubuntu:latest
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      consul:
+        image: consul
+        ports:
+          - 8500:8500
+      etcd:
+        image: quay.io/coreos/etcd
+        ports:
+          - 2379:2379
+        env:
+          ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+          ETCD_ADVERTISE_CLIENT_URLS: http://0.0.0.0:2379
+      localstack:
+        image: localstack/localstack
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: dynamodb,ssm
+      redis:
+          image: redis
+          # Set health checks to wait until redis has started
+          options: >-
+            --health-cmd "redis-cli ping"
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+      vault:
+        image: vault
+        ports:
+          - 8200:8200
+        env:
+          VAULT_DEV_ROOT_TOKEN_ID: "super-secret-token"
+      zookeeper:
+        image: zookeeper
+        ports:
+          - 2181:2181
+        env:
+          ZOO_STANDALONE_ENABLED: true
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          apt-get -q update
+          DEBIAN_FRONTEND="noninteractive" apt-get install -y git curl make redis-tools sudo awscli gnupg2 lsb-release etcd-client
+          echo "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main" >> /etc/apt/sources.list
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+          apt-get -q update
+          DEBIAN_FRONTEND="noninteractive" apt-get install -y vault
+
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v2
 
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -31,59 +78,9 @@ jobs:
           make build
           sudo make install
 
-      - name: Install Dependencies
-        run: |
-          sudo apt-get -q update
-          sudo apt-get install -y curl wget unzip python3-pip
-
-      - name: Install Consul
-        run: |
-          wget -q https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
-          sudo unzip -d /usr/local/bin consul_${CONSUL_VERSION}_linux_amd64.zip
-          consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -bind 127.0.0.1 &
-
-      - name: Test Consul
-        run: |
-          integration/consul/test.sh
-          integration/expect/check.sh
-
-      - name: Setup Java
-        uses: actions/setup-java@v2.5.0
-        with:
-          distribution: 'adopt'
-          java-version: '13' # The JDK version to make available on the path.
-          java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
-          architecture: x64 # (x64 or x86) - defaults to x64
-
-      - name: Install DynamoDB
-        run: |
-          sudo pip install awscli
-          mkdir /tmp/dynamodb
-          wget -q -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_${DYNAMODB_VERSION}.tar.gz | tar xz --directory /tmp/dynamodb
-          java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
-  
-      - name: Test DynamoDB
-        run: |
-          integration/dynamodb/test.sh
-          integration/expect/check.sh
-
       - name: Test Env
         run: |
           integration/env/test.sh
-          integration/expect/check.sh
-
-      - name: Install etcd
-        run: |
-          wget -q https://storage.googleapis.com/etcd/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
-          tar xzf etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
-          sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcd /usr/local/bin/
-          sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcdctl /usr/local/bin/
-          unset ETCD_VERSION
-          etcd &
-
-      - name: Test etcd
-        run: |
-          integration/etcd/test.sh
           integration/expect/check.sh
 
       - name: Test File
@@ -93,56 +90,68 @@ jobs:
           integration/file/test_json.sh
           integration/expect/check.sh
 
-      - name: Install Rancher
+      - name: Test Consul
         run: |
-          wget -q https://github.com/rancher/rancher-metadata/releases/download/v${RANCHER_VERSION}/rancher-metadata.tar.gz
-          mkdir -p ./rancher-metadata
-          tar xzf rancher-metadata.tar.gz --strip-components=1 -C ./rancher-metadata
-          sudo mv ./rancher-metadata/bin/rancher-metadata /usr/local/bin/
-
-      - name: Test Rancher
-        run: |
-          integration/rancher/test.sh
+          integration/consul/test.sh
           integration/expect/check.sh
+        env:
+          CONSUL_HOST: consul
+          CONSUL_PORT: 8500
 
-      - name: Install Redis
+      - name: Test etcd
         run: |
-          sudo apt-get install -y redis-server
-          redis &
+          integration/etcd/test.sh
+          integration/expect/check.sh
+        env:
+          ETCD_ENDPOINT: "http://etcd:2379"
+
+      - name: Test DynamoDB
+        run: |
+          integration/dynamodb/test.sh
+          integration/expect/check.sh
+        env:
+          AWS_ACCESS_KEY_ID: "test"
+          AWS_SECRET_ACCESS_KEY: "test"
+          AWS_REGION: "us-east-1"
+          AWS_DEFAULT_REGION: "us-east-1"
+          DYNAMODB_LOCAL: 1
+          DYNAMODB_ENDPOINT_URL: http://localstack:4566
 
       - name: Test Redis
         run: |
           integration/redis/test.sh
           integration/expect/check.sh
+        env:
+          REDIS_HOST: redis
+          REDIS_PORT: 6379
 
-      - name: Install Vault
+      - name: Test SSM Parameter Store
         run: |
-          wget -q https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
-          sudo unzip -d /usr/local/bin vault_${VAULT_VERSION}_linux_amd64.zip
-          vault server -dev &
+          integration/ssm/test.sh
+          integration/expect/check.sh
+        env:
+          AWS_ACCESS_KEY_ID: "test"
+          AWS_SECRET_ACCESS_KEY: "test"
+          AWS_REGION: "us-east-1"
+          AWS_DEFAULT_REGION: "us-east-1"
+          SSM_LOCAL: "1"
+          SSM_ENDPOINT_URL: "http://localstack:4566"
 
-      - name: Test Vault V1
+      - name: Test Vault
         run: |
           integration/vault-v1/test.sh
           integration/expect/check.sh
-        env:
-          VAULT_ADDR: http://127.0.0.1:8200
-
-      - name: Test Vault V2
-        run: |
           integration/vault-v2/test.sh
           integration/expect/check.sh
+          integration/vault-approle/test.sh
+          integration/expect/check.sh
         env:
-          VAULT_ADDR: http://127.0.0.1:8200
-
-      - name: Install Zookeeper
-        run: |
-          wget -q https://archive.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
-          tar xzf zookeeper-${ZOOKEEPER_VERSION}.tar.gz
-          mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-${ZOOKEEPER_VERSION}/conf/zoo.cfg
-          zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
+          VAULT_ADDR: http://vault:8200
+          VAULT_TOKEN: "super-secret-token"
 
       - name: Test Zookeeper
         run: |
           integration/zookeeper/test.sh
           integration/expect/check.sh
+        env:
+          ZOOKEEPER_NODE: zookeeper
