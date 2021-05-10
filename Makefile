@@ -31,11 +31,13 @@ mod:
 	@go mod tidy
 
 release:
-	@docker build -q -t confd_builder -f Dockerfile.build.alpine .
+	@docker build -q -t confd_builder -f Dockerfile .
 	@for platform in darwin linux windows; do \
 		if [ $$platform == windows ]; then extension=.exe; fi; \
-		docker run -it --rm -v ${PWD}:/app -e "GOOS=$$platform" -e "GOARCH=amd64" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-$$platform-amd64$$extension; \
+		docker run --rm -it -v ${PWD}:/app -e "GOOS=$$platform" -e "GOARCH=amd64" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-$$platform-amd64$$extension; \
+		docker run --rm -it -v ${PWD}:/tmp hairyhenderson/upx:3.96 -q /tmp/bin/confd-${VERSION}-$$platform-amd64$$extension; \
 	done
-	@docker run -it --rm -v ${PWD}:/app -e "GOOS=linux" -e "GOARCH=arm64" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-linux-arm64;
-	@docker run -it --rm -v ${PWD}:/app -e "GOOS=linux" -e "GOARCH=arm" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-linux-arm32;
-	@upx bin/confd-${VERSION}-*
+	@docker run --rm -it -v ${PWD}:/app -e "GOOS=linux" -e "GOARCH=arm64" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-linux-arm64; \
+	docker run --rm -it -v ${PWD}:/tmp hairyhenderson/upx:3.94 -q /tmp/bin/confd-${VERSION}-linux-arm64;
+	@docker run --rm -it -v ${PWD}:/app -e "GOOS=linux" -e "GOARCH=arm" -e "CGO_ENABLED=0" confd_builder go build -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" -o bin/confd-${VERSION}-linux-arm32; \
+	docker run --rm -it -v ${PWD}:/tmp hairyhenderson/upx:3.94 -q /tmp/bin/confd-${VERSION}-linux-arm32;
