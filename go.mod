@@ -1,6 +1,6 @@
 module github.com/abtreece/confd
 
-go 1.15
+go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.3.1
@@ -46,7 +46,6 @@ require (
 	github.com/sirupsen/logrus v1.7.1
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
-	go.etcd.io/bbolt v1.3.5 // indirect
 	go.etcd.io/etcd v3.3.25+incompatible
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect

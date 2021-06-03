@@ -1,3 +1,13 @@
+### v0.18.1
+
+064faf8 - Advance Go to 1.16.4, drop UPX, Switch to goreleaser for builds
+afcf000 - Advance Go to 1.15.12 and update Makefile (abtreece)
+79bf98b - Bump github/super-linter from v3.15.3 to v3.15.5 (#11) (dependabot[bot])
+6bf2dbc - Bump github/super-linter from v3.15.1 to v3.15.3 (dependabot[bot])
+c3cec66 - Bump github/super-linter from v3 to v3.15.1 (dependabot[bot])
+9842e18 - Move divergent fork note to top of README (Britt Treece)
+4f8e4f1 - Add Dependabot configurations for gomod and gha (Britt Treece)
+
 ### v0.18.0
 
 dbd6fba - Add CodeQL status badge to README (abtreece)

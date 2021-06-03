@@ -1,0 +1,49 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - binary: confd
+    env:
+      - CGO_ENABLED=0
+    ldflags: -s -w -X main.GitSHA={{ .ShortCommit }}
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+    ignore:
+      - goos: windows
+        goarch: arm
+archives:
+  - name_template: '{{.ProjectName}}-{{.Tag}}-{{.Os}}-{{.Arch}}{{if .Arm}}{{.Arm}}{{end}}'
+    replacements:
+      darwin: darwin
+      linux: linux
+      windows: windows
+      amd64: amd64
+      arm: arm
+      arm64: arm64
+    format: tar.gz
+    format_overrides:
+    - goos: windows
+      format: zip
+    files:
+    - none*
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+snapshot:
+  name_template: "{{ .Tag }}-dev"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
