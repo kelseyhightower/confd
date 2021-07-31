@@ -7,6 +7,11 @@ build:
 	@mkdir -p bin
 	@go build -ldflags "-X main.GitSHA=${GIT_SHA}" -o bin/confd .
 
+build-linux:
+	@echo "Building confd for linux..."
+	@mkdir -p bin
+	@GOOS=linux go build -mod=mod -ldflags "-X main.GitSHA=${GIT_SHA}" -o ~/go/bin/confd .
+
 install:
 	@echo "Installing confd..."
 	@install -c bin/confd /usr/local/bin/confd
