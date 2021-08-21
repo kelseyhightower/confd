@@ -36,4 +36,7 @@ prefix:
 EOT
 
 # Run confd
-confd --onetime --log-level debug --confdir ./integration/confdir --backend file --file backends1/ --file backends2/  --watch
+confd --onetime --log-level debug --confdir ./integration/confdir --backend file --file backends1/ --file backends2/ --watch
+
+# Clean up after
+rm -rf backends1 backends2

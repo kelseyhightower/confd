@@ -1,9 +1,11 @@
 package file
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -31,18 +33,30 @@ func NewFileClient(filepath []string, filter string) (*Client, error) {
 }
 
 func readFile(path string, vars map[string]string) error {
-	yamlMap := make(map[interface{}]interface{})
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
 
-	err = yaml.Unmarshal(data, &yamlMap)
-	if err != nil {
-		return err
+	switch filepath.Ext(path) {
+	case ".json":
+		fileMap := make(map[string]interface{})
+		err = json.Unmarshal(data, &fileMap)
+		if err != nil {
+			return err
+		}
+		err = nodeWalk(fileMap, "/", vars)
+	case ".yml", ".yaml":
+		fileMap := make(map[interface{}]interface{})
+		err = yaml.Unmarshal(data, &fileMap)
+		if err != nil {
+			return err
+		}
+		err = nodeWalk(fileMap, "/", vars)
+	default:
+		err = fmt.Errorf("Invalid file extentsion. YAML or JSON only.")
 	}
 
-	err = nodeWalk(yamlMap, "/", vars)
 	if err != nil {
 		return err
 	}
@@ -91,6 +105,11 @@ func nodeWalk(node interface{}, key string, vars map[string]string) error {
 	case map[interface{}]interface{}:
 		for k, v := range node.(map[interface{}]interface{}) {
 			key := path.Join(key, k.(string))
+			nodeWalk(v, key, vars)
+		}
+	case map[string]interface{}:
+		for k, v := range node.(map[string]interface{}) {
+			key := path.Join(key, k)
 			nodeWalk(v, key, vars)
 		}
 	case string:

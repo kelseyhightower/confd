@@ -88,7 +88,9 @@ jobs:
 
       - name: Test File
         run: |
-          integration/file/test.sh
+          integration/file/test_yaml.sh
+          integration/expect/check.sh
+          integration/file/test_json.sh
           integration/expect/check.sh
 
       - name: Install Rancher
