@@ -1,3 +1,14 @@
+### v0.18.2
+71ac3ef - feat: Add IP lookup by interface to template funcs (#33) (Britt Treece)
+fc07d09 - Bump github/super-linter from 4.6.1 to 4.7.3 (#32) (dependabot[bot])
+1dbc88b - Bump actions/setup-java from 2.2.0 to 2.3.0 (#29) (dependabot[bot])
+8c5bdeb - Bump github/super-linter from 4.6.0 to 4.6.1 (#28) (dependabot[bot])
+25eac0d - Bump actions/setup-java from 2.1.0 to 2.2.0 (#27) (dependabot[bot])
+a8584a1 - Add exec to new file integration scripts (Britt Treece)
+20e6201 - Allow json and yaml for file backend (#25) (Andrew Heberle)
+d772b9c - Bump actions/setup-java from 1 to 2.1.0 (#18) (dependabot[bot])
+344c8a1 - Bump github/super-linter from 3.15.5 to 4.6.0 (#26) (dependabot[bot])
+
 ### v0.18.1
 
 064faf8 - Advance Go to 1.16.4, drop UPX, Switch to goreleaser for builds
