@@ -2,7 +2,7 @@
 
 export HOSTNAME="localhost"
 mkdir backends1 backends2
-cat <<EOT >> backends1/1.yaml
+cat <<EOT >> backends1/1
 key: foobar
 database:
   host: 127.0.0.1
@@ -11,7 +11,7 @@ database:
   username: confd
 EOT
 
-cat <<EOT >> backends1/2.yaml
+cat <<EOT >> backends1/2.yml
 upstream:
   app1: 10.0.1.10:8080
   app2: 10.0.1.11:8080

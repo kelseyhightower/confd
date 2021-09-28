@@ -46,7 +46,7 @@ func readFile(path string, vars map[string]string) error {
 			return err
 		}
 		err = nodeWalk(fileMap, "/", vars)
-	case ".yml", ".yaml":
+	case "", ".yml", ".yaml":
 		fileMap := make(map[interface{}]interface{})
 		err = yaml.Unmarshal(data, &fileMap)
 		if err != nil {
