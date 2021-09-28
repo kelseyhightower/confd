@@ -37,6 +37,8 @@ func newFuncMap() map[string]interface{} {
 	m["lookupIPV4"] = LookupIPV4
 	m["lookupIPV6"] = LookupIPV6
 	m["lookupSRV"] = LookupSRV
+	m["lookupIfaceIPV4"] = LookupIfaceIPV4
+	m["lookupIfaceIPV6"] = LookupIfaceIPV6
 	m["fileExists"] = util.IsFileExist
 	m["base64Encode"] = Base64Encode
 	m["base64Decode"] = Base64Decode
@@ -208,6 +210,52 @@ func LookupIPV4(data string) []string {
 		}
 	}
 	return addresses
+}
+
+func LookupIfaceIPV4(data string) (addr string) {
+	var (
+		ief      *net.Interface
+		addrs    []net.Addr
+		ipv4Addr net.IP
+	)
+	ief, err := net.InterfaceByName(data)
+	if err != nil {
+		return
+	}
+	addrs, err = ief.Addrs()
+	if err != nil { // get addresses
+		return
+	}
+	for _, addr := range addrs { // get ipv4 address
+		ipv4Addr = addr.(*net.IPNet).IP.To4()
+		if ipv4Addr != nil {
+			break
+		}
+	}
+	return ipv4Addr.String()
+}
+
+func LookupIfaceIPV6(data string) (addr string) {
+	var (
+		ief      *net.Interface
+		addrs    []net.Addr
+		ipv6Addr net.IP
+	)
+	ief, err := net.InterfaceByName(data)
+	if err != nil {
+		return
+	}
+	addrs, err = ief.Addrs()
+	if err != nil { // get addresses
+		return
+	}
+	for _, addr := range addrs { // get ipv6 address
+		ipv6Addr = addr.(*net.IPNet).IP.To16()
+		if ipv6Addr != nil {
+			break
+		}
+	}
+	return ipv6Addr.String()
 }
 
 type sortSRV []*net.SRV
