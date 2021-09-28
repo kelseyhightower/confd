@@ -48,7 +48,7 @@ jobs:
           integration/expect/check.sh
 
       - name: Setup Java
-        uses: actions/setup-java@v2.2.0
+        uses: actions/setup-java@v2.3.0
         with:
           distribution: 'adopt'
           java-version: '13' # The JDK version to make available on the path.
