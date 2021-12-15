@@ -48,7 +48,7 @@ func New(config Config) (StoreClient, error) {
 			config.Password,
 		)
 	case "etcd":
-		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.BasicAuth, config.Username, config.Password)
+		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.ClientInsecure, config.BasicAuth, config.Username, config.Password)
 	case "zookeeper":
 		return zookeeper.NewZookeeperClient(backendNodes)
 	case "rancher":

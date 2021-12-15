@@ -106,7 +106,7 @@ type Client struct {
 }
 
 // NewEtcdClient returns an *etcd.Client with a connection to named machines.
-func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, username string, password string) (*Client, error) {
+func NewEtcdClient(machines []string, cert, key, caCert string, clientInsecure bool, basicAuth bool, username string, password string) (*Client, error) {
 	cfg := clientv3.Config{
 		Endpoints:            machines,
 		DialTimeout:          5 * time.Second,
@@ -121,7 +121,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 
 	tlsEnabled := false
 	tlsConfig := &tls.Config{
-		InsecureSkipVerify: false,
+		InsecureSkipVerify: clientInsecure,
 	}
 
 	if caCert != "" {
