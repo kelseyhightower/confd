@@ -75,7 +75,7 @@ Usage of confd:
   -version
       print version and exit
   -watch
-      enable watch support
+      actively watch the backend for changes vs. checking every INTERVAL seconds (dynamodb and ssm are not supported)
 ```
 
 > The -scheme flag is only used to set the URL scheme for nodes retrieved from DNS SRV records.
