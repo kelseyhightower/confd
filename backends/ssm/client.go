@@ -25,13 +25,20 @@ func New() (*Client, error) {
 	}
 
 	var c *aws.Config
-	if os.Getenv("SSM_LOCAL") != "" {
-		log.Debug("SSM_LOCAL is set")
-		endpoint := "http://localhost:8001"
+
+	if os.Getenv("SSM_CUSTOM_ENDPOINT") != "" {
+		log.Debug("SSM_CUSTOM_ENDPOINT is set")
+		endpoint := os.Getenv("SSM_CUSTOM_ENDPOINT")
 		c = &aws.Config{
 			Endpoint: &endpoint,
 		}
-	} else {
+	} else if os.Getenv("SSM_LOCAL") != "" {
+           		log.Debug("SSM_LOCAL is set")
+           		endpoint := "http://localhost:8001"
+           		c = &aws.Config{
+           			Endpoint: &endpoint,
+           		}
+    } else {
 		c = nil
 	}
 
