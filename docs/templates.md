@@ -364,6 +364,20 @@ Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
 {{seq 1 (atoi (getv "/count"))}}
 ```
 
+### contains
+
+Alias for the [strings.Contains](https://golang.org/pkg/strings/#Contains) function.
+Returns true or false. whether the argument is contained in a string.
+
+```
+isProgrammingLanguage = {{contains "golang, java, python" (getv "/programming/language")}}
+```
+
+Output
+```
+isProgrammingLanguage = true
+```
+
 ### add
 
 Add two integers.
