@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/haad/confd/log"
 )
 
 type watchResponse struct {

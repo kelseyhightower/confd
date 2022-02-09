@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"go.etcd.io/etcd/client/v3"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/haad/confd/log"
 	"sync"
 )
 

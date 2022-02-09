@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	vaultapi "github.com/hashicorp/vault/api"
-	vaultbackend "github.com/kelseyhightower/confd/backends/vault"
-	"github.com/kelseyhightower/confd/log"
+	vaultbackend "github.com/haad/confd/backends/vault"
+	"github.com/haad/confd/log"
 )
 
 // Client Embed from vault client into vault pki client

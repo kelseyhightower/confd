@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generates a changelog of all merges from a given release all the way to HEAD.
 
-REPO=https://github.com/kelseyhightower/confd
+REPO=https://github.com/haad/confd
 
 usage() {
     echo "Usage: $0 <FROM> [TO]"

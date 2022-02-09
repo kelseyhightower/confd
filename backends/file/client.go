@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/kelseyhightower/confd/log"
-	util "github.com/kelseyhightower/confd/util"
+	"github.com/haad/confd/log"
+	util "github.com/haad/confd/util"
 	"gopkg.in/yaml.v2"
 )
 
