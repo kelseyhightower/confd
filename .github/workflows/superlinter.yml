@@ -23,5 +23,5 @@ jobs:
         env:
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_EXCLUDE: .*vendor/.*
+          FILTER_REGEX_EXCLUDE: vendor/.*|integration/.*|\.github/.*
           VALIDATE_BASH: false
