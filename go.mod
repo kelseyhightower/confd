@@ -1,42 +1,80 @@
 module github.com/kelseyhightower/confd
 
-go 1.13
+go 1.17
 
 require (
-	github.com/BurntSushi/toml v0.3.0
+	github.com/BurntSushi/toml v0.3.1
 	github.com/aws/aws-sdk-go v1.13.41
-	github.com/coreos/etcd v3.3.4+incompatible
-	github.com/coreos/go-semver v0.2.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/garyburd/redigo v1.6.0
-	github.com/go-ini/ini v1.36.0
-	github.com/gogo/protobuf v1.0.0
-	github.com/golang/protobuf v1.1.0
-	github.com/golang/snappy v0.0.0-20170215233205-553a64147049
 	github.com/hashicorp/consul v1.0.7
-	github.com/hashicorp/errwrap v0.0.0-20141028054710-7554cd9344ce
-	github.com/hashicorp/go-cleanhttp v0.0.0-20171218145408-d5fe4b57a186
-	github.com/hashicorp/go-multierror v0.0.0-20171204182908-b7773ae21874
-	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90
-	github.com/hashicorp/go-sockaddr v0.0.0-20180320115054-6d291a969b86
-	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce
-	github.com/hashicorp/serf v0.8.1
-	github.com/hashicorp/vault v0.10.1
-	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
+	github.com/hashicorp/vault/api v1.3.1
 	github.com/kelseyhightower/memkv v0.1.1
-	github.com/mitchellh/go-homedir v0.0.0-20161203194507-b8bc1bf76747
-	github.com/mitchellh/mapstructure v0.0.0-20180220230111-00c29f56e238
-	github.com/ryanuber/go-glob v0.0.0-20160226084822-572520ed46db
 	github.com/samuel/go-zookeeper v0.0.0-20180130194729-c4fab1ac1bec
-	github.com/sethgrid/pester v0.0.0-20180430140037-03e26c9abbbf
-	github.com/sirupsen/logrus v1.0.5
-	github.com/ugorji/go v1.1.1
+	github.com/sirupsen/logrus v1.6.0
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77
-	golang.org/x/crypto v0.0.0-20180503215945-1f94bef427e3
-	golang.org/x/net v0.0.0-20180502164142-640f4622ab69
-	golang.org/x/sys v0.0.0-20180504064212-6f686a352de6
-	golang.org/x/text v0.3.0
-	google.golang.org/genproto v0.0.0-20180427144745-86e600f69ee4
-	google.golang.org/grpc v1.11.3
-	gopkg.in/yaml.v2 v2.2.1
+	go.etcd.io/etcd/client/v3 v3.5.2
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	gopkg.in/yaml.v2 v2.4.0
+)
+
+require (
+	github.com/armon/go-metrics v0.3.10 // indirect
+	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
+	github.com/coreos/go-semver v0.3.0 // indirect
+	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/fatih/color v1.7.0 // indirect
+	github.com/go-ini/ini v1.36.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-hclog v0.16.2 // indirect
+	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-msgpack v1.1.5 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/go-plugin v1.4.3 // indirect
+	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
+	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
+	github.com/hashicorp/go-secure-stdlib/mlock v0.1.1 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.1 // indirect
+	github.com/hashicorp/go-secure-stdlib/strutil v0.1.1 // indirect
+	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
+	github.com/hashicorp/go-uuid v1.0.2 // indirect
+	github.com/hashicorp/go-version v1.2.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/memberlist v0.3.1 // indirect
+	github.com/hashicorp/serf v0.8.1 // indirect
+	github.com/hashicorp/vault/sdk v0.3.0 // indirect
+	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
+	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
+	github.com/mattn/go-colorable v0.1.6 // indirect
+	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mitchellh/copystructure v1.0.0 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
+	github.com/mitchellh/mapstructure v1.4.2 // indirect
+	github.com/mitchellh/reflectwalk v1.0.0 // indirect
+	github.com/oklog/run v1.0.0 // indirect
+	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
+	github.com/ryanuber/go-glob v1.0.0 // indirect
+	github.com/smartystreets/goconvey v1.7.2 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.2 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.2 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/zap v1.17.0 // indirect
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
+	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
+	google.golang.org/grpc v1.41.0 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
+	gopkg.in/ini.v1 v1.66.3 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
