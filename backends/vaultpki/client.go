@@ -6,9 +6,9 @@ import (
 	"path"
 	"strings"
 
-	vaultapi "github.com/hashicorp/vault/api"
 	vaultbackend "github.com/haad/confd/backends/vault"
 	"github.com/haad/confd/log"
+	vaultapi "github.com/hashicorp/vault/api"
 )
 
 // Client Embed from vault client into vault pki client

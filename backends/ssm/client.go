@@ -33,12 +33,12 @@ func New() (*Client, error) {
 			Endpoint: &endpoint,
 		}
 	} else if os.Getenv("SSM_LOCAL") != "" {
-           		log.Debug("SSM_LOCAL is set")
-           		endpoint := "http://localhost:8001"
-           		c = &aws.Config{
-           			Endpoint: &endpoint,
-           		}
-    } else {
+		log.Debug("SSM_LOCAL is set")
+		endpoint := "http://localhost:8001"
+		c = &aws.Config{
+			Endpoint: &endpoint,
+		}
+	} else {
 		c = nil
 	}
 
