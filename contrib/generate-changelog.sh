@@ -17,6 +17,6 @@ fi
 FROM=$1
 TO=${2:-HEAD}
 
-printf "### $TO\n\n"
+printf "### %s\n\n" "$TO"
 
-git --no-pager log --merges --format="%h %b" $FROM..$TO
+git --no-pager log --merges --format="%h %b" "$FROM".."$TO"
