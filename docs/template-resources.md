@@ -17,6 +17,7 @@ Template resources are stored under the `/etc/confd/conf.d` directory by default
 * `reload_cmd` (string) - The command to reload config.
 * `check_cmd` (string) - The command to check config. Use `{{.src}}` to reference the rendered source template.
 * `prefix` (string) - The string to prefix to keys.
+* `make_directories` (bool) - Whether to create destination directories (0755).
 
 ### Notes
 
