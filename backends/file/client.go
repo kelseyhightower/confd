@@ -13,8 +13,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var replacer = strings.NewReplacer("/", "_")
-
 // Client provides a shell for the yaml client
 type Client struct {
 	filepath []string

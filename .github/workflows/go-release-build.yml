@@ -1,0 +1,35 @@
+name: Generate release-artifacts
+on:
+  release:
+    types:
+        - created
+jobs:
+  generate:
+    name: Generate cross-platform builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+      - name: Generate build files
+        uses: thatisuday/go-cross-build@v1
+        with:
+            platforms: 'linux/amd64, linux/arm64, linux/arm, linux/mips64, linux/ppc64, netbsd/amd64, windows/amd64, darwin/amd64, darwin-arm64'
+            package: ''
+            name: 'confd'
+            compress: 'false'
+            dest: 'dist'
+      - name: Copy build-artifacts
+        uses: skx/github-action-publish-binaries@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: "./dist/*"
+      - uses: MCJack123/ghaction-generate-release-hashes@v1
+        with:
+          hash-type: sha256
+          file-name: SHASUMS256
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Asset Hashes
+          path: SHASUMS256
+

@@ -1,0 +1,17 @@
+name: golangci-lint
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+
+jobs:
+  golangci:
+    name: GO lang CI linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2 # https://github.com/marketplace/actions/run-golangci-lint
+        with:
+          version: v1.43
