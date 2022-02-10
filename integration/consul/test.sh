@@ -4,7 +4,7 @@ export HOSTNAME="localhost"
 
 
 # Configure consul
-curl -X PUT http://127.0.0.1:8500/v1/kv/key -d 'foobar'
+curl -X PUT http://127.0.0.1:8500/v1/kv/key/key -d 'foobar'
 curl -X PUT http://127.0.0.1:8500/v1/kv/database/host -d '127.0.0.1'
 curl -X PUT http://127.0.0.1:8500/v1/kv/database/password -d 'p@sSw0rd'
 curl -X PUT http://127.0.0.1:8500/v1/kv/database/port -d '3306'

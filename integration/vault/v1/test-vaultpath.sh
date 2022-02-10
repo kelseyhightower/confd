@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export PATH=/tmp/vault/bin:$PATH
+export VAULT_ADDR="http://127.0.0.1:8200/"
+
 export HOSTNAME="localhost"
 export ROOT_TOKEN="$(vault read -field id auth/token/lookup-self)"
 
@@ -9,7 +12,7 @@ vault secrets enable -path upstream kv
 vault secrets enable -path nested kv
 vault secrets enable -path pki kv
 
-vault write key value=foobar
+vault write key/key value=foobar
 vault write database/host value=127.0.0.1
 vault write database/port value=3306
 vault write database/username value=confd

@@ -1,5 +1,7 @@
 {
-   "key": "foobar",
+   "key": {
+    "key": "foobar"
+   },
    "database" : {
         "host": "127.0.0.1",
         "password": "p@sSw0rd",

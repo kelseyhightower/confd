@@ -8,9 +8,9 @@ on:
 
 env:
   GO111MODULE: on
-  CONSUL_VERSION: 1.9.3
-  ETCD_VERSION: 3.4.0
-  VAULT_VERSION: 1.6.2
+  CONSUL_VERSION: 1.11.2
+  ETCD_VERSION: 3.4.3
+  VAULT_VERSION: 1.9.3
   DYNAMODB_VERSION: latest
   ZOOKEEPER_VERSION: 3.4.14
   RANCHER_VERSION: 0.6.0
@@ -25,6 +25,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17.6
+
       - name: Build and Install
         run: |
           make build
@@ -33,17 +34,14 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get -q update
-          sudo apt-get install -y curl wget unzip python3-pip
+          sudo apt-get install -y curl wget unzip python3-pip make git jq sudo psmisc
 
       - name: Install Consul
         run: |
-          wget -q https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
-          sudo unzip -d /usr/local/bin consul_${CONSUL_VERSION}_linux_amd64.zip
-          consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -bind 127.0.0.1 &
+          integration/consul/install.sh ${CONSUL_VERSION}
 
       - name: Test Consul
         run: |
-        
           integration/consul/test.sh
           integration/expect/check.sh
 
@@ -57,11 +55,8 @@ jobs:
 
       - name: Install DynamoDB
         run: |
-          sudo pip install awscli
-          mkdir /tmp/dynamodb
-          wget -q -O - https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_${DYNAMODB_VERSION}.tar.gz | tar xz --directory /tmp/dynamodb
-          java -Djava.library.path=/tmp/dynamodb/DynamoDBLocal_lib -jar /tmp/dynamodb/DynamoDBLocal.jar -inMemory &
-  
+          integration/dynamodb/install.sh ${DYNAMODB_VERSION}
+
       - name: Test DynamoDB
         run: |
           integration/dynamodb/test.sh
@@ -74,12 +69,7 @@ jobs:
 
       - name: Install etcd
         run: |
-          wget -q https://storage.googleapis.com/etcd/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
-          tar xzf etcd-v${ETCD_VERSION}-linux-amd64.tar.gz
-          sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcd /usr/local/bin/
-          sudo mv etcd-v${ETCD_VERSION}-linux-amd64/etcdctl /usr/local/bin/
-          unset ETCD_VERSION
-          etcd &
+          integration/etcd/install.sh ${ETCD_VERSION}
 
       - name: Test etcd
         run: |
@@ -88,17 +78,17 @@ jobs:
 
       - name: Test File
         run: |
-          integration/file/test_yaml.sh
+          integration/file/test.sh
           integration/expect/check.sh
-          integration/file/test_json.sh
-          integration/expect/check.sh
+
+          #integration/file/test_yaml.sh
+          #integration/expect/check.sh
+          #integration/file/test_json.sh
+          #integration/expect/check.sh
 
       - name: Install Rancher
         run: |
-          wget -q https://github.com/rancher/rancher-metadata/releases/download/v${RANCHER_VERSION}/rancher-metadata.tar.gz
-          mkdir -p ./rancher-metadata
-          tar xzf rancher-metadata.tar.gz --strip-components=1 -C ./rancher-metadata
-          sudo mv ./rancher-metadata/bin/rancher-metadata /usr/local/bin/
+          integration/rancher/install.sh ${RANCHER_VERSION}
 
       - name: Test Rancher
         run: |
@@ -107,8 +97,7 @@ jobs:
 
       - name: Install Redis
         run: |
-          sudo apt-get install -y redis-server
-          redis &
+          integration/redis/install.sh
 
       - name: Test Redis
         run: |
@@ -117,30 +106,39 @@ jobs:
 
       - name: Install Vault
         run: |
-          wget -q https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
-          sudo unzip -d /usr/local/bin vault_${VAULT_VERSION}_linux_amd64.zip
-          vault server -dev &
+          integration/vault/install.sh ${VAULT_VERSION}
 
       - name: Test Vault V1
         run: |
-          integration/vault-v1/test.sh
+          integration/vault/v1/test.sh
+          integration/expect/check.sh
+        env:
+          VAULT_ADDR: http://127.0.0.1:8200
+
+      - name: Test Vault Path
+        run: |
+          integration/vault/v1/test-vaultpath.sh
+          integration/expect/check.sh
+        env:
+          VAULT_ADDR: http://127.0.0.1:8200
+
+      - name: Test Vault Pki
+        run: |
+          integration/vault/v1/test-vaultpki.sh
           integration/expect/check.sh
         env:
           VAULT_ADDR: http://127.0.0.1:8200
 
       - name: Test Vault V2
         run: |
-          integration/vault-v2/test.sh
+          integration/vault/v2/test.sh
           integration/expect/check.sh
         env:
           VAULT_ADDR: http://127.0.0.1:8200
 
       - name: Install Zookeeper
         run: |
-          wget -q https://archive.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
-          tar xzf zookeeper-${ZOOKEEPER_VERSION}.tar.gz
-          mkdir /tmp/zookeeper && cp integration/zookeeper/zoo.cfg zookeeper-${ZOOKEEPER_VERSION}/conf/zoo.cfg
-          zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
+          integration/zookeeper/install.sh ${ZOOKEEPER_VERSION}
 
       - name: Test Zookeeper
         run: |

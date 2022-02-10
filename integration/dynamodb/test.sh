@@ -15,7 +15,7 @@ aws dynamodb create-table \
     --endpoint-url http://localhost:8000
 
 aws dynamodb put-item --table-name confd --region eu-west-1 \
-    --item '{ "key": { "S": "/key" }, "value": {"S": "foobar"}}' \
+    --item '{ "key": { "S": "/key/key" }, "value": {"S": "foobar"}}' \
     --endpoint-url http://localhost:8000
 aws dynamodb put-item --table-name confd --region eu-west-1 \
     --item '{ "key": { "S": "/database/host" }, "value": {"S": "127.0.0.1"}}' \

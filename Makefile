@@ -1,4 +1,4 @@
-.PHONY: build install clean test integration modverify modtidy release
+ .PHONY: build install clean test integration modverify modtidy release
 VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' version.go`
 GIT_SHA=`git rev-parse --short HEAD || echo`
 
@@ -18,14 +18,9 @@ test:
 	@echo "Running tests..."
 	@go test `go list ./... | grep -v vendor/`
 
-integration:
+integration: modtidy build test
 	@echo "Running integration tests..."
-	@for i in `find ./integration -name test.sh`; do \
-		echo "Running $$i"; \
-		bash $$i || exit 1; \
-		bash integration/expect/check.sh || exit 1; \
-		rm /tmp/confd-*; \
-	done
+	bash integration/run.sh
 
 modtidy:
 	@go mod tidy

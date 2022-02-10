@@ -8,7 +8,7 @@ export AWS_DEFAULT_REGION="us-east-1"
 export AWS_REGION="us-east-1"
 export SSM_ENDPOINT_URL="http://localhost:8001"
 
-aws ssm put-parameter --name "/key" --type "String" --value "foobar" --endpoint-url $SSM_ENDPOINT_URL
+aws ssm put-parameter --name "/key/key" --type "String" --value "foobar" --endpoint-url $SSM_ENDPOINT_URL
 aws ssm put-parameter --name "/database/host" --type "String" --value "127.0.0.1" --endpoint-url $SSM_ENDPOINT_URL
 aws ssm put-parameter --name "/database/password" --type "String" --value "p@sSw0rd" --endpoint-url $SSM_ENDPOINT_URL
 aws ssm put-parameter --name "/database/port" --type "String" --value "3306" --endpoint-url $SSM_ENDPOINT_URL
