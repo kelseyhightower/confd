@@ -43,6 +43,7 @@ jobs:
 
       - name: Test Consul
         run: |
+        
           integration/consul/test.sh
           integration/expect/check.sh
 
