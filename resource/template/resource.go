@@ -50,6 +50,7 @@ type TemplateResource struct {
 	Prefix        string
 	ReloadCmd     string `toml:"reload_cmd"`
 	Src           string
+	Mkdirs        bool `toml:"make_directories"`
 	StageFile     *os.File
 	Uid           int
 	funcMap       map[string]interface{}
@@ -210,6 +211,11 @@ func (t *TemplateResource) createStageFile() error {
 	}
 
 	// create TempFile in Dest directory to avoid cross-filesystem issues
+	if t.Mkdirs {
+		if err := os.MkdirAll(filepath.Dir(t.Dest), 0755); err != nil {
+			return err
+		}
+	}
 	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
 	if err != nil {
 		return err
