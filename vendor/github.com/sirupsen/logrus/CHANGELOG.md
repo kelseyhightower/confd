@@ -1,4 +1,20 @@
+# 1.8.1
+Code quality:
+  * move magefile in its own subdir/submodule to remove magefile dependency on logrus consumer
+  * improve timestamp format documentation
+
+Fixes:
+  * fix race condition on logger hooks
+
+
+# 1.8.0
+
+Correct versioning number replacing v1.7.1.
+
 # 1.7.1
+
+Beware this release has introduced a new public API and its semver is therefore incorrect.
+
 Code quality:
   * use go 1.15 in travis
   * use magefile as task runner

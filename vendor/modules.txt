@@ -175,10 +175,6 @@ github.com/jmespath/go-jmespath
 github.com/kelseyhightower/memkv
 # github.com/kr/text v0.2.0
 ## explicit
-# github.com/magefile/mage v1.11.0
-## explicit
-github.com/magefile/mage/mg
-github.com/magefile/mage/sh
 # github.com/mattn/go-colorable v0.1.8
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
@@ -203,7 +199,7 @@ github.com/ryanuber/go-glob
 # github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
 ## explicit
 github.com/samuel/go-zookeeper/zk
-# github.com/sirupsen/logrus v1.7.1
+# github.com/sirupsen/logrus v1.8.1
 ## explicit
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.6.1
