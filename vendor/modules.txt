@@ -1,6 +1,7 @@
-# github.com/BurntSushi/toml v0.3.1
+# github.com/BurntSushi/toml v1.0.0
 ## explicit
 github.com/BurntSushi/toml
+github.com/BurntSushi/toml/internal
 # github.com/armon/go-metrics v0.3.6
 ## explicit
 github.com/armon/go-metrics
