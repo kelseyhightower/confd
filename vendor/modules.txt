@@ -87,7 +87,7 @@ github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
-# github.com/garyburd/redigo v1.6.2
+# github.com/garyburd/redigo v1.6.3
 ## explicit
 github.com/garyburd/redigo/internal
 github.com/garyburd/redigo/redis
@@ -211,8 +211,6 @@ github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.6.1
 ## explicit
 # github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5
-## explicit
-# go.etcd.io/bbolt v1.3.5
 ## explicit
 # go.etcd.io/etcd v3.3.25+incompatible
 ## explicit
