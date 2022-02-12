@@ -16,5 +16,5 @@ wget https://archive.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/ap
 
 tar xzf ${TMPDIR}/zookeeper.tar.gz -C ${TMPDIR}
 
-cp /tmp/zoo.cfg ${TMPDIR}/apache-zookeeper-${ZOOKEEPER_VERSION}-bin/
+cp /tmp/zoo.cfg ${TMPDIR}/apache-zookeeper-${ZOOKEEPER_VERSION}-bin/conf
 ${TMPDIR}/apache-zookeeper-${ZOOKEEPER_VERSION}-bin/bin/zkServer.sh start
