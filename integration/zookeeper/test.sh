@@ -1,6 +1,14 @@
 #!/bin/bash
 
 export HOSTNAME="localhost"
+export PORT=2181
+
+while ! nc -z localhost ${PORT}; do
+  sleep 1 # wait for 1 second before check again
+done
+
+set -e
+
 
 # feed zookeeper
 export ZK_PATH="`dirname \"$0\"`"

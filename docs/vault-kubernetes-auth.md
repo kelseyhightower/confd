@@ -1,16 +1,18 @@
-These are steps to get vault with Kubernetes auth working on minikube.
+# These are steps to get vault with Kubernetes auth working on minikube
 
 *Do not use default service account in prod instead create dedicated acount for Vault auth.*
 
 - Deploy Helm
-  ```
+  ```sh
   # Install Helm
   Use the correct method for your OS from https://docs.helm.sh/using_helm/#installing-the-helm-client
   # Deploy tiller into the cluster
   helm init
+  ```
 
 - Install Vault in dev mode
-  ```
+
+  ```sh
   # Add Vault chart
   helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
   # Install Vault
@@ -19,7 +21,8 @@ These are steps to get vault with Kubernetes auth working on minikube.
   ```
 
 - Enable Kubernetes backend
-  ```
+
+  ```sh
   # Get Vault pod name
   export POD_NAME=$(kubectl get pods --namespace default -l "app=vault" -o jsonpath="{.items[0].metadata.name}")
   # Get inside pod
@@ -59,7 +62,7 @@ These are steps to get vault with Kubernetes auth working on minikube.
   ```
   
 - Create RBAC (if used) rule to allow acccess to TokenReview API
-  ```
+  ```sh
   kubectl create -f - <<EOF
   apiVersion: rbac.authorization.k8s.io/v1beta1
   kind: ClusterRoleBinding
@@ -78,7 +81,8 @@ These are steps to get vault with Kubernetes auth working on minikube.
   ```
 
 - Start a pod with confd and get a secret
-  ```
+
+  ```sh
   # Create service account for kube auth
   kubectl create serviceaccount vault-auth
   # Start pod
@@ -101,6 +105,7 @@ These are steps to get vault with Kubernetes auth working on minikube.
   ```
 
 - Check `/tmp/test.conf`, it should contain your secret
-  ```
+
+  ```sh
   cat /tmp/test.conf
   ```

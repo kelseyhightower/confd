@@ -1,8 +1,11 @@
 #!/bin/bash
 
+set -e
+
 export ETCD_VERSION=${1:-$ETCD_VERSION}
 export ARCH=$(go env GOARCH)
 export TMPDIR=/tmp/etcd
+export PORT=2380
 
 mkdir -p ${TMPDIR}/bin
 
@@ -21,3 +24,6 @@ if [ $ARCH != "amd64" ]; then
 fi
 
 ${TMPDIR}/bin/etcd &
+
+# Wait for server startup
+timeout 30 sh -c 'until nc -z $0 $1; do sleep 1; done' localhost ${PORT}

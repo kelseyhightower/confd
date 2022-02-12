@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 export HOSTNAME="localhost"
 
 redis-cli set /key/key foobar

@@ -4,6 +4,8 @@ export PATH=/tmp/etcd/bin:$PATH
 export HOSTNAME="localhost"
 export ETCDCTL_API="3"
 
+set -e
+
 etcdctl put /key/key foobar
 etcdctl put /database/host 127.0.0.1
 etcdctl put /database/password p@sSw0rd

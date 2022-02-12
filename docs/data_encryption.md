@@ -1,14 +1,12 @@
-Encrypting your data
-====================
+# Encrypting your data
 
 This example is shown using etcd, but any of the supported backends *should* work.
 
-
 ## Creating PGP keys
 
-[`crypt`](https://github.com/xordataexchange/crypt), unlike gpg, requires your keypair to be in ASCII armor format.
-For the purpose of this example you can use [the pair provided below](#local-testing-keypair-sample), or you can
-[create your own](#local-testing-keypair-generating).
+[`crypt`](https://github.com/xordataexchange/crypt), unlike gpg, requires your keypair to be in ASCII armor
+format. For the purpose of this example you can use [the pair provided below](#local-testing-keypair-sample or
+you can [create your own](#local-testing-keypair-generating).
 
 
 ### Using my sample key pair (unsafe for anything other than local testing)
@@ -130,13 +128,13 @@ $ gpg2 --batch --armor --gen-key app.batch
 ```
 
 
-## Encrypting and storing your data 
+## Encrypting and storing your data
 
-There are many ways of doing this as long as the input data follows the following format, `base64(gpg(gzip(data)))`.
-Below are two ways to get you going quickly, the first using plain old [gpg](https://gnupg.org/) and second using the
-[crypt cli utility](https://github.com/xordataexchange/crypt/tree/master/bin/crypt) (which is not the same as
-[`man 3 crypt`](http://linux.die.net/man/3/crypt)).
-
+There are many ways of doing this as long as the input data follows the following format, `base64(gpg(gzip(
+data)))`.
+Below are two ways to get you going quickly, the first using plain old [gpg](https://gnupg.org/) and second
+using the [crypt cli utility](https://github.com/xordataexchange/crypt/tree/master/bin/crypt) (which is not
+the same as [`man 3 crypt`](http://linux.die.net/man/3/crypt)).
 
 ### Storing data using gpg(2)
 
@@ -178,7 +176,7 @@ $ echo 'secret text'\
 $ go get github.com/xordataexchange/crypt/bin/crypt
 $ crypt set /secret/test1 /path/to/secret-file.txt
 # - or -
-$ crypt set /secret/test1 <(echo "secret text") 
+$ crypt set /secret/test1 <(echo "secret text")
 ```
 
 
@@ -209,7 +207,7 @@ Now that we've verified we can put encrypted data in your datastore, lets have
 confd extract it into a template.
 
 
-```
+```sh
 $ mkdir ~/tmp/confd-config/{conf.d,templates}
 $ cat << EOF > ~/tmp/confd-config/conf.d/secret.toml
 [template]

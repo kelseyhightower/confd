@@ -1,7 +1,7 @@
 # Configuration Guide
 
 The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
-and loaded from `/etc/confd/confd.toml` by default. You can specify the config file via the `-config-file` command line flag.
+and loaded from `/etc/confd/confd.toml` by default. You can specify the config file via the `-config-file` command-line flag.
 
 > Note: You can use confd without a configuration file. See [Command Line Flags](https://github.com/haad/confd/blob/master/docs/command-line-flags.md).
 

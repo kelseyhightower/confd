@@ -1,8 +1,8 @@
-# Command Line Flags
+# Command-Line Flags
 
-Command line flags override the confd [configuration file](configuration-guide.md).
+Command-line flags override the confd [configuration file](configuration-guide.md).
 
-```
+```sh
 confd -h
 ```
 
