@@ -16,8 +16,8 @@ vault write database/host value=127.0.0.1
 vault write database/port value=3306
 vault write database/username value=confd
 vault write database/password value=p@sSw0rd
-vault write upstream/app1=10.0.1.10:8080
-vault write upstream/app2=10.0.1.11:8080
+vault write upstream/app1 value=10.0.1.10:8080
+vault write upstream/app2 value=10.0.1.11:8080
 vault write nested/east/app1 value=10.0.1.10:8080
 vault write nested/west/app2 value=10.0.1.11:8080
 vault write pki/issue/my-role/www.example.com/certificate value="-----BEGIN CERTIFICATE-----\nMIIDwDCCAqigAwIBAgIUfU+/v4dE7TV6U5Jm/C9mbjC/ySkwDQYJKoZIhvcNAQEL\nBQAwFjEUMBIGA1UEAxMLZXhhbXBsZS5jb20wHhcNMTkwMjE5MDUxNDUyWhcNMTkw\nMjE5MTMxNTIyWjAaMRgwFgYDVQQDEw93d3cuZXhhbXBsZS5jb20wggEiMA0GCSqG\nSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDAm3/jVUMkMSrQMwtASFgK8T01sagq98lt\nWWT0A15PGeTSbnWQ3eKbnHzXldGggQz0yxqc8m1oBUvgCZ8I6Kbk1/ooxc/8wO43\nlZ7a341gATrZgzY0cobHIZTjliJN1z1O0Owgko9ddmzVkkHENu07YpIns+WgU4ua\nXA94GmO2+2S78F2Kdh+HckauRNdoYqNQpMRis0F3HvWD+Qju9tGvIrNdD/HMCRXs\nVOMdw4e8rpaHuNZ9OiA148mqSvAWhLr1qCM2DGIOS9q2q4kNkscg5YOXVpY3IppV\nCfl6WxoEj65zS3o+SdjHx8cr9rQakmbvahzt04ShtoG8CHCGLCYTAgMBAAGjggEA\nMIH9MA4GA1UdDwEB/wQEAwIDqDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUH\nAwIwHQYDVR0OBBYEFDlhtX2jLH/SyC+2jeLLQkN2VUsOMB8GA1UdIwQYMBaAFNtj\nRIJq7XalG/c3tG7dIW3J+M9rMDwGCCsGAQUFBwEBBDAwLjAsBggrBgEFBQcwAoYg\naHR0cDovLzEyNy4wLjAuMTo4MjAwLy92MS9wa2kvY2EwGgYDVR0RBBMwEYIPd3d3\nLmV4YW1wbGUuY29tMDIGA1UdHwQrMCkwJ6AloCOGIWh0dHA6Ly8xMjcuMC4wLjE6\nODIwMC8vdjEvcGtpL2NybDANBgkqhkiG9w0BAQsFAAOCAQEALE7GKP8PXJ5CKH3J\n016Ug+1yEan7CLpaD31YmD0uIfTHM8QmbTG/MzGXg2zkxm6h98Ns6uA+WGCiwVqX\nfi+4y5q13IqA0y2ljBfYaJirxdoIYAG10phzXgLCLbMMgGC+8X3Hg6Te07vqINE1\nQNgs0E+oggVFmc8eXzqrQh2u2wovPguiM3JHp6esmA/j4hvMqQGenCLhWC+jQ1bO\nIhV/HxPfHN3Ogm9GQ++ZyxgLRlB8PxJZHAPztHXnNHXB47a9Wfi+9VdiM9jgiuir\nRfThdllPvBksR6G0FzCBN1vbmGlEnt9Rm726hjbKJC3ESQpGC9Lv81C9OvMdqiWw\n72ZTzw==\n-----END CERTIFICATE-----"
