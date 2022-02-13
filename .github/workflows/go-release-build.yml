@@ -24,7 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: "./dist/*"
-      - uses: MCJack123/ghaction-generate-release-hashes@v1
+      - uses: MCJack123/ghaction-generate-release-hashes@v2
         with:
           hash-type: sha256
           file-name: SHASUMS256
