@@ -1,3 +1,19 @@
+### v0.18.4
+68189a1 - Update app versions for backend integrations (abtreece)
+6e3d2b3 - Bump github.com/aws/aws-sdk-go from 1.37.12 to 1.42.51 (#55) (dependabot[bot])
+9fe5cb9 - Bump github.com/BurntSushi/toml from 0.3.1 to 1.0.0 (#54) (dependabot[bot])
+de54d0f - Bump github.com/sirupsen/logrus from 1.7.1 to 1.8.1 (#47) (dependabot[bot])
+7626b49 - Bump github.com/hashicorp/consul/api from 1.8.1 to 1.12.0 (#46) (dependabot[bot])
+bb60ba8 - Bump go.etcd.io/etcd from 3.3.25+incompatible to 3.3.27+incompatible (#45) (dependabot[bot])
+b71f33b - Bump github.com/garyburd/redigo from 1.6.2 to 1.6.3 (#44) (dependabot[bot])
+50a83cd - Bump actions/setup-java from 2.4.0 to 2.5.0 (#42) (dependabot[bot])
+c67be37 - Bump github/super-linter from 4.7.3 to 4.8.4 (#40) (dependabot[bot])
+7867119 - Bump actions/setup-java from 2.3.0 to 2.4.0 (#41) (dependabot[bot])
+d20ae45 - fix: Allow connections to etcd SSL sites without certs (#38) (METO)
+
+### v0.18.3
+6d3d05d - fix: Allow YAML files to have no extension (#35) (Britt Treece)
+
 ### v0.18.2
 71ac3ef - feat: Add IP lookup by interface to template funcs (#33) (Britt Treece)
 fc07d09 - Bump github/super-linter from 4.6.1 to 4.7.3 (#32) (dependabot[bot])
