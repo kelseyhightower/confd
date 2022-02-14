@@ -5,13 +5,13 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 	"strings"
+	"sync"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/haad/confd/log"
+
+	"golang.org/x/net/context"
 	"go.etcd.io/etcd/client/v3"
-	"sync"
 )
 
 // A watch only tells the latest revision
@@ -121,6 +121,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	tlsEnabled := false
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: false,
+		MinVersion: 1,x
 	}
 
 	if caCert != "" {
@@ -162,7 +163,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 // GetValues queries etcd for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	// Use all operations on the same revision
-	var first_rev int64 = 0
+	var firstRev int64 = 0
 	vars := make(map[string]string)
 	// Default ETCDv3 TXN limitation. Since it is configurable from v3.3,
 	// maybe an option should be added (also set max-txn=0 can disable Txn?)
@@ -178,7 +179,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 			txnOps = append(txnOps, clientv3.OpGet(k,
 				clientv3.WithPrefix(),
 				clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend),
-				clientv3.WithRev(first_rev)))
+				clientv3.WithRev(firstRev)))
 		}
 
 		result, err := c.client.Txn(ctx).Then(txnOps...).Commit()
@@ -199,9 +200,9 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				}
 			}
 		}
-		if first_rev == 0 {
+		if firstRev == 0 {
 			// Save the revison of the first request
-			first_rev = result.Header.GetRevision()
+			firstRev = result.Header.GetRevision()
 		}
 		return nil
 	}
