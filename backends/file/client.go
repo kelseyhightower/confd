@@ -66,7 +66,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	}
 
 VarsLoop:
-	for k, _ := range vars {
+	for k  := range vars {
 		for _, key := range keys {
 			if strings.HasPrefix(k, key) {
 				continue VarsLoop

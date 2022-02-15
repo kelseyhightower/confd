@@ -41,10 +41,13 @@ func NewDynamoDBClient(table string) (*Client, error) {
 		c = nil
 	}
 
-	session, _ := session.NewSession(c)
+	session, err := session.NewSession(c)
+	if err != nil {
+		return nil, err
+	}
 
 	// Fail early, if no credentials can be found
-	_, err := session.Config.Credentials.Get()
+	_, err = session.Config.Credentials.Get()
 	if err != nil {
 		return nil, err
 	}

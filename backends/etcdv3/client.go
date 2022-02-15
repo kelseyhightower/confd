@@ -121,7 +121,7 @@ func NewEtcdClient(machines []string, cert, key, caCert string, basicAuth bool, 
 	tlsEnabled := false
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: false,
-		MinVersion: 1,x
+		MinVersion: 1,
 	}
 
 	if caCert != "" {

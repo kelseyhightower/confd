@@ -128,7 +128,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	//watch all subfolders for changes
 	watchMap := make(map[string]string)
-	for k, _ := range entries {
+	for k := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
 				for dir := filepath.Dir(k); dir != "/"; dir = filepath.Dir(dir) {
@@ -144,7 +144,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	}
 
 	//watch all keys in prefix for changes
-	for k, _ := range entries {
+	for k  := range entries {
 		for _, v := range keys {
 			if strings.HasPrefix(k, v) {
 				log.Debug("Watching: " + k)
