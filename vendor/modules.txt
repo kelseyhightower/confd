@@ -85,7 +85,7 @@ github.com/coreos/pkg/capnslog
 github.com/fatih/color
 # github.com/frankban/quicktest v1.11.0
 ## explicit
-# github.com/fsnotify/fsnotify v1.4.9
+# github.com/fsnotify/fsnotify v1.5.1
 ## explicit
 github.com/fsnotify/fsnotify
 # github.com/garyburd/redigo v1.6.3
@@ -239,7 +239,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20210423082822-04245dca01da
+# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows

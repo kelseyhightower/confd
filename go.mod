@@ -14,7 +14,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/frankban/quicktest v1.11.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.9
+	github.com/fsnotify/fsnotify v1.5.1
 	github.com/garyburd/redigo v1.6.3
 	github.com/go-test/deep v1.0.7 // indirect
 	github.com/go-zookeeper/zk v1.0.2
