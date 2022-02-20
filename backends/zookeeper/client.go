@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/abtreece/confd/log"
-	zk "github.com/samuel/go-zookeeper/zk"
+	zk "github.com/go-zookeeper/zk"
 )
 
 // Client provides a wrapper around the zookeeper client

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	zk "github.com/samuel/go-zookeeper/zk"
+	zk "github.com/go-zookeeper/zk"
 )
 
 func check(e error) {

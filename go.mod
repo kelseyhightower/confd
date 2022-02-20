@@ -17,6 +17,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/garyburd/redigo v1.6.3
 	github.com/go-test/deep v1.0.7 // indirect
+	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
@@ -40,7 +41,6 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/prometheus/common v0.11.1 // indirect
-	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
