@@ -8,6 +8,7 @@ categories:
       - 'feature'  # 006b75
       - 'enhancement'  # ededed
       - 'performance'  # 555555
+      - 'dependencies' # 3B7EE5
   - title: 'Bugfixes'
     labels:
       - 'fix'
