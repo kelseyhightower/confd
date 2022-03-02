@@ -5,7 +5,7 @@ github.com/BurntSushi/toml/internal
 # github.com/armon/go-metrics v0.3.6
 ## explicit
 github.com/armon/go-metrics
-# github.com/aws/aws-sdk-go v1.43.2
+# github.com/aws/aws-sdk-go v1.43.7
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
@@ -230,7 +230,7 @@ golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/pbkdf2
 # golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 ## explicit
-# golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+# golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/http/httpguts
@@ -239,11 +239,11 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.6
+# golang.org/x/text v0.3.7
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
