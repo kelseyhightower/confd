@@ -35,3 +35,6 @@
 - name: test
   color: "0e8a16"
   description: "This PR relates to tests, QA, CI."
+- name: dependencies
+  color: "3b7ee5"
+  description: "Dependency updates"
