@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  consul:
+    image: consul
+    ports:
+      - 8500:8500
+
+  etcd:
+    image: quay.io/coreos/etcd
+    ports:
+      - 2379:2379
+    environment:
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://0.0.0.0:2379
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - 4566:4566
+    environment:
+      SERVICES: dynamodb,ssm
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
+  vault:
+    image: vault
+    ports:
+      - 8200:8200
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "super-secret-token"
+
+  zookeeper:
+    image: zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_STANDALONE_ENABLED: "true"

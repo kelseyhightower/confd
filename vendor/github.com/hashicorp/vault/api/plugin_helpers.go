@@ -82,7 +82,7 @@ func VaultPluginTLSProvider(apiTLSConfig *TLSConfig) func() (*tls.Config, error)
 			return nil, errwrap.Wrapf("error parsing wrapping token: {{err}}", err)
 		}
 
-		var allClaims = make(map[string]interface{})
+		allClaims := make(map[string]interface{})
 		if err = parsedJWT.UnsafeClaimsWithoutVerification(&allClaims); err != nil {
 			return nil, errwrap.Wrapf("error parsing claims from wrapping token: {{err}}", err)
 		}
@@ -182,7 +182,6 @@ func VaultPluginTLSProvider(apiTLSConfig *TLSConfig) func() (*tls.Config, error)
 			Certificates: []tls.Certificate{cert},
 			ServerName:   serverCert.Subject.CommonName,
 		}
-		tlsConfig.BuildNameToCertificate()
 
 		return tlsConfig, nil
 	}

@@ -14,7 +14,6 @@ confd supports the following backends:
 * redis
 * zookeeper
 * dynamodb
-* rancher
 * [ssm](../backends/ssm/README.md) (AWS Simple Systems Manager Parameter Store)
 
 ### Add keys
@@ -94,10 +93,6 @@ aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
 aws dynamodb put-item --table-name <YOUR_TABLE> --region <YOUR_REGION> \
     --item '{ "key": { "S": "/myapp/database/user" }, "value": {"S": "rob"}}'
 ```
-
-#### Rancher
-
-This backend consumes the [Rancher](https://www.rancher.com) metadata service. For available keys, see the [Rancher Metadata Service docs](http://docs.rancher.com/rancher/rancher-services/metadata-service/).
 
 #### ssm
 
@@ -191,34 +186,6 @@ or if you want to connect to a specific redis database (4 in this example):
 
 ```
 confd -onetime -backend redis -node 192.168.255.210:6379/4
-```
-
-#### rancher
-
-```
-confd -onetime -backend rancher -prefix /2015-07-25
-```
-
-*Note*: The metadata api prefix can be defined on the cli, or as part of your keys in the template toml file.
-
-Output:
-```
-2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf out of sync
-2014-07-08T20:38:36-07:00 confd[16252]: INFO Target config /tmp/myconfig.conf has been updated
-```
-
-The `dest` configuration file should now be in sync.
-
-```
-cat /tmp/myconfig.conf
-```
-
-Output:
-```
-# This a comment
-[myconfig]
-database_url = db.example.com
-database_user = rob
 ```
 
 #### ssm

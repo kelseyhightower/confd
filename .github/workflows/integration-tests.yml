@@ -1,4 +1,4 @@
-name: Integration Tests
+name: test/integration Tests
 on: 
   push:
   pull_request:
@@ -71,7 +71,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16.4
+          go-version: 1.17.8
 
       - name: Build and Install
         run: |
@@ -80,35 +80,35 @@ jobs:
 
       - name: Test Env
         run: |
-          integration/env/test.sh
-          integration/expect/check.sh
+          test/integration/env/test.sh
+          test/integration/expect/check.sh
 
       - name: Test File
         run: |
-          integration/file/test_yaml.sh
-          integration/expect/check.sh
-          integration/file/test_json.sh
-          integration/expect/check.sh
+          test/integration/file/test_yaml.sh
+          test/integration/expect/check.sh
+          test/integration/file/test_json.sh
+          test/integration/expect/check.sh
 
       - name: Test Consul
         run: |
-          integration/consul/test.sh
-          integration/expect/check.sh
+          test/integration/consul/test.sh
+          test/integration/expect/check.sh
         env:
           CONSUL_HOST: consul
           CONSUL_PORT: 8500
 
       - name: Test etcd
         run: |
-          integration/etcd/test.sh
-          integration/expect/check.sh
+          test/integration/etcd/test.sh
+          test/integration/expect/check.sh
         env:
           ETCD_ENDPOINT: "http://etcd:2379"
 
       - name: Test DynamoDB
         run: |
-          integration/dynamodb/test.sh
-          integration/expect/check.sh
+          test/integration/dynamodb/test.sh
+          test/integration/expect/check.sh
         env:
           AWS_ACCESS_KEY_ID: "test"
           AWS_SECRET_ACCESS_KEY: "test"
@@ -119,16 +119,16 @@ jobs:
 
       - name: Test Redis
         run: |
-          integration/redis/test.sh
-          integration/expect/check.sh
+          test/integration/redis/test.sh
+          test/integration/expect/check.sh
         env:
           REDIS_HOST: redis
           REDIS_PORT: 6379
 
       - name: Test SSM Parameter Store
         run: |
-          integration/ssm/test.sh
-          integration/expect/check.sh
+          test/integration/ssm/test.sh
+          test/integration/expect/check.sh
         env:
           AWS_ACCESS_KEY_ID: "test"
           AWS_SECRET_ACCESS_KEY: "test"
@@ -139,19 +139,19 @@ jobs:
 
       - name: Test Vault
         run: |
-          integration/vault-v1/test.sh
-          integration/expect/check.sh
-          integration/vault-v2/test.sh
-          integration/expect/check.sh
-          integration/vault-approle/test.sh
-          integration/expect/check.sh
+          test/integration/vault-v1/test.sh
+          test/integration/expect/check.sh
+          test/integration/vault-v2/test.sh
+          test/integration/expect/check.sh
+          test/integration/vault-approle/test.sh
+          test/integration/expect/check.sh
         env:
           VAULT_ADDR: http://vault:8200
           VAULT_TOKEN: "super-secret-token"
 
       - name: Test Zookeeper
         run: |
-          integration/zookeeper/test.sh
-          integration/expect/check.sh
+          test/integration/zookeeper/test.sh
+          test/integration/expect/check.sh
         env:
           ZOOKEEPER_NODE: zookeeper
