@@ -5,7 +5,7 @@ github.com/BurntSushi/toml/internal
 # github.com/armon/go-metrics v0.3.6
 ## explicit
 github.com/armon/go-metrics
-# github.com/aws/aws-sdk-go v1.43.7
+# github.com/aws/aws-sdk-go v1.43.12
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
