@@ -31,14 +31,9 @@ func New(config Config) (StoreClient, error) {
 	}
 	backendNodes := config.BackendNodes
 
-	if config.Backend == "file" {
-		log.Info("Backend source(s) set to " + strings.Join(config.YAMLFile, ", "))
-	} else {
-		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
-	}
-
 	switch config.Backend {
 	case "consul":
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
 		return consul.New(config.BackendNodes, config.Scheme,
 			config.ClientCert, config.ClientKey,
 			config.ClientCaKeys,
@@ -47,16 +42,21 @@ func New(config Config) (StoreClient, error) {
 			config.Password,
 		)
 	case "etcd":
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
 		return etcd.NewEtcdClient(backendNodes, config.ClientCert, config.ClientKey, config.ClientCaKeys, config.ClientInsecure, config.BasicAuth, config.Username, config.Password)
 	case "zookeeper":
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
 		return zookeeper.NewZookeeperClient(backendNodes)
 	case "redis":
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
 		return redis.NewRedisClient(backendNodes, config.ClientKey, config.Separator)
 	case "env":
 		return env.NewEnvClient()
 	case "file":
+		log.Info("Backend source(s) set to " + strings.Join(config.YAMLFile, ", "))
 		return file.NewFileClient(config.YAMLFile, config.Filter)
 	case "vault":
+		log.Info("Backend source(s) set to " + strings.Join(backendNodes, ", "))
 		vaultConfig := map[string]string{
 			"app-id":    config.AppID,
 			"user-id":   config.UserID,

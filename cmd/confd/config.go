@@ -39,7 +39,7 @@ var config Config
 
 func init() {
 	flag.StringVar(&config.AuthToken, "auth-token", "", "Auth bearer token to use")
-	flag.StringVar(&config.Backend, "backend", "etcd", "backend to use")
+	flag.StringVar(&config.Backend, "backend", "", "backend to use")
 	flag.BoolVar(&config.BasicAuth, "basic-auth", false, "Use Basic Auth to authenticate (only used with -backend=consul and -backend=etcd)")
 	flag.StringVar(&config.ClientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&config.ClientCert, "client-cert", "", "the client cert")
@@ -145,8 +145,6 @@ func initConfig() error {
 			config.BackendNodes = []string{"127.0.0.1:2181"}
 		}
 	}
-	// Initialize the storage client
-	log.Info("Backend set to " + config.Backend)
 
 	if config.Watch {
 		unsupportedBackends := map[string]bool{
@@ -163,6 +161,13 @@ func initConfig() error {
 	if config.Backend == "dynamodb" && config.Table == "" {
 		return errors.New("No DynamoDB table configured")
 	}
+
+	if config.Backend == "" {
+		log.Fatal("Backend is not set. Exiting...")
+		os.Exit(1)
+	}
+	// Initialize the storage client
+	log.Info("Backend set to " + config.Backend)
 	config.ConfigDir = filepath.Join(config.ConfDir, "conf.d")
 	config.TemplateDir = filepath.Join(config.ConfDir, "templates")
 	return nil
