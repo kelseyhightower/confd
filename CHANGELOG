@@ -1,3 +1,24 @@
+### v0.19.0
+
+33216b5 - feat: enable confd to exit when no backend is set (#75) (abtreece)
+03e9f16 - Bump github.com/BurntSushi/toml from 1.0.0 to 1.1.0 (#74) (dependabot[bot])
+a1d6c34 - Bump github.com/aws/aws-sdk-go from 1.43.17 to 1.43.36 (#73) (dependabot[bot])
+c032a4b - Bump github.com/hashicorp/vault/api from 1.4.1 to 1.5.0 (#70) (dependabot[bot])
+8a60902 - Bump actions/setup-go from 2 to 3 (#72) (dependabot[bot])
+aa99418 - Bump github.com/aws/aws-sdk-go from 1.43.12 to 1.43.17 (#67) (dependabot[bot])
+87165aa - Upgrade Go to 1.17 and Refactor the project layout (abtreece)
+e2c53f0 - Bump github.com/aws/aws-sdk-go from 1.43.7 to 1.43.12 (#65) (dependabot[bot])
+99a8eaa - Bump actions/checkout from 2 to 3 (#64) (dependabot[bot])
+47b02bd - Update release drafter for main branch change (abtreece)
+7268fd0 - Add dependencies to the standard labels def (abtreece)
+1ba912c - Bump github.com/aws/aws-sdk-go from 1.43.2 to 1.43.7 (#63) (dependabot[bot])
+4aae0e0 - Update release-drafter to inlude deps as minor (abtreece)
+8a701c3 - Bump github.com/fsnotify/fsnotify from 1.4.9 to 1.5.1 (#58) (dependabot[bot])
+1907719 - Bump github.com/aws/aws-sdk-go from 1.42.51 to 1.43.2 (#59) (depe
+ndabot[bot])
+e055751 - Update go-zookeeper to use active fork (#61) (abtreece)
+d03d32d - Switch GHA Integration tests to use containers (abtreece)
+
 ### v0.18.4
 68189a1 - Update app versions for backend integrations (abtreece)
 6e3d2b3 - Bump github.com/aws/aws-sdk-go from 1.37.12 to 1.42.51 (#55) (dependabot[bot])
