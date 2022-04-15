@@ -156,7 +156,7 @@ github.com/hashicorp/hcl/json/token
 # github.com/hashicorp/serf v0.9.6
 ## explicit; go 1.12
 github.com/hashicorp/serf/coordinate
-# github.com/hashicorp/vault/api v1.4.1
+# github.com/hashicorp/vault/api v1.5.0
 ## explicit; go 1.13
 github.com/hashicorp/vault/api
 # github.com/hashicorp/vault/sdk v0.4.1

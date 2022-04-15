@@ -12,7 +12,7 @@ require (
 	github.com/garyburd/redigo v1.6.3
 	github.com/go-zookeeper/zk v1.0.2
 	github.com/hashicorp/consul/api v1.12.0
-	github.com/hashicorp/vault/api v1.4.1
+	github.com/hashicorp/vault/api v1.5.0
 	github.com/kelseyhightower/memkv v0.1.1
 	github.com/sirupsen/logrus v1.8.1
 	go.etcd.io/etcd/client/v3 v3.5.2
