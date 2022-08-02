@@ -72,7 +72,7 @@ github.com/fsnotify/fsnotify
 ## explicit; go 1.17
 github.com/garyburd/redigo/internal
 github.com/garyburd/redigo/redis
-# github.com/go-zookeeper/zk v1.0.2
+# github.com/go-zookeeper/zk v1.0.3
 ## explicit; go 1.13
 github.com/go-zookeeper/zk
 # github.com/gogo/protobuf v1.3.2
