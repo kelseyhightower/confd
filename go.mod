@@ -11,7 +11,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/garyburd/redigo v1.6.3
 	github.com/go-zookeeper/zk v1.0.2
-	github.com/hashicorp/consul/api v1.12.0
+	github.com/hashicorp/consul/api v1.13.1
 	github.com/hashicorp/vault/api v1.7.2
 	github.com/kelseyhightower/memkv v0.1.1
 	github.com/sirupsen/logrus v1.8.1
