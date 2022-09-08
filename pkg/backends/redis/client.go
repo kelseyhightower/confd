@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/abtreece/confd/pkg/log"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 )
 
 type watchResponse struct {
@@ -257,7 +257,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 				}()
 				for {
 					switch n := c.psc.Receive().(type) {
-					case redis.PMessage:
+					case redis.Message:
 						log.Debug(fmt.Sprintf("Redis Message: %s %s\n", n.Channel, n.Data))
 						data := string(n.Data)
 						commands := [12]string{"del", "append", "rename_from", "rename_to", "expire", "set", "incrby", "incrbyfloat", "hset", "hincrby", "hincrbyfloat", "hdel"}

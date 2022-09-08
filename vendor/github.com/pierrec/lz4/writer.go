@@ -3,9 +3,10 @@ package lz4
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/pierrec/lz4/internal/xxh32"
 	"io"
 	"runtime"
+
+	"github.com/pierrec/lz4/internal/xxh32"
 )
 
 // zResult contains the results of compressing a block.
@@ -83,10 +84,8 @@ func (z *Writer) WithConcurrency(n int) *Writer {
 					z.err = err
 				}
 			}
-			if isCompressed := res.size&compressedBlockFlag == 0; isCompressed {
-				// It is now safe to release the buffer as no longer in use by any goroutine.
-				putBuffer(cap(res.data), res.data)
-			}
+			// It is now safe to release the buffer as no longer in use by any goroutine.
+			putBuffer(cap(res.data), res.data)
 			if h := z.OnBlockDone; h != nil {
 				h(n)
 			}
@@ -230,7 +229,12 @@ func (z *Writer) compressBlock(data []byte) error {
 	if z.c != nil {
 		c := make(chan zResult)
 		z.c <- c // Send now to guarantee order
-		go writerCompressBlock(c, z.Header, data)
+
+		// get a buffer from the pool and copy the data over
+		block := getBuffer(z.Header.BlockMaxSize)[:len(data)]
+		copy(block, data)
+
+		go writerCompressBlock(c, z.Header, block)
 		return nil
 	}
 
@@ -298,7 +302,9 @@ func (z *Writer) Flush() error {
 		return nil
 	}
 
-	data := z.data[:z.idx]
+	data := getBuffer(z.Header.BlockMaxSize)[:len(z.data[:z.idx])]
+	copy(data, z.data[:z.idx])
+
 	z.idx = 0
 	if z.c == nil {
 		return z.compressBlock(data)
@@ -370,6 +376,10 @@ func (z *Writer) Reset(w io.Writer) {
 	z.checksum.Reset()
 	z.idx = 0
 	z.err = nil
+	// reset hashtable to ensure deterministic output.
+	for i := range z.hashtable {
+		z.hashtable[i] = 0
+	}
 	z.WithConcurrency(n)
 }
 
@@ -397,9 +407,13 @@ func writerCompressBlock(c chan zResult, header Header, data []byte) {
 	if zn > 0 && zn < len(data) {
 		res.size = uint32(zn)
 		res.data = zdata[:zn]
+		// release the uncompressed block since it is not used anymore
+		putBuffer(header.BlockMaxSize, data)
 	} else {
 		res.size = uint32(len(data)) | compressedBlockFlag
 		res.data = data
+		// release the compressed block since it was not used
+		putBuffer(header.BlockMaxSize, zdata)
 	}
 	if header.BlockChecksum {
 		res.checksum = xxh32.ChecksumZero(res.data)

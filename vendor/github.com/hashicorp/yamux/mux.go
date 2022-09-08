@@ -3,6 +3,7 @@ package yamux
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"time"
 )
@@ -30,8 +31,27 @@ type Config struct {
 	// window size that we allow for a stream.
 	MaxStreamWindowSize uint32
 
-	// LogOutput is used to control the log destination
+	// StreamOpenTimeout is the maximum amount of time that a stream will
+	// be allowed to remain in pending state while waiting for an ack from the peer.
+	// Once the timeout is reached the session will be gracefully closed.
+	// A zero value disables the StreamOpenTimeout allowing unbounded
+	// blocking on OpenStream calls.
+	StreamOpenTimeout time.Duration
+
+	// StreamCloseTimeout is the maximum time that a stream will allowed to
+	// be in a half-closed state when `Close` is called before forcibly
+	// closing the connection. Forcibly closed connections will empty the
+	// receive buffer, drop any future packets received for that stream,
+	// and send a RST to the remote side.
+	StreamCloseTimeout time.Duration
+
+	// LogOutput is used to control the log destination. Either Logger or
+	// LogOutput can be set, not both.
 	LogOutput io.Writer
+
+	// Logger is used to pass in the logger to be used. Either Logger or
+	// LogOutput can be set, not both.
+	Logger *log.Logger
 }
 
 // DefaultConfig is used to return a default configuration
@@ -42,6 +62,8 @@ func DefaultConfig() *Config {
 		KeepAliveInterval:      30 * time.Second,
 		ConnectionWriteTimeout: 10 * time.Second,
 		MaxStreamWindowSize:    initialStreamWindow,
+		StreamCloseTimeout:     5 * time.Minute,
+		StreamOpenTimeout:      75 * time.Second,
 		LogOutput:              os.Stderr,
 	}
 }
@@ -56,6 +78,11 @@ func VerifyConfig(config *Config) error {
 	}
 	if config.MaxStreamWindowSize < initialStreamWindow {
 		return fmt.Errorf("MaxStreamWindowSize must be larger than %d", initialStreamWindow)
+	}
+	if config.LogOutput != nil && config.Logger != nil {
+		return fmt.Errorf("both Logger and LogOutput may not be set, select one")
+	} else if config.LogOutput == nil && config.Logger == nil {
+		return fmt.Errorf("one of Logger or LogOutput must be set, select one")
 	}
 	return nil
 }
