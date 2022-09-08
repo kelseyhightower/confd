@@ -174,7 +174,7 @@ golang.org/x/text/unicode/norm
 # google.golang.org/genproto v0.0.0-20180427144745-86e600f69ee4
 ## explicit
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.11.3
+# google.golang.org/grpc v1.11.3 => google.golang.org/grpc v1.11.3
 ## explicit
 google.golang.org/grpc
 google.golang.org/grpc/balancer
@@ -203,3 +203,6 @@ google.golang.org/grpc/transport
 # gopkg.in/yaml.v2 v2.2.1
 ## explicit
 gopkg.in/yaml.v2
+# github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.6
+# gopkg.in/ory-am/dockertest.v3 => github.com/ory/dockertest/v3 v3.9.1
+# google.golang.org/grpc => google.golang.org/grpc v1.11.3

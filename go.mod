@@ -43,3 +43,10 @@ require (
 	google.golang.org/genproto v0.0.0-20180427144745-86e600f69ee4 // indirect
 	google.golang.org/grpc v1.11.3 // indirect
 )
+
+replace (
+  github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.6
+  gopkg.in/ory-am/dockertest.v3 => github.com/ory/dockertest/v3 v3.9.1
+	google.golang.org/grpc => google.golang.org/grpc v1.11.3
+)
+
