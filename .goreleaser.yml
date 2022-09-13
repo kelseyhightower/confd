@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
 builds:
+  - main: ./cmd/confd
   - binary: confd
     env:
       - CGO_ENABLED=0
