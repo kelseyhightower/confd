@@ -1,3 +1,17 @@
+### v0.19.1
+
+285633b - Properly set errors for SSM GetParametersByPath... (abtreece)
+26630d6 - Bump github.com/aws/aws-sdk-go from 1.44.93 to 1.44.94 (#116) (dependabot[bot])
+0e10015 - Update Go and modules to fix security vulns (abtreece)
+8a76b9a - Bump github.com/aws/aws-sdk-go from 1.43.36 to 1.44.66 (#103) (dependabot[bot])
+e23edaa - Bump github.com/sirupsen/logrus from 1.8.1 to 1.9.0 (#101) (dependabot[bot])
+7bbfe48 - Bump github.com/go-zookeeper/zk from 1.0.2 to 1.0.3 (#100) (dependabot[bot])
+4360288 - Bump github.com/hashicorp/consul/api from 1.12.0 to 1.13.1 (#97) (dependabot[bot])
+99511a3 - Bump github.com/hashicorp/vault/api from 1.5.0 to 1.7.2 (#92) (dependabot[bot])
+58f6e64 - Bump go.etcd.io/etcd/client/v3 from 3.5.2 to 3.5.4 (#83) (dependabot[bot])
+b898672 - Bump github.com/fsnotify/fsnotify from 1.5.1 to 1.5.4 (#82) (dependabot[bot])
+ed47168 - Bump github/codeql-action from 1 to 2 (#80) (dependabot[bot])
+
 ### v0.19.0
 
 33216b5 - feat: enable confd to exit when no backend is set (#75) (abtreece)
