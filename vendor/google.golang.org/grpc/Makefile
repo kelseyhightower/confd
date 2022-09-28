@@ -1,19 +1,13 @@
-all: test testrace
+all: vet test testrace
+
+build:
+	go build google.golang.org/grpc/...
+
+clean:
+	go clean -i google.golang.org/grpc/...
 
 deps:
-	go get -d -v google.golang.org/grpc/...
-
-updatedeps:
-	go get -d -v -u -f google.golang.org/grpc/...
-
-testdeps:
-	go get -d -v -t google.golang.org/grpc/...
-
-updatetestdeps:
-	go get -d -v -t -u -f google.golang.org/grpc/...
-
-build: deps
-	go build google.golang.org/grpc/...
+	GO111MODULE=on go get -d -v google.golang.org/grpc/...
 
 proto:
 	@ if ! which protoc > /dev/null; then \
@@ -22,24 +16,31 @@ proto:
 	fi
 	go generate google.golang.org/grpc/...
 
-test: testdeps
-	go test -cpu 1,4 -timeout 5m google.golang.org/grpc/...
+test:
+	go test -cpu 1,4 -timeout 7m google.golang.org/grpc/...
 
-testrace: testdeps
+testsubmodule:
+	cd security/advancedtls && go test -cpu 1,4 -timeout 7m google.golang.org/grpc/security/advancedtls/...
+	cd security/authorization && go test -cpu 1,4 -timeout 7m google.golang.org/grpc/security/authorization/...
+
+testrace:
 	go test -race -cpu 1,4 -timeout 7m google.golang.org/grpc/...
 
-clean:
-	go clean -i google.golang.org/grpc/...
+testdeps:
+	GO111MODULE=on go get -d -v -t google.golang.org/grpc/...
+
+vet: vetdeps
+	./vet.sh
+
+vetdeps:
+	./vet.sh -install
 
 .PHONY: \
 	all \
-	deps \
-	updatedeps \
-	testdeps \
-	updatetestdeps \
 	build \
+	clean \
 	proto \
 	test \
 	testrace \
-	clean \
-	coverage
+	vet \
+	vetdeps

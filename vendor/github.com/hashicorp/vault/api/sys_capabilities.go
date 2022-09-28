@@ -1,12 +1,33 @@
 package api
 
-import "fmt"
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+
+	"github.com/mitchellh/mapstructure"
+)
 
 func (c *Sys) CapabilitiesSelf(path string) ([]string, error) {
-	return c.Capabilities(c.c.Token(), path)
+	return c.CapabilitiesSelfWithContext(context.Background(), path)
+}
+
+func (c *Sys) CapabilitiesSelfWithContext(ctx context.Context, path string) ([]string, error) {
+	ctx, cancelFunc := c.c.withConfiguredTimeout(ctx)
+	defer cancelFunc()
+
+	return c.CapabilitiesWithContext(ctx, c.c.Token(), path)
 }
 
 func (c *Sys) Capabilities(token, path string) ([]string, error) {
+	return c.CapabilitiesWithContext(context.Background(), token, path)
+}
+
+func (c *Sys) CapabilitiesWithContext(ctx context.Context, token, path string) ([]string, error) {
+	ctx, cancelFunc := c.c.withConfiguredTimeout(ctx)
+	defer cancelFunc()
+
 	body := map[string]string{
 		"token": token,
 		"path":  path,
@@ -17,27 +38,40 @@ func (c *Sys) Capabilities(token, path string) ([]string, error) {
 		reqPath = fmt.Sprintf("%s-self", reqPath)
 	}
 
-	r := c.c.NewRequest("POST", reqPath)
+	r := c.c.NewRequest(http.MethodPost, reqPath)
 	if err := r.SetJSONBody(body); err != nil {
 		return nil, err
 	}
 
-	resp, err := c.c.RawRequest(r)
+	resp, err := c.c.rawRequestWithContext(ctx, r)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var result map[string]interface{}
-	err = resp.DecodeJSON(&result)
+	secret, err := ParseSecret(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if secret == nil || secret.Data == nil {
+		return nil, errors.New("data from server response is empty")
+	}
+
+	var res []string
+	err = mapstructure.Decode(secret.Data[path], &res)
 	if err != nil {
 		return nil, err
 	}
 
-	var capabilities []string
-	capabilitiesRaw := result["capabilities"].([]interface{})
-	for _, capability := range capabilitiesRaw {
-		capabilities = append(capabilities, capability.(string))
+	if len(res) == 0 {
+		_, ok := secret.Data["capabilities"]
+		if ok {
+			err = mapstructure.Decode(secret.Data["capabilities"], &res)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
-	return capabilities, nil
+
+	return res, nil
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -24,15 +23,14 @@ type BackendsConfig = backends.Config
 type Config struct {
 	TemplateConfig
 	BackendsConfig
-	Interval      int    `toml:"interval"`
-	SecretKeyring string `toml:"secret_keyring"`
-	SRVDomain     string `toml:"srv_domain"`
-	SRVRecord     string `toml:"srv_record"`
-	LogLevel      string `toml:"log-level"`
-	Watch         bool   `toml:"watch"`
-	PrintVersion  bool
-	ConfigFile    string
-	OneTime       bool
+	Interval     int    `toml:"interval"`
+	SRVDomain    string `toml:"srv_domain"`
+	SRVRecord    string `toml:"srv_record"`
+	LogLevel     string `toml:"log-level"`
+	Watch        bool   `toml:"watch"`
+	PrintVersion bool
+	ConfigFile   string
+	OneTime      bool
 }
 
 var config Config
@@ -44,7 +42,7 @@ func init() {
 	flag.StringVar(&config.ClientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&config.ClientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&config.ClientKey, "client-key", "", "the client key")
-        flag.BoolVar(&config.ClientInsecure, "client-insecure", false, "Allow connections to SSL sites without certs (only used with -backend=etcd)")
+	flag.BoolVar(&config.ClientInsecure, "client-insecure", false, "Allow connections to SSL sites without certs (only used with -backend=etcd)")
 	flag.StringVar(&config.ConfDir, "confdir", "/etc/confd", "confd conf directory")
 	flag.StringVar(&config.ConfigFile, "config-file", "/etc/confd/confd.toml", "the confd config file")
 	flag.Var(&config.YAMLFile, "file", "the YAML file to watch for changes (only used with -backend=file)")
@@ -58,7 +56,6 @@ func init() {
 	flag.StringVar(&config.Prefix, "prefix", "", "key path prefix")
 	flag.BoolVar(&config.PrintVersion, "version", false, "print version and exit")
 	flag.StringVar(&config.Scheme, "scheme", "http", "the backend URI scheme for nodes retrieved from DNS SRV records (http or https)")
-	flag.StringVar(&config.SecretKeyring, "secret-keyring", "", "path to armored PGP secret keyring (for use with crypt functions)")
 	flag.StringVar(&config.SRVDomain, "srv-domain", "", "the name of the resource record")
 	flag.StringVar(&config.SRVRecord, "srv-record", "", "the SRV record to search for backends nodes. Example: _etcd-client._tcp.example.com")
 	flag.BoolVar(&config.SyncOnly, "sync-only", false, "sync without check_cmd and reload_cmd")
@@ -86,7 +83,7 @@ func initConfig() error {
 		log.Debug("Skipping confd config file.")
 	} else {
 		log.Debug("Loading " + config.ConfigFile)
-		configBytes, err := ioutil.ReadFile(config.ConfigFile)
+		configBytes, err := os.ReadFile(config.ConfigFile)
 		if err != nil {
 			return err
 		}
@@ -99,18 +96,6 @@ func initConfig() error {
 
 	// Update config from environment variables.
 	processEnv()
-
-	if config.SecretKeyring != "" {
-		kr, err := os.Open(config.SecretKeyring)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		defer kr.Close()
-		config.PGPPrivateKey, err = ioutil.ReadAll(kr)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-	}
 
 	if config.LogLevel != "" {
 		log.SetLevel(config.LogLevel)
@@ -176,7 +161,7 @@ func initConfig() error {
 	}
 
 	if config.Backend == "dynamodb" && config.Table == "" {
-		return errors.New("No DynamoDB table configured")
+		return errors.New("no DynamoDB table configured")
 	}
 	config.ConfigDir = filepath.Join(config.ConfDir, "conf.d")
 	config.TemplateDir = filepath.Join(config.ConfDir, "templates")

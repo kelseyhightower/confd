@@ -12,6 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
+//go:build go1.7
 // +build go1.7
 
 package redis
@@ -27,9 +28,9 @@ import "context"
 // If the function completes without error, then the application must close the
 // returned connection.
 func (p *Pool) GetContext(ctx context.Context) (Conn, error) {
-	c, err := p.get(ctx)
+	pc, err := p.get(ctx)
 	if err != nil {
-		return errorConnection{err}, err
+		return errorConn{err}, err
 	}
-	return &pooledConnection{p: p, c: c}, nil
+	return &activeConn{p: p, pc: pc}, nil
 }
