@@ -5,7 +5,7 @@ before:
     - go mod tidy
 builds:
   - main: ./cmd/confd
-  - binary: confd
+    binary: confd
     env:
       - CGO_ENABLED=0
     ldflags: -s -w -X main.GitSHA={{ .ShortCommit }}

@@ -35,4 +35,4 @@ snapshot:
 	@goreleaser --snapshot --skip-publish --rm-dist
 
 release:
-	@goreleaser --skip-publish --rm-dist
+	@goreleaser --skip-publish --rm-dist --skip-validate
