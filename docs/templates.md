@@ -364,6 +364,72 @@ Alias for the [strconv.Atoi](https://golang.org/pkg/strconv/#Atoi) function.
 {{seq 1 (atoi (getv "/count"))}}
 ```
 
+### add
+
+Add two integers.
+
+```
+{{$five := add 1 4}}
+```
+
+### sub
+
+Subtract two integers.
+
+```
+{{$four := sub 10 6}}
+```
+
+### mul
+
+Multiplicate two integers.
+
+```
+{{$six := mul 3 2}}
+```
+
+### div
+
+Divide two integers.
+
+```
+{{$two := sub 6 3}}
+```
+
+### mod
+
+Calculate modulus of two integers.
+
+```
+{{$three := mod 8 5}}
+```
+
+### modBool
+
+Returns whether modulus of two integers is zero.
+
+```
+{{mod 8 4}}
+```
+
+### loop
+
+Takes two integers and generates the number of integers given by the first integer starting with the second integer.
+
+```
+# Generates [5,6,7]
+{{loop 3 5}}
+```
+
+### loop1to
+
+Generates integers from 1 to the given integer.
+
+```
+# Generates [1,2,3,4,5]
+{{loop1to 5}}
+```
+
 ## Example Usage
 
 ```Bash
