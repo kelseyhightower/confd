@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -39,25 +40,26 @@ type TemplateResourceConfig struct {
 
 // TemplateResource is the representation of a parsed template resource.
 type TemplateResource struct {
-	CheckCmd      string `toml:"check_cmd"`
-	Dest          string
-	FileMode      os.FileMode
-	Gid           int
-	Keys          []string
-	Mode          string
-	Prefix        string
-	ReloadCmd     string `toml:"reload_cmd"`
-	Src           string
-	StageFile     *os.File
-	Uid           int
-	funcMap       map[string]interface{}
-	lastIndex     uint64
-	keepStageFile bool
-	noop          bool
-	store         memkv.Store
-	storeClient   backends.StoreClient
-	syncOnly      bool
-	PGPPrivateKey []byte
+	CheckCmd         string `toml:"check_cmd"`
+	Dest             string
+	FileMode         os.FileMode
+	Gid              int
+	Keys             []string
+	Mode             string
+	Prefix           string
+	ReloadCmd        string `toml:"reload_cmd"`
+	Src              string
+	StageFile        *os.File
+	Uid              int
+	funcMap          map[string]interface{}
+	lastIndex        uint64
+	keepStageFile    bool
+	noop             bool
+	store            memkv.Store
+	storeClient      backends.StoreClient
+	syncOnly         bool
+	PGPPrivateKey    []byte
+	AutoDiscoverKeys bool
 }
 
 var ErrEmptySrc = errors.New("empty src template")
@@ -115,7 +117,16 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 func (t *TemplateResource) setVars() error {
 	var err error
 	log.Debug("Retrieving keys from store")
+
+	if t.AutoDiscoverKeys {
+		log.Debug("AutoDiscoverKeys is set to True, retrieving keys that are defined in the tmpl file")
+		t.discoverKeys()
+	} else {
+		log.Debug("AutoDiscoverKeys is set to False, retrieving keys that are defined in the toml file")
+	}
+
 	log.Debug("Key prefix set to " + t.Prefix)
+	log.Debug("Keys are: %v", t.Keys)
 
 	result, err := t.storeClient.GetValues(util.AppendPrefix(t.Prefix, t.Keys))
 	if err != nil {
@@ -131,6 +142,28 @@ func (t *TemplateResource) setVars() error {
 	return nil
 }
 
+// auto discovers keys that are used in the template
+func (t *TemplateResource) discoverKeys() error {
+	log.Debug("Retrieving keys from template file")
+
+	var buf bytes.Buffer
+	k := NewKeysCache()
+	t.compileTemplate(k.FuncMap, &buf)
+
+	t.Keys = k.Keys
+	return nil
+}
+
+func (t *TemplateResource) compileTemplate(funcMap map[string]interface{}, wr io.Writer) error {
+	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(funcMap).ParseFiles(t.Src)
+
+	if err != nil {
+		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
+	}
+
+	return tmpl.Execute(wr, nil)
+}
+
 // createStageFile stages the src configuration file by processing the src
 // template and setting the desired owner, group, and mode. It also sets the
 // StageFile for the template resource.
@@ -144,18 +177,16 @@ func (t *TemplateResource) createStageFile() error {
 
 	log.Debug("Compiling source template " + t.Src)
 
-	tmpl, err := template.New(filepath.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
-	if err != nil {
-		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
-	}
-
 	// create TempFile in Dest directory to avoid cross-filesystem issues
 	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
+
 	if err != nil {
 		return err
 	}
 
-	if err = tmpl.Execute(temp, nil); err != nil {
+	err = t.compileTemplate(t.funcMap, temp)
+
+	if err != nil {
 		temp.Close()
 		os.Remove(temp.Name())
 		return err

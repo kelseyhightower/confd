@@ -70,6 +70,7 @@ func init() {
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
+	flag.StringVar(&config.QueryMode, "query-mode", "", "SSM retrieval strategy: by path prefix (default), or by name (-query-mode=byname) (only used with -backend=ssm)")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,

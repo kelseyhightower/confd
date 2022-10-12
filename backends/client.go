@@ -82,7 +82,7 @@ func New(config Config) (StoreClient, error) {
 		log.Info("DynamoDB table set to " + table)
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
-		return ssm.New()
+		return ssm.New(config.QueryMode)
 	}
 	return nil, errors.New("Invalid backend")
 }
