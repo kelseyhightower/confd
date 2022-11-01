@@ -22,7 +22,13 @@ func New() (*Client, error) {
 	// shorten ec2metadata client timeout so it fails fast if not on EC2.
 	metaSession, _ := session.NewSession()
 	metaClient := ec2metadata.New(metaSession)
-	region, _ := metaClient.Region()
+	var region string
+
+	if os.Getenv("AWS_REGION") != "" {
+		region = os.Getenv("AWS_REGION")
+	} else {
+		region, _ = metaClient.Region()
+	}
 
 	conf := aws.NewConfig().WithRegion(region)
 
