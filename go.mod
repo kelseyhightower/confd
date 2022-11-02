@@ -12,7 +12,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gomodule/redigo v1.8.9
 	github.com/hashicorp/consul/api v1.15.3
-	github.com/hashicorp/vault/api v1.7.2
+	github.com/hashicorp/vault/api v1.8.2
 	github.com/kelseyhightower/memkv v0.1.1
 	github.com/sirupsen/logrus v1.9.0
 	go.etcd.io/etcd/client/v3 v3.5.5
@@ -43,7 +43,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/serf v0.10.0 // indirect
-	github.com/hashicorp/vault/sdk v0.5.3 // indirect
+	github.com/hashicorp/vault/sdk v0.6.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -64,7 +64,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/net v0.0.0-20220907135653-1e95f45603a7 // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	google.golang.org/genproto v0.0.0-20220908141613-51c1cc9bc6d0 // indirect
 	google.golang.org/grpc v1.49.0 // indirect
