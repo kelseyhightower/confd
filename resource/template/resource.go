@@ -15,6 +15,7 @@ import (
 	"text/template"
 
 	"github.com/BurntSushi/toml"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
 	util "github.com/kelseyhightower/confd/util"
@@ -85,6 +86,12 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.funcMap = newFuncMap()
 	tr.store = memkv.New()
 	tr.syncOnly = config.SyncOnly
+	sprigFuncMap := sprig.TxtFuncMap()
+
+	for funcName, sprigFunc := range sprigFuncMap {
+		addFunc(tr.funcMap, "sprig"+strings.Title(funcName), sprigFunc)
+	}
+
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 
 	if config.Prefix != "" {
