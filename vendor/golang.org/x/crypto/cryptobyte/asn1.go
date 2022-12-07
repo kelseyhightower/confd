@@ -407,7 +407,12 @@ func (s *String) ReadASN1Enum(out *int) bool {
 func (s *String) readBase128Int(out *int) bool {
 	ret := 0
 	for i := 0; len(*s) > 0; i++ {
-		if i == 4 {
+		if i == 5 {
+			return false
+		}
+		// Avoid overflowing int on a 32-bit platform.
+		// We don't want different behavior based on the architecture.
+		if ret >= 1<<(31-7) {
 			return false
 		}
 		ret <<= 7
@@ -527,7 +532,7 @@ func (s *String) ReadASN1BitString(out *encoding_asn1.BitString) bool {
 		return false
 	}
 
-	paddingBits := uint8(bytes[0])
+	paddingBits := bytes[0]
 	bytes = bytes[1:]
 	if paddingBits > 7 ||
 		len(bytes) == 0 && paddingBits != 0 ||
@@ -549,7 +554,7 @@ func (s *String) ReadASN1BitStringAsBytes(out *[]byte) bool {
 		return false
 	}
 
-	paddingBits := uint8(bytes[0])
+	paddingBits := bytes[0]
 	if paddingBits != 0 {
 		return false
 	}

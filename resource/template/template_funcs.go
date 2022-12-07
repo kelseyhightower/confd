@@ -54,6 +54,10 @@ func newFuncMap() map[string]interface{} {
 	return m
 }
 
+func addFunc(out map[string]interface{}, fName string, fBody interface{}) {
+	out[fName] = fBody
+}
+
 func addFuncs(out, in map[string]interface{}) {
 	for name, fn := range in {
 		out[name] = fn
