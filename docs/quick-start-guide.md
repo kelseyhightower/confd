@@ -24,8 +24,8 @@ This guide assumes you have a working [etcd](https://github.com/coreos/etcd#gett
 #### etcd
 
 ```
-etcdctl set /myapp/database/url db.example.com
-etcdctl set /myapp/database/user rob
+etcdctl put /myapp/database/url db.example.com
+etcdctl put /myapp/database/user rob
 ```
 
 #### consul
@@ -147,7 +147,7 @@ confd supports two modes of operation daemon and onetime. In daemon mode confd p
 #### etcd
 
 ```
-confd -onetime -backend etcd -node http://127.0.0.1:2379
+confd -onetime -backend etcdv3 -node http://127.0.0.1:2379
 ```
 
 #### consul
