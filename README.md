@@ -4,7 +4,7 @@
 
 [![Integration Tests](https://github.com/abtreece/confd/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/abtreece/confd/actions/workflows/integration-tests.yml)
 [![CodeQL](https://github.com/abtreece/confd/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/abtreece/confd/actions/workflows/codeql-analysis.yml)
-
+[![Codecov](https://codecov.io/gh/abtreece/confd/branch/main/graph/badge.svg?token=bNZ2ngzQO1)](https://codecov.io/gh/abtreece/confd)
 
 `confd` is a lightweight configuration management tool focused on:
 
