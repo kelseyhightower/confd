@@ -1,5 +1,5 @@
 .PHONY: build install clean test integration dep release
-VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' version.go`
+VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' cmd/confd/version.go`
 GIT_SHA=`git rev-parse --short HEAD || echo`
 
 build:

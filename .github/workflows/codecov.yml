@@ -1,0 +1,28 @@
+name: "Codecov"
+
+# Run workflow each time code is pushed to your repository and on a schedule.
+# The scheduled workflow runs every at 00:00 on Sunday UTC time.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+
+      - name: Run go test for coverage
+        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
