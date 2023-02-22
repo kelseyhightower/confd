@@ -2,6 +2,7 @@ package backends
 
 import (
 	"errors"
+	"github.com/kelseyhightower/confd/log"
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
@@ -9,12 +10,13 @@ import (
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
+	"github.com/kelseyhightower/confd/backends/nacos"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/ssm"
 	"github.com/kelseyhightower/confd/backends/vault"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve
@@ -83,6 +85,13 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
 		return ssm.New()
+	case "nacos":
+		return nacos.NewNacosClient(backendNodes, config.Group, constant.ClientConfig{
+			NamespaceId: config.Namespace,
+			AccessKey:   config.AccessKey,
+			SecretKey:   config.SecretKey,
+			Endpoint:    config.Endpoint,
+		})
 	}
 	return nil, errors.New("Invalid backend")
 }
