@@ -91,6 +91,8 @@ func New(config Config) (StoreClient, error) {
 			AccessKey:   config.AccessKey,
 			SecretKey:   config.SecretKey,
 			Endpoint:    config.Endpoint,
+			Username:    config.Username,
+			Password:    config.Password,
 		})
 	}
 	return nil, errors.New("Invalid backend")

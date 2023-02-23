@@ -19,6 +19,8 @@ type Client struct {
 	namespace string
 	accessKey string
 	secretKey string
+	username  string
+	password  string
 	channel   chan int
 }
 
@@ -42,6 +44,8 @@ func NewNacosClient(nodes []string, group string, config constant.ClientConfig) 
 	fmt.Println("AccessKey=" + config.AccessKey)
 	fmt.Println("SecretKey=" + config.SecretKey)
 	fmt.Println("Endpoint=" + config.Endpoint)
+	fmt.Println("Username=" + config.Username)
+	fmt.Println("Password=" + config.Password)
 
 	configClient, err = clients.CreateConfigClient(map[string]interface{}{
 		"serverConfigs": servers,
@@ -53,6 +57,8 @@ func NewNacosClient(nodes []string, group string, config constant.ClientConfig) 
 			AccessKey:           config.AccessKey,
 			SecretKey:           config.SecretKey,
 			Endpoint:            config.Endpoint,
+			Username:            config.Username,
+			Password:            config.Password,
 		},
 	})
 
@@ -62,7 +68,7 @@ func NewNacosClient(nodes []string, group string, config constant.ClientConfig) 
 
 	namespace := strings.TrimSpace(config.NamespaceId)
 
-	client = &Client{configClient, group, namespace, config.AccessKey, config.SecretKey, make(chan int)}
+	client = &Client{configClient, group, namespace, config.AccessKey, config.SecretKey, config.Username, config.Password, make(chan int)}
 	fmt.Println("hello nacos")
 
 	return
