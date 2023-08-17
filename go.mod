@@ -1,4 +1,4 @@
-module github.com/kelseyhightower/confd
+module github.com/radrtools/confd
 
 go 1.19
 
