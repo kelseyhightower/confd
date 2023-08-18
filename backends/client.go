@@ -4,17 +4,17 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/dynamodb"
-	"github.com/kelseyhightower/confd/backends/env"
-	"github.com/kelseyhightower/confd/backends/etcdv3"
-	"github.com/kelseyhightower/confd/backends/file"
-	"github.com/kelseyhightower/confd/backends/rancher"
-	"github.com/kelseyhightower/confd/backends/redis"
-	"github.com/kelseyhightower/confd/backends/ssm"
-	"github.com/kelseyhightower/confd/backends/vault"
-	"github.com/kelseyhightower/confd/backends/zookeeper"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/radartools/confd/backends/consul"
+	"github.com/radartools/confd/backends/dynamodb"
+	"github.com/radartools/confd/backends/env"
+	"github.com/radartools/confd/backends/etcdv3"
+	"github.com/radartools/confd/backends/file"
+	"github.com/radartools/confd/backends/rancher"
+	"github.com/radartools/confd/backends/redis"
+	"github.com/radartools/confd/backends/ssm"
+	"github.com/radartools/confd/backends/vault"
+	"github.com/radartools/confd/backends/zookeeper"
+	"github.com/radartools/confd/log"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/kelseyhightower/confd/log"
+	"github.com/radartools/confd/log"
 )
 
 // createRecursiveDirs is a helper function which creates temporary directorie
@@ -20,13 +20,14 @@ import (
 // │   ├── sub1.toml
 // │   └── sub12.toml
 // └── subDir2
-//       ├── sub2.other
-//       ├── sub2.toml
-//       ├── sub22.toml
-//       └── subSubDir
-//             ├── subsub.other
-//             ├── subsub.toml
-//             └── subsub2.toml
+//
+//	├── sub2.other
+//	├── sub2.toml
+//	├── sub22.toml
+//	└── subSubDir
+//	      ├── subsub.other
+//	      ├── subsub.toml
+//	      └── subsub2.toml
 func createDirStructure() (rootDir string, err error) {
 	mod := os.FileMode(0755)
 	flag := os.O_RDWR | os.O_CREATE | os.O_EXCL
