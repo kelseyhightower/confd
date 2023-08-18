@@ -3,7 +3,7 @@ Package log provides support for logging to stdout and stderr.
 
 Log entries will be logged in the following format:
 
-    timestamp hostname tag[pid]: SEVERITY Message
+	timestamp hostname tag[pid]: SEVERITY Message
 */
 package log
 

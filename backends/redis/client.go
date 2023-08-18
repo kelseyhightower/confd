@@ -8,9 +8,8 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/kelseyhightower/confd/log"
+	"github.com/radartools/confd/log"
 )
-
 
 type watchResponse struct {
 	waitIndex uint64
@@ -23,7 +22,7 @@ type Client struct {
 	machines  []string
 	password  string
 	separator string
-	psc 	  redis.PubSubConn
+	psc       redis.PubSubConn
 	pscChan   chan watchResponse
 }
 
@@ -116,17 +115,17 @@ func NewRedisClient(machines []string, password string, separator string) (*Clie
 	}
 	log.Debug(fmt.Sprintf("Redis Separator: %#v", separator))
 	var err error
-	clientWrapper := &Client{machines: machines, password: password, separator: separator, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil} }
+	clientWrapper := &Client{machines: machines, password: password, separator: separator, client: nil, pscChan: make(chan watchResponse), psc: redis.PubSubConn{Conn: nil}}
 	clientWrapper.client, _, err = tryConnect(machines, password, true)
 	return clientWrapper, err
 }
 
 func (c *Client) transform(key string) string {
 	if c.separator == "/" {
-		return key;
+		return key
 	}
 	k := strings.TrimPrefix(key, "/")
-	return strings.Replace(k, "/", c.separator, -1);
+	return strings.Replace(k, "/", c.separator, -1)
 }
 
 func (c *Client) clean(key string) string {
@@ -134,7 +133,7 @@ func (c *Client) clean(key string) string {
 	if !strings.HasPrefix(k, "/") {
 		k = "/" + k
 	}
-	return strings.Replace(k, c.separator, "/", -1);
+	return strings.Replace(k, c.separator, "/", -1)
 }
 
 // GetValues queries redis for keys prefixed by prefix.
@@ -172,7 +171,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 					}
 					idx, _ = redis.Int(values[0], nil)
 					items, _ := redis.Strings(values[1], nil)
-					for i := 0; i < len(items); i+=2 {
+					for i := 0; i < len(items); i += 2 {
 						var newKey, value string
 						if newKey, err = redis.String(items[i], nil); err != nil {
 							return vars, err
@@ -180,7 +179,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 						if value, err = redis.String(items[i+1], nil); err != nil {
 							return vars, err
 						}
-						vars[c.clean(k + "/" + newKey)] = value
+						vars[c.clean(k+"/"+newKey)] = value
 					}
 					if idx == 0 {
 						break
@@ -192,7 +191,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 				} else {
 					k = fmt.Sprintf(c.transform("%s/*"), k)
 				}
-		
+
 				idx := 0
 				for {
 					values, err := redis.Values(rClient.Do("SCAN", idx, "MATCH", k, "COUNT", "1000"))
@@ -226,7 +225,7 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 }
 
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
-		
+
 	if waitIndex == 0 {
 		return 1, nil
 	}
@@ -241,15 +240,15 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 
 	go func() {
 		if c.psc.Conn == nil {
-			rClient, db, err := tryConnect(c.machines, c.password, false);
-	
+			rClient, db, err := tryConnect(c.machines, c.password, false)
+
 			if err != nil {
 				c.psc = redis.PubSubConn{Conn: nil}
 				c.pscChan <- watchResponse{0, err}
 				return
 			}
-		
-			c.psc = redis.PubSubConn{Conn: rClient}		
+
+			c.psc = redis.PubSubConn{Conn: rClient}
 
 			go func() {
 				defer func() {
@@ -258,30 +257,30 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 				}()
 				for {
 					switch n := c.psc.Receive().(type) {
-						case redis.PMessage:
-							log.Debug(fmt.Sprintf("Redis Message: %s %s\n", n.Channel, n.Data))
-							data := string(n.Data)
-							commands := [12]string{"del", "append", "rename_from", "rename_to", "expire", "set", "incrby", "incrbyfloat", "hset", "hincrby", "hincrbyfloat", "hdel"}
-							for _, command := range commands {
-								if command == data {
-									c.pscChan <- watchResponse{1, nil}
-									break
-								}
+					case redis.PMessage:
+						log.Debug(fmt.Sprintf("Redis Message: %s %s\n", n.Channel, n.Data))
+						data := string(n.Data)
+						commands := [12]string{"del", "append", "rename_from", "rename_to", "expire", "set", "incrby", "incrbyfloat", "hset", "hincrby", "hincrbyfloat", "hdel"}
+						for _, command := range commands {
+							if command == data {
+								c.pscChan <- watchResponse{1, nil}
+								break
 							}
-						case redis.Subscription:
-							log.Debug(fmt.Sprintf("Redis Subscription: %s %s %d\n", n.Kind, n.Channel, n.Count))
-							if n.Count == 0 {
-								c.pscChan <- watchResponse{0, nil}
-								return
-							}
-						case error:
-							log.Debug(fmt.Sprintf("Redis error: %v\n", n))
-							c.pscChan <- watchResponse{0, n}
+						}
+					case redis.Subscription:
+						log.Debug(fmt.Sprintf("Redis Subscription: %s %s %d\n", n.Kind, n.Channel, n.Count))
+						if n.Count == 0 {
+							c.pscChan <- watchResponse{0, nil}
 							return
+						}
+					case error:
+						log.Debug(fmt.Sprintf("Redis error: %v\n", n))
+						c.pscChan <- watchResponse{0, n}
+						return
 					}
 				}
 			}()
-			
+
 			c.psc.PSubscribe("__keyspace@" + strconv.Itoa(db) + "__:" + c.transform(prefix) + "*")
 		}
 	}()
@@ -290,7 +289,7 @@ func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, sto
 	case <-stopChan:
 		c.psc.PUnsubscribe()
 		return waitIndex, nil
-	case r := <- c.pscChan:
+	case r := <-c.pscChan:
 		return r.waitIndex, r.err
 	}
 }

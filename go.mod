@@ -1,4 +1,4 @@
-module github.com/radrtools/confd
+module github.com/radartools/confd
 
 go 1.19
 

@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kelseyhightower/confd/log"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"sync"
+
+	"github.com/radartools/confd/log"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // A watch only tells the latest revision

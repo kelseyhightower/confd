@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
+	"github.com/radartools/confd/backends"
+	"github.com/radartools/confd/log"
+	"github.com/radartools/confd/resource/template"
 )
 
 type TemplateConfig = template.Config
