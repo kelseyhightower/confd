@@ -31,6 +31,7 @@ type Config struct {
 	PrintVersion bool
 	ConfigFile   string
 	OneTime      bool
+	SyncFirst    bool
 }
 
 var config Config
@@ -70,6 +71,7 @@ func init() {
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
+	flag.BoolVar(&config.SyncFirst, "sync-first", false, "sync template first")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
