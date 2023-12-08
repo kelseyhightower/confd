@@ -8,7 +8,7 @@ github.com/armon/go-metrics
 # github.com/armon/go-radix v1.0.0
 ## explicit
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.44.196
+# github.com/aws/aws-sdk-go v1.44.266
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
