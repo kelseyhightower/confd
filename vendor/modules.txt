@@ -91,8 +91,8 @@ github.com/golang/snappy
 # github.com/gomodule/redigo v1.8.9
 ## explicit; go 1.16
 github.com/gomodule/redigo/redis
-# github.com/hashicorp/consul/api v1.18.0
-## explicit; go 1.12
+# github.com/hashicorp/consul/api v1.20.0
+## explicit; go 1.19
 github.com/hashicorp/consul/api
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
