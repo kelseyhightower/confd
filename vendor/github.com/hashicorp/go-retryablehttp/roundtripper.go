@@ -1,7 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package retryablehttp
 
 import (
+	"errors"
 	"net/http"
+	"net/url"
 	"sync"
 )
 
@@ -39,5 +44,12 @@ func (rt *RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	// Execute the request.
-	return rt.Client.Do(retryableReq)
+	resp, err := rt.Client.Do(retryableReq)
+	// If we got an error returned by standard library's `Do` method, unwrap it
+	// otherwise we will wind up erroneously re-nesting the error.
+	if _, ok := err.(*url.Error); ok {
+		return resp, errors.Unwrap(err)
+	}
+
+	return resp, err
 }

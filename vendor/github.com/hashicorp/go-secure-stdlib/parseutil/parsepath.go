@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parseutil
 
 import (
@@ -9,7 +12,10 @@ import (
 	"strings"
 )
 
-var ErrNotAUrl = errors.New("not a url")
+var (
+	ErrNotAUrl   = errors.New("not a url")
+	ErrNotParsed = errors.New("not a parsed value")
+)
 
 // ParsePath parses a URL with schemes file://, env://, or any other. Depending
 // on the scheme it will return specific types of data:
@@ -18,7 +24,10 @@ var ErrNotAUrl = errors.New("not a url")
 //
 // * env:// will return a string with the env var's contents
 //
-// * Anything else will return the string as it was
+// * Anything else will return the string as it was. Functionally this means
+// anything for which Go's `url.Parse` function does not throw an error. If you
+// want to ensure that this function errors if a known scheme is not found, use
+// MustParsePath.
 //
 // On error, we return the original string along with the error. The caller can
 // switch on errors.Is(err, ErrNotAUrl) to understand whether it was the parsing
@@ -26,6 +35,16 @@ var ErrNotAUrl = errors.New("not a url")
 // useful to attempt to read a non-URL string from some resource, but where the
 // original input may simply be a valid string of that type.
 func ParsePath(path string) (string, error) {
+	return parsePath(path, false)
+}
+
+// MustParsePath behaves like ParsePath but will return ErrNotAUrl if the value
+// is not a URL with a scheme that can be parsed by this function.
+func MustParsePath(path string) (string, error) {
+	return parsePath(path, true)
+}
+
+func parsePath(path string, mustParse bool) (string, error) {
 	path = strings.TrimSpace(path)
 	parsed, err := url.Parse(path)
 	if err != nil {
@@ -40,7 +59,10 @@ func ParsePath(path string) (string, error) {
 		return strings.TrimSpace(string(contents)), nil
 	case "env":
 		return strings.TrimSpace(os.Getenv(strings.TrimPrefix(path, "env://"))), nil
+	default:
+		if mustParse {
+			return "", ErrNotParsed
+		}
+		return path, nil
 	}
-
-	return path, nil
 }

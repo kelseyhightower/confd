@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package api
 
 import "encoding/json"
@@ -44,14 +47,16 @@ type ExportedService struct {
 }
 
 // ServiceConsumer represents a downstream consumer of the service to be exported.
-// At most one of Partition or PeerName must be specified.
+// At most one of Partition or Peer must be specified.
 type ServiceConsumer struct {
 	// Partition is the admin partition to export the service to.
-	// Deprecated: PeerName should be used for both remote peers and local partitions.
 	Partition string `json:",omitempty"`
 
-	// PeerName is the name of the peer to export the service to.
-	PeerName string `json:",omitempty" alias:"peer_name"`
+	// Peer is the name of the peer to export the service to.
+	Peer string `json:",omitempty" alias:"peer_name"`
+
+	// SamenessGroup is the name of the sameness group to export the service to.
+	SamenessGroup string `json:",omitempty" alias:"sameness_group"`
 }
 
 func (e *ExportedServicesConfigEntry) GetKind() string            { return ExportedServices }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MIT
+
 package hclog
 
 import (
@@ -5,10 +8,11 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
-	//DefaultOutput is used as the default log output.
+	// DefaultOutput is used as the default log output.
 	DefaultOutput io.Writer = os.Stderr
 
 	// DefaultLevel is used as the default log level.
@@ -27,7 +31,7 @@ const (
 	// of actions in code, such as function enters/exits, etc.
 	Trace Level = 1
 
-	// Debug information for programmer lowlevel analysis.
+	// Debug information for programmer low-level analysis.
 	Debug Level = 2
 
 	// Info information about steady state operations.
@@ -43,13 +47,13 @@ const (
 	Off Level = 6
 )
 
-// Format is a simple convience type for when formatting is required. When
+// Format is a simple convenience type for when formatting is required. When
 // processing a value of this type, the logger automatically treats the first
 // argument as a Printf formatting string and passes the rest as the values
 // to be formatted. For example: L.Info(Fmt{"%d beans/day", beans}).
 type Format []interface{}
 
-// Fmt returns a Format type. This is a convience function for creating a Format
+// Fmt returns a Format type. This is a convenience function for creating a Format
 // type.
 func Fmt(str string, args ...interface{}) Format {
 	return append(Format{str}, args...)
@@ -87,6 +91,13 @@ const (
 	// the io.Writer is a tty or not.
 	ForceColor
 )
+
+// SupportsColor is an optional interface that can be implemented by the output
+// value. If implemented and SupportsColor() returns true, then AutoColor will
+// enable colorization.
+type SupportsColor interface {
+	SupportsColor() bool
+}
 
 // LevelFromString returns a Level type for the named log level, or "NoLevel" if
 // the level string is invalid. This facilitates setting the log level via
@@ -133,7 +144,7 @@ func (l Level) String() string {
 	}
 }
 
-// Logger describes the interface that must be implemeted by all loggers.
+// Logger describes the interface that must be implemented by all loggers.
 type Logger interface {
 	// Args are alternating key, val pairs
 	// keys must be strings
@@ -197,6 +208,9 @@ type Logger interface {
 	// implementation cannot update the level on the fly, it should no-op.
 	SetLevel(level Level)
 
+	// Returns the current level
+	GetLevel() Level
+
 	// Return a value that conforms to the stdlib log.Logger interface
 	StandardLogger(opts *StandardLoggerOptions) *log.Logger
 
@@ -212,6 +226,16 @@ type StandardLoggerOptions struct {
 	// [DEBUG] and strip it off before reapplying it.
 	InferLevels bool
 
+	// Indicate that some minimal parsing should be done on strings to try
+	// and detect their level and re-emit them while ignoring possible
+	// timestamp values in the beginning of the string.
+	// This supports the strings like [ERROR], [ERR] [TRACE], [WARN], [INFO],
+	// [DEBUG] and strip it off before reapplying it.
+	// The timestamp detection may result in false positives and incomplete
+	// string outputs.
+	// InferLevelsWithTimestamp is only relevant if InferLevels is true.
+	InferLevelsWithTimestamp bool
+
 	// ForceLevel is used to force all output from the standard logger to be at
 	// the specified level. Similar to InferLevels, this will strip any level
 	// prefix contained in the logged string before applying the forced level.
@@ -219,12 +243,14 @@ type StandardLoggerOptions struct {
 	ForceLevel Level
 }
 
+type TimeFunction = func() time.Time
+
 // LoggerOptions can be used to configure a new logger.
 type LoggerOptions struct {
 	// Name of the subsystem to prefix logs with
 	Name string
 
-	// The threshold for the logger. Anything less severe is supressed
+	// The threshold for the logger. Anything less severe is suppressed
 	Level Level
 
 	// Where to write the logs to. Defaults to os.Stderr if nil
@@ -248,13 +274,23 @@ type LoggerOptions struct {
 	// The time format to use instead of the default
 	TimeFormat string
 
+	// A function which is called to get the time object that is formatted using `TimeFormat`
+	TimeFn TimeFunction
+
 	// Control whether or not to display the time at all. This is required
 	// because setting TimeFormat to empty assumes the default format.
 	DisableTime bool
 
-	// Color the output. On Windows, colored logs are only avaiable for io.Writers that
+	// Color the output. On Windows, colored logs are only available for io.Writers that
 	// are concretely instances of *os.File.
 	Color ColorOption
+
+	// Only color the header, not the body. This can help with readability of long messages.
+	ColorHeaderOnly bool
+
+	// Color the header and message body fields. This can help with readability
+	// of long messages with multiple fields.
+	ColorHeaderAndFields bool
 
 	// A function which is called with the log information and if it returns true the value
 	// should not be logged.
@@ -264,9 +300,34 @@ type LoggerOptions struct {
 
 	// IndependentLevels causes subloggers to be created with an independent
 	// copy of this logger's level. This means that using SetLevel on this
-	// logger will not effect any subloggers, and SetLevel on any subloggers
-	// will not effect the parent or sibling loggers.
+	// logger will not affect any subloggers, and SetLevel on any subloggers
+	// will not affect the parent or sibling loggers.
 	IndependentLevels bool
+
+	// When set, changing the level of a logger effects only it's direct sub-loggers
+	// rather than all sub-loggers. For example:
+	// a := logger.Named("a")
+	// a.SetLevel(Error)
+	// b := a.Named("b")
+	// c := a.Named("c")
+	// b.GetLevel() => Error
+	// c.GetLevel() => Error
+	// b.SetLevel(Info)
+	// a.GetLevel() => Error
+	// b.GetLevel() => Info
+	// c.GetLevel() => Error
+	// a.SetLevel(Warn)
+	// a.GetLevel() => Warn
+	// b.GetLevel() => Warn
+	// c.GetLevel() => Warn
+	SyncParentLevel bool
+
+	// SubloggerHook registers a function that is called when a sublogger via
+	// Named, With, or ResetNamed is created. If defined, the function is passed
+	// the newly created Logger and the returned Logger is returned from the
+	// original function. This option allows customization via interception and
+	// wrapping of Logger instances.
+	SubloggerHook func(sub Logger) Logger
 }
 
 // InterceptLogger describes the interface for using a logger

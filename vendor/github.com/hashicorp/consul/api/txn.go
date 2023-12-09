@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package api
 
 import (
@@ -67,6 +70,7 @@ const (
 	KVLock           KVOp = "lock"
 	KVUnlock         KVOp = "unlock"
 	KVGet            KVOp = "get"
+	KVGetOrEmpty     KVOp = "get-or-empty"
 	KVGetTree        KVOp = "get-tree"
 	KVCheckSession   KVOp = "check-session"
 	KVCheckIndex     KVOp = "check-index"
