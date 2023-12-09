@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
@@ -36,6 +37,17 @@ func main() {
 			log.Fatal(err.Error())
 		}
 		os.Exit(0)
+	}
+
+	if config.SyncFirst {
+		for {
+			if err := template.Process(config.TemplateConfig); err != nil {
+				log.Error(err.Error())
+				time.Sleep(5 * time.Second)
+			} else {
+				break
+			}
+		}
 	}
 
 	stopChan := make(chan bool)
