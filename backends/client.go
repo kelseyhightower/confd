@@ -11,6 +11,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/file"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
+	"github.com/kelseyhightower/confd/backends/secretsmanager"
 	"github.com/kelseyhightower/confd/backends/ssm"
 	"github.com/kelseyhightower/confd/backends/vault"
 	"github.com/kelseyhightower/confd/backends/zookeeper"
@@ -83,6 +84,8 @@ func New(config Config) (StoreClient, error) {
 		return dynamodb.NewDynamoDBClient(table)
 	case "ssm":
 		return ssm.New()
+	case "secretsmanager":
+		return secretsmanager.New()
 	}
 	return nil, errors.New("Invalid backend")
 }

@@ -41,6 +41,9 @@ before_install:
   - zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
   # Run AWS SSM mocking server
   - go run ./integration/ssm/main.go &
+  # Run AWS Secretsmanager Mock Server
+  - go run ./integration/secretsmanager/main.go &
+
 install:
   - make build
   - sudo make install
