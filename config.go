@@ -11,9 +11,10 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
+
+	"github.com/xdhuxc/confd/backends"
 )
 
 type TemplateConfig = template.Config
@@ -70,6 +71,7 @@ func init() {
 	flag.StringVar(&config.Username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&config.Password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&config.Watch, "watch", false, "enable watch support")
+	flag.StringVar(&config.Profile, "profile", "", "the profile for the AWS's credentials, the default is empty")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
