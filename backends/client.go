@@ -9,6 +9,7 @@ import (
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
+	"github.com/kelseyhightower/confd/backends/google"
 	"github.com/kelseyhightower/confd/backends/rancher"
 	"github.com/kelseyhightower/confd/backends/redis"
 	"github.com/kelseyhightower/confd/backends/ssm"
@@ -62,6 +63,8 @@ func New(config Config) (StoreClient, error) {
 		return env.NewEnvClient()
 	case "file":
 		return file.NewFileClient(config.YAMLFile, config.Filter)
+	case "google":
+		return google.NewGoogleClient(backendNodes[0])
 	case "vault":
 		vaultConfig := map[string]string{
 			"app-id":    config.AppID,
