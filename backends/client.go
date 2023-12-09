@@ -2,10 +2,10 @@ package backends
 
 import (
 	"errors"
+	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"strings"
 
 	"github.com/kelseyhightower/confd/backends/consul"
-	"github.com/kelseyhightower/confd/backends/dynamodb"
 	"github.com/kelseyhightower/confd/backends/env"
 	"github.com/kelseyhightower/confd/backends/etcdv3"
 	"github.com/kelseyhightower/confd/backends/file"
@@ -80,7 +80,12 @@ func New(config Config) (StoreClient, error) {
 	case "dynamodb":
 		table := config.Table
 		log.Info("DynamoDB table set to " + table)
-		return dynamodb.NewDynamoDBClient(table)
+		if len(backendNodes) >= 1 {
+			return dynamodb.NewDynamoDBClient(backendNodes[0], table, config.Profile)
+		} else {
+			return dynamodb.NewDynamoDBClient("", table, config.Profile)
+		}
+
 	case "ssm":
 		return ssm.New()
 	}
