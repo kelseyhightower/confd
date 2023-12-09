@@ -541,6 +541,25 @@ keys = [
 		updateStore: func(tr *TemplateResource) {
 			tr.store.Set("/test/count", "3")
 		},
+	}, templateTest{
+		desc: "contains test",
+		toml: `
+[template]
+src = "test.conf.tmpl"
+dest = "./tmp/test.conf"
+keys = [
+    "/test/value/",
+]
+`,
+		tmpl: `
+isContainGolang = {{ contains "golang, java, python" (getv "/test/value") }}
+`,
+		expected: `
+isContainGolang = true
+`,
+		updateStore: func(tr *TemplateResource) {
+			tr.store.Set("/test/value", "golang")
+		},
 	},
 }
 
