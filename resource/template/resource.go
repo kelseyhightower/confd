@@ -149,8 +149,12 @@ func (t *TemplateResource) createStageFile() error {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}
 
+	destDir := filepath.Dir(t.Dest)
+	// make sure the dir is exist
+	os.MkdirAll(destDir, t.FileMode)
+
 	// create TempFile in Dest directory to avoid cross-filesystem issues
-	temp, err := ioutil.TempFile(filepath.Dir(t.Dest), "."+filepath.Base(t.Dest))
+	temp, err := ioutil.TempFile(destDir, "."+filepath.Base(t.Dest))
 	if err != nil {
 		return err
 	}
