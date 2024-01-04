@@ -25,6 +25,7 @@
 ## Building
 
 Go 1.10 is required to build confd, which uses the new vendor directory.
+For dependency management the dep program is needed (https://golang.github.io/dep/docs/installation.html).   
 
 ```
 $ mkdir -p $GOPATH/src/github.com/kelseyhightower
