@@ -46,6 +46,7 @@ func New(config Config) (StoreClient, error) {
 			config.BasicAuth,
 			config.Username,
 			config.Password,
+			config.AuthToken,
 		)
 	case "etcd":
 		// etcd v2 has been deprecated and etcdv3 is now the client for both the etcd and etcdv3 backends.
