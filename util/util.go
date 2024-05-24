@@ -49,7 +49,7 @@ func IsFileExist(fpath string) bool {
 // IsConfigChanged reports whether src and dest config files are equal.
 // Two config files are equal when they have the same file contents and
 // Unix permissions. The owner, group, and mode must match.
-// It return false in other cases.
+// It returns false in other cases.
 func IsConfigChanged(src, dest string) (bool, error) {
 	if !IsFileExist(dest) {
 		return true, nil

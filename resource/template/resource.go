@@ -162,7 +162,7 @@ func (t *TemplateResource) createStageFile() error {
 	}
 	defer temp.Close()
 
-	// Set the owner, group, and mode on the stage file now to make it easier to
+	// Set the owner, group, and mode on the staged file now to make it easier to
 	// compare against the destination configuration file later.
 	os.Chmod(temp.Name(), t.FileMode)
 	os.Chown(temp.Name(), t.Uid, t.Gid)

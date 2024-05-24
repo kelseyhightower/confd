@@ -1,5 +1,5 @@
 /*
-Package log provides support for logging to stdout and stderr.
+Package log provides support for logging into stdout and stderr.
 
 Log entries will be logged in the following format:
 
@@ -26,7 +26,7 @@ func (c *ConfdFormatter) Format(entry *log.Entry) ([]byte, error) {
 }
 
 // tag represents the application name generating the log message. The tag
-// string will appear in all log entires.
+// string will appear in all log entries.
 var tag string
 
 func init() {

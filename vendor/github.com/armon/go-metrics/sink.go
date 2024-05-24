@@ -8,7 +8,7 @@ import (
 // The MetricSink interface is used to transmit metrics information
 // to an external system
 type MetricSink interface {
-	// A Gauge should retain the last value it is set to
+	// A Gauge should retain the last value which it is set to
 	SetGauge(key []string, val float32)
 	SetGaugeWithLabels(key []string, val float32, labels []Label)
 
@@ -104,8 +104,8 @@ var sinkRegistry = map[string]sinkURLFactoryFunc{
 }
 
 // NewMetricSinkFromURL allows a generic URL input to configure any of the
-// supported sinks. The scheme of the URL identifies the type of the sink, the
-// and query parameters are used to set options.
+// supported sinks. The scheme of the URL identifies the type of the sink,
+// and query parameters used to set options.
 //
 // "statsd://" - Initializes a StatsdSink. The host and port are passed through
 // as the "addr" of the sink

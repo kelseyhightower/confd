@@ -22,7 +22,7 @@ aws ssm put-parameter --name "/prefix/database/username" --type "String" --value
 aws ssm put-parameter --name "/prefix/upstream/app1" --type "String" --value "10.0.1.10:8080" --endpoint-url $SSM_ENDPOINT_URL
 aws ssm put-parameter --name "/prefix/upstream/app2" --type "String" --value "10.0.1.11:8080" --endpoint-url $SSM_ENDPOINT_URL
 
-# Run confd, expect it to work
+# Run confd, expecting it to work
 confd --onetime --log-level debug --confdir ./integration/confdir --interval 5 --backend ssm --table confd
 if [ $? -ne 0 ]
 then

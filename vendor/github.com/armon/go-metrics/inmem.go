@@ -257,7 +257,7 @@ func (i *InmemSink) Data() []*IntervalMetrics {
 	for k, v := range current.Gauges {
 		copyCurrent.Gauges[k] = v
 	}
-	// saved values will be not change, just copy its link
+	// saved values will not be changed, just copy its link
 	copyCurrent.Points = make(map[string][]float32, len(current.Points))
 	for k, v := range current.Points {
 		copyCurrent.Points[k] = v

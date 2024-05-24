@@ -125,7 +125,7 @@ func Reverse(values interface{}) interface{} {
 }
 
 // Getenv retrieves the value of the environment variable named by the key.
-// It returns the value, which will the default value if the variable is not present.
+// It returns the value, which will be the default value if the variable is not present.
 // If no default value was given - returns "".
 func Getenv(key string, v ...string) string {
 	defaultValue := ""

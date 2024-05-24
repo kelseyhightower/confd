@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// We force flush the statsite metrics after this period of
+	// We force to flush the statsite metrics after this period of
 	// inactivity. Prevents stats from getting stuck in a buffer
 	// forever.
 	flushInterval = 100 * time.Millisecond

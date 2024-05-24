@@ -178,7 +178,7 @@ func (m *Metrics) Shutdown() {
 	}
 }
 
-// labelIsAllowed return true if a should be included in metric
+// labelIsAllowed returns true if a should be included in metric
 // the caller should lock m.filterLock while calling this method
 func (m *Metrics) labelIsAllowed(label *Label) bool {
 	labelName := (*label).Name
@@ -277,7 +277,7 @@ func (m *Metrics) EmitRuntimeStats() {
 
 // Creates a new slice with the provided string value as the first element
 // and the provided slice values as the remaining values.
-// Ordering of the values in the provided input slice is kept in tact in the output slice.
+// Ordering of the values in the provided input slice is kept intact in the output slice.
 func insert(i int, v string, s []string) []string {
 	// Allocate new slice to avoid modifying the input slice
 	newS := make([]string, len(s)+1)

@@ -12,7 +12,7 @@ import (
 
 // createRecursiveDirs is a helper function which creates temporary directorie
 // has sub directories, and files with different extionname which will be used
-// fo function findrecursiveFindFiles's test case.The result looks like:
+// for function findrecursiveFindFiles's test case.The result looks like:
 // ├── root.other1
 // ├── root.toml
 // ├── subDir1

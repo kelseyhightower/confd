@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-// filestat return a FileInfo describing the named file.
+// filestat returns a FileInfo describing the named file.
 func FileStat(name string) (fi FileInfo, err error) {
 	if IsFileExist(name) {
 		f, err := os.Open(name)

@@ -52,7 +52,7 @@ func (source *SampledValue) deepCopy() SampledValue {
 	return dest
 }
 
-// DisplayMetrics returns a summary of the metrics from the most recent finished interval.
+// DisplayMetrics returns a summary of the metrics from the most recently finished interval.
 func (i *InmemSink) DisplayMetrics(resp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	data := i.Data()
 
@@ -65,7 +65,7 @@ func (i *InmemSink) DisplayMetrics(resp http.ResponseWriter, req *http.Request) 
 		// Show the current interval if it's all we have
 		interval = data[0]
 	default:
-		// Show the most recent finished interval if we have one
+		// Show the most recently finished interval if we have one
 		interval = data[n-2]
 	}
 
