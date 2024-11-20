@@ -46,6 +46,7 @@ type TemplateResource struct {
 	Keys          []string
 	Mode          string
 	Prefix        string
+	Prefixes      []string
 	ReloadCmd     string `toml:"reload_cmd"`
 	Src           string
 	StageFile     *os.File
@@ -113,21 +114,38 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 
 // setVars sets the Vars for template resource.
 func (t *TemplateResource) setVars() error {
-	var err error
 	log.Debug("Retrieving keys from store")
-	log.Debug("Key prefix set to " + t.Prefix)
-
-	result, err := t.storeClient.GetValues(util.AppendPrefix(t.Prefix, t.Keys))
-	if err != nil {
-		return err
-	}
-	log.Debug("Got the following map from store: %v", result)
+	log.Debug("Key prefix set to '" + t.Prefix + "'.")
+	log.Debug("Key prefixes set to '" + strings.Join(t.Prefixes, "', '") + "'.")
 
 	t.store.Purge()
 
-	for k, v := range result {
-		t.store.Set(path.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
+	var prefixes []string
+
+	if len(t.Prefixes) != 0 {
+		prefixes = t.Prefixes
+	} else {
+		prefixes = []string{t.Prefix}
 	}
+
+	for _, prefix := range prefixes {
+		log.Debug("Loading values from '" + prefix + "'")
+
+		var err error
+		result, err := t.storeClient.GetValues(util.AppendPrefix(prefix, t.Keys))
+		if err != nil {
+			return err
+		}
+
+		log.Debug("Got the following map from store: %v", result)
+
+		for k, v := range result {
+			p := path.Join("/", strings.TrimPrefix(k, prefix))
+			log.Debug("Setting key='" + p + "', val='" + v + "'")
+			t.store.Set(p, v)
+		}
+	}
+
 	return nil
 }
 
