@@ -71,7 +71,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: 1.21.6
+          go-version: 1.24.7
 
       - name: Build and Install
         run: |
